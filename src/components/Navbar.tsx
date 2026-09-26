@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
                 ViệtPhục Remix Lab
               </span>
               <span className="text-[11px] font-sans font-medium text-[#94A3B8] tracking-normal mt-0.5">
-                Studio phối đồ đương đại & thẩm định di sản
+                Studio phối đồ đương đại & tham chiếu văn hóa
               </span>
             </div>
           </a>
@@ -85,7 +85,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab }) => {
             }`}
           >
             <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'ckb' ? 'text-[#F59E0B]' : 'text-[#64748B]'}`} />
-            <span>Quy thức di sản</span>
+            <span>Quy tắc tham chiếu</span>
           </button>
         </nav>
       </div>

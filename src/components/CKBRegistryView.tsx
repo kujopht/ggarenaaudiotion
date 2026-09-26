@@ -27,16 +27,16 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#F59E0B] uppercase tracking-wider">
-              KHO QUY THỨC DI SẢN (CKB)
+              QUY TẮC THAM CHIẾU VĂN HÓA
             </span>
             <span className="text-[#64748B]">·</span>
-            <span className="text-xs text-[#94A3B8]">12 Điều khoản chuẩn hóa</span>
+            <span className="text-xs text-[#94A3B8]">12 Điều khoản tham chiếu</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] tracking-tight">
-            Cultural Knowledge Base (CKB) Triều Nguyễn
+            Quy tắc tham chiếu cổ phục triều Nguyễn (CKB)
           </h2>
           <p className="text-sm text-[#94A3B8] max-w-2xl leading-relaxed">
-            Nguồn đối chiếu chuẩn mực duy nhất được Auditor sử dụng để thẩm định tính hợp thức di sản, bảo lưu các quy thức cốt lõi và hướng dẫn vùng sáng tạo an toàn.
+            Nguồn tài liệu tham chiếu được sử dụng để đối chiếu tính phù hợp với quy tắc tham chiếu của bản thử nghiệm, bảo lưu các quy thức cốt lõi và hướng dẫn vùng sáng tạo an toàn.
           </p>
         </div>
       </div>

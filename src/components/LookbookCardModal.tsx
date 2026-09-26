@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { OutfitProposal } from '../types/vietphuc';
-import { X, Share2, Check, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { X, Share2, Check, ShieldCheck, AlertTriangle, HelpCircle } from 'lucide-react';
 import { GarmentSchematic } from './GarmentSchematic';
 
 interface LookbookCardModalProps {
@@ -73,7 +73,7 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
           <div className="p-4 bg-[#161920] border border-[#272D3A] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="space-y-1">
               <div className="text-xs font-mono text-[#14B8A6] uppercase tracking-wider font-semibold">
-                CHỨNG THƯ THẨM ĐỊNH DI SẢN
+                GHI CHÚ THAM CHIẾU VĂN HÓA
               </div>
               <p className="text-xs sm:text-sm text-[#CBD5E1] italic font-serif">
                 "{proposal.audit.auditor_verdict}"
@@ -84,13 +84,19 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
               {proposal.audit.status === 'Supported' && (
                 <div className="px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg font-semibold text-xs flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
-                  <span>HỢP THỨC DI SẢN</span>
+                  <span>Phù hợp quy tắc tham chiếu</span>
                 </div>
               )}
               {proposal.audit.status === 'Supported with Caution' && (
                 <div className="px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg font-semibold text-xs flex items-center gap-1.5">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span>CÓ LƯU Ý</span>
+                  <span>Có điểm cần lưu ý</span>
+                </div>
+              )}
+              {proposal.audit.status === 'Insufficient Evidence' && (
+                <div className="px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg font-semibold text-xs flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4 text-rose-400" />
+                  <span>Chưa đủ dữ liệu tham chiếu</span>
                 </div>
               )}
             </div>

@@ -18,7 +18,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
               ViệtPhục Remix Lab
             </span>
             <p className="text-xs text-[#64748B] mt-0.5 max-w-md leading-relaxed">
-              Studio đồng sáng tạo thời trang đương đại song hành cùng chuyên gia thẩm định di sản văn hóa Việt phục chuẩn mực.
+              Studio đồng sáng tạo thời trang đương đại song hành cùng ghi chú tham chiếu văn hóa Việt phục.
             </p>
           </div>
         </div>
@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
             onClick={onOpenCKB}
             className="hover:text-[#2DD4BF] transition-colors cursor-pointer"
           >
-            Hồ sơ quy thức di sản
+            Hồ sơ quy tắc tham chiếu
           </button>
           <button
             onClick={onScrollToTop}

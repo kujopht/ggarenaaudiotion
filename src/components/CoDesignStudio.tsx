@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GarmentKey, OutfitProposal } from '../types/vietphuc';
 import { GarmentSchematic } from './GarmentSchematic';
 import { CulturalAuditPanel } from './CulturalAuditPanel';
-import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, RefreshCw, Shirt } from 'lucide-react';
+import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
 
 interface CoDesignStudioProps {
   proposals: OutfitProposal[];
@@ -26,7 +26,7 @@ interface CoDesignStudioProps {
 }
 
 const DIAL_LEVELS = [
-  { level: 1, label: 'Nguyên bản di sản', short: 'Nguyên bản', desc: 'Bảo lưu trọn vẹn chất liệu gấm, lụa tơ tằm cổ truyền và quy thức khuy cài chuẩn mực.' },
+  { level: 1, label: 'Nguyên bản tham chiếu', short: 'Nguyên bản', desc: 'Bảo lưu trọn vẹn chất liệu gấm, lụa tơ tằm cổ truyền và quy thức khuy cài chuẩn mực.' },
   { level: 2, label: 'Tối giản đương đại', short: 'Tối giản', desc: 'Thay bằng linen thô mộc, cotton dệt thoáng mát, phom dáng nhẹ nhàng thường nhật.' },
   { level: 3, label: 'Phố thị đương đại', short: 'Đường phố', desc: 'Phối denim selvedge thô, quần tây ống suông rộng, bốt da chunky trẻ trung.' },
   { level: 4, label: 'May đo cao cấp', short: 'May đo', desc: 'Dáng áo khoác duster coat mở tà bay bổng, phối layer blazer và chân váy xếp ly.' },
@@ -100,15 +100,56 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   const [showAdvancedNotes, setShowAdvancedNotes] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Request lifecycle management refs to invalidate late/stale responses
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeGarmentRef = useRef<GarmentKey>(selectedGarment);
+  const activeReqIdRef = useRef<number>(0);
+
+  activeGarmentRef.current = selectedGarment;
+
+  // Abort ongoing request on component unmount (e.g. tab change)
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // When garment changes, abort any ongoing in-flight request and reset loading/error
+  useEffect(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
+    setErrorMsg(null);
+  }, [selectedGarment]);
+
   const handleGenerateOutfits = async () => {
+    // 3. Prevent duplicate requests inside handler
+    if (loading) return;
+
+    // Abort previous in-flight request if still running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const reqId = ++activeReqIdRef.current;
+    const targetGarment = selectedGarment;
+
     setLoading(true);
     setErrorMsg(null);
+
     try {
       const res = await fetch('/api/remix/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          garment: selectedGarment,
+          garment: targetGarment,
           context,
           style,
           dial_level: dialLevel,
@@ -121,22 +162,41 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
       }
 
       const data = await res.json();
+
+      // Check if this request is still the active one and garment has not changed
+      if (
+        controller.signal.aborted ||
+        reqId !== activeReqIdRef.current ||
+        activeGarmentRef.current !== targetGarment
+      ) {
+        return;
+      }
+
       if (data.proposals && data.proposals.length > 0) {
-        onUpdateProposals(data.proposals, data.source || 'gemini');
+        // 1. Only pass actual source, no 'gemini' default fallback
+        onUpdateProposals(data.proposals, data.source || '');
       } else {
         throw new Error('Không nhận được dữ liệu thiết kế từ hệ thống.');
       }
     } catch (err: any) {
-      console.error('Failed to generate outfits:', err);
-      setErrorMsg(err.message || 'Lỗi kết nối khi phối đồ.');
+      if (err.name === 'AbortError' || controller.signal.aborted) {
+        // Request was aborted cleanly, do nothing
+        return;
+      }
+      if (reqId === activeReqIdRef.current && activeGarmentRef.current === targetGarment) {
+        console.error('Failed to generate outfits:', err);
+        setErrorMsg(err.message || 'Lỗi kết nối khi phối đồ.');
+      }
     } finally {
-      setLoading(false);
+      if (reqId === activeReqIdRef.current && !controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
   const currentProposal = proposals[selectedPlanIndex] || null;
 
-  // Format source badge display safely
+  // 1. Format source badge display safely (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
     if (proposalSource === 'gemini') {
       return (
@@ -155,14 +215,22 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
     }
     return (
       <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
-        Nguồn: Chưa xác định
+        Nguồn chưa xác định
       </span>
     );
   };
 
+  // Determine caution status for the quick summary strip under look title
+  const hasCaution = Boolean(
+    currentProposal &&
+    (currentProposal.audit.status === 'Supported with Caution' ||
+      (currentProposal.audit.cautions_and_redlines && currentProposal.audit.cautions_and_redlines.length > 0))
+  );
+  const isInsufficient = Boolean(currentProposal && currentProposal.audit.status === 'Insufficient Evidence');
+
   return (
     <div className="space-y-6">
-      {/* Studio Header: Clear intro for newcomers */}
+      {/* Studio Header */}
       <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -174,7 +242,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             Tạo bản phối Việt phục theo phong cách riêng của bạn
           </h2>
           <p className="text-sm sm:text-base text-[#94A3B8] max-w-2xl leading-relaxed">
-            Chọn loại áo cổ truyền, dịp mặc và mức độ phá cách mong muốn. Hệ thống sẽ khởi tạo 2 phương án thiết kế độc đáo kèm thẩm định chuẩn mực di sản.
+            Chọn loại áo cổ truyền, dịp mặc và mức độ phá cách mong muốn. Hệ thống sẽ khởi tạo 2 phương án thiết kế độc đáo kèm ghi chú tham chiếu văn hóa.
           </p>
         </div>
 
@@ -183,7 +251,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             onClick={() => onOpenCKB()}
             className="text-xs font-medium text-[#2DD4BF] hover:text-white bg-[#0D9488]/10 hover:bg-[#0D9488]/20 border border-[#0D9488]/30 px-3 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5"
           >
-            <span>Xem nguồn quy thức di sản</span>
+            <span>Xem quy tắc tham chiếu</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -357,7 +425,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               {loading ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Đang phối đồ & thẩm định...</span>
+                  <span>Đang phối đồ & tham chiếu...</span>
                 </>
               ) : (
                 <>
@@ -407,7 +475,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   Chưa có bản phối nào cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
                 </h3>
                 <p className="text-sm text-[#94A3B8] leading-relaxed">
-                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#2DD4BF]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm lời khuyên từ stylist và chứng thư thẩm định di sản.
+                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#2DD4BF]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm lời khuyên từ stylist và ghi chú tham chiếu văn hóa.
                 </p>
               </div>
               <button
@@ -425,7 +493,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
               {/* Proposal Header Banner */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#272D3A] gap-4">
-                <div className="space-y-1">
+                <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#14B8A6]">
                       {currentProposal.concept_tag}
@@ -436,10 +504,48 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] leading-snug">
                     {currentProposal.title}
                   </h3>
+
+                  {/* 4. Quick Cultural Reference & Caution Summary Strip directly under Look Title */}
+                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#14171E] p-2.5 rounded-xl border border-[#232834]">
+                    <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                      {hasCaution ? (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1 shrink-0">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                          Có điểm cần lưu ý
+                        </span>
+                      ) : isInsufficient ? (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300 flex items-center gap-1 shrink-0">
+                          <HelpCircle className="w-3.5 h-3.5 text-rose-400" />
+                          Chưa đủ dữ liệu tham chiếu
+                        </span>
+                      ) : (
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] flex items-center gap-1 shrink-0">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                          Phù hợp quy tắc tham chiếu
+                        </span>
+                      )}
+
+                      <span className="text-xs text-[#94A3B8] truncate">
+                        {hasCaution
+                          ? (currentProposal.audit.cautions_and_redlines?.[0] || 'Cần chú ý một số điểm biến tấu.')
+                          : isInsufficient
+                          ? (currentProposal.audit.uncertainty_note || 'Chi tiết này chưa có trong dữ liệu tham chiếu.')
+                          : currentProposal.audit.auditor_verdict}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => setDetailTab('audit')}
+                      className="text-xs font-semibold text-[#2DD4BF] hover:text-[#5EEAD4] flex items-center gap-1 shrink-0 cursor-pointer min-h-[32px] px-2 py-1 rounded-lg hover:bg-[#222834] transition-colors"
+                    >
+                      <span>Xem giải thích</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Direct Action Buttons near Result */}
-                <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap self-start sm:self-center">
                   {/* Button to test modifications on this active look */}
                   <button
                     onClick={onNavigateToWhatIf}
@@ -460,7 +566,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 </div>
               </div>
 
-              {/* Garment Visual Canvas Viewport (Presented as Structural Exploration) */}
+              {/* Garment Visual Canvas Viewport */}
               <div className="rounded-xl overflow-hidden border border-[#272D3A]">
                 <GarmentSchematic
                   garment={currentProposal.garment_type}
@@ -473,7 +579,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 </div>
               </div>
 
-              {/* Detail Tabs Switcher: Styling vs Cultural Audit */}
+              {/* Detail Tabs Switcher: Styling vs Cultural Reference */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 border-b border-[#272D3A] pb-2">
                   <button
@@ -495,7 +601,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                         : 'text-[#94A3B8] hover:text-[#E2E8F0]'
                     }`}
                   >
-                    <span>Thẩm định di sản</span>
+                    <span>Tham chiếu văn hóa</span>
                     <span className={`w-2 h-2 rounded-full ${
                       currentProposal.audit.status === 'Supported'
                         ? 'bg-[#10B981]'
@@ -557,9 +663,9 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                           </div>
                           <div>
                             <span className="text-[#64748B] block text-[11px] uppercase">Bảng màu chính</span>
-                            <div className="flex items-center gap-1.5 mt-1">
+                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                               {currentProposal.visual_details.color_palette.map((color, i) => (
-                                <span key={i} className="text-xs px-2 py-0.5 rounded bg-[#222834] text-[#CBD5E1] border border-[#2E3646]">
+                                <span key={i} className="text-xs px-2.5 py-1 rounded-lg bg-[#222834] text-[#CBD5E1] border border-[#2E3646]">
                                   {color}
                                 </span>
                               ))}
@@ -592,7 +698,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   </div>
                 )}
 
-                {/* Tab Content: Cultural Heritage Audit */}
+                {/* Tab Content: Cultural Reference */}
                 {detailTab === 'audit' && (
                   <div className="animate-in fade-in duration-150">
                     <CulturalAuditPanel

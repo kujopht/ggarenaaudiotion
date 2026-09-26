@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
-import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw } from 'lucide-react';
+import { Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw, HelpCircle } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
@@ -59,9 +59,9 @@ const PRESET_QUERIES = [
     garment: 'ngu_than' as GarmentKey,
     garmentLabel: 'Áo Ngũ Thân',
     query: 'What if thêu hình chim Lạc trống đồng thời Đông Sơn và rồng thời Lý lên tà áo ngũ thân?',
-    badge: 'NGOÀI SỬ LIỆU',
+    badge: 'NGOÀI DỮ LIỆU',
     badgeType: 'insufficient',
-    hint: 'Thiếu chứng cứ sử liệu',
+    hint: 'Chưa có trong dữ liệu tham chiếu',
   },
 ];
 
@@ -70,7 +70,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   activeProposal,
   onOpenCKB,
 }) => {
-  // Local detachment flag: if true, user has deliberately detached WhatIf to standalone mode,
+  // Local detachment flag: if true, user has detached WhatIf to standalone mode,
   // without deleting the proposals in Studio!
   const [isDetached, setIsDetached] = useState<boolean>(false);
 
@@ -85,8 +85,19 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   const [evaluationSource, setEvaluationSource] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeReqIdRef = useRef<number>(0);
   const activeProposalId = effectiveActiveProposal?.id ?? null;
-  const prevProposalIdRef = React.useRef(activeProposalId);
+  const prevProposalIdRef = useRef(activeProposalId);
+
+  // Abort on component unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Sync garment and clear previous evaluation when target proposal changes
   useEffect(() => {
@@ -98,6 +109,11 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
     if (prevProposalIdRef.current !== activeProposalId) {
       prevProposalIdRef.current = activeProposalId;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+      setLoading(false);
       setEvaluation(null);
       setEvaluationSource(null);
       setQueryInput('');
@@ -105,8 +121,13 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     }
   }, [effectiveActiveProposal, activeProposalId, currentGarment]);
 
-  // Handle user detaching WhatIf to standalone mode (DOES NOT DELETE STUDIO PROPOSALS)
+  // Handle user detaching WhatIf to standalone mode
   const handleDetachToStandalone = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
     setIsDetached(true);
     setEvaluation(null);
     setEvaluationSource(null);
@@ -116,6 +137,11 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
   // Handle re-attaching the active proposal from Studio
   const handleReattachStudioProposal = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setLoading(false);
     setIsDetached(false);
     setEvaluation(null);
     setEvaluationSource(null);
@@ -124,7 +150,20 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   };
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
+    // 3. Prevent duplicate requests inside handler
+    if (loading) return;
     if (!queryText.trim()) return;
+
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const reqId = ++activeReqIdRef.current;
+    const outfitAtRequestTime = effectiveActiveProposal;
+    const garmentAtRequestTime = targetGarment;
+
     setLoading(true);
     setErrorMsg(null);
     setQueryInput(queryText);
@@ -133,11 +172,12 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       const res = await fetch('/api/remix/what-if', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
-          garment: targetGarment,
+          garment: garmentAtRequestTime,
           query: queryText,
           // Only send current_outfit if not detached and activeProposal exists
-          current_outfit: effectiveActiveProposal || undefined,
+          current_outfit: outfitAtRequestTime || undefined,
         }),
       });
 
@@ -146,20 +186,39 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       }
 
       const data = await res.json();
+
+      // Check if request was aborted, or target changed, or a new request was fired
+      if (
+        controller.signal.aborted ||
+        reqId !== activeReqIdRef.current ||
+        (effectiveActiveProposal?.id !== outfitAtRequestTime?.id)
+      ) {
+        return;
+      }
+
       if (data.evaluation) {
         setEvaluation(data.evaluation);
-        setEvaluationSource(data.source || 'gemini');
+        // 1. Only pass actual source, no 'gemini' default fallback
+        setEvaluationSource(data.source || '');
       } else {
         throw new Error('Không nhận được dữ liệu đánh giá từ máy chủ.');
       }
     } catch (err: any) {
-      console.error('Failed to run What-If evaluation:', err);
-      setErrorMsg(err.message || 'Lỗi kết nối khi gửi yêu cầu What-If.');
+      if (err.name === 'AbortError' || controller.signal.aborted) {
+        return;
+      }
+      if (reqId === activeReqIdRef.current) {
+        console.error('Failed to run What-If evaluation:', err);
+        setErrorMsg(err.message || 'Lỗi kết nối khi gửi yêu cầu What-If.');
+      }
     } finally {
-      setLoading(false);
+      if (reqId === activeReqIdRef.current && !controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
+  // 1. Format source badge display safely (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
     if (evaluationSource === 'gemini') {
       return (
@@ -178,7 +237,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     }
     return (
       <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
-        Nguồn: Chưa xác định
+        Nguồn chưa xác định
       </span>
     );
   };
@@ -197,7 +256,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             "What If...?" Thử nghiệm mọi thay đổi & tìm giải pháp thay thế
           </h2>
           <p className="text-sm sm:text-base text-[#94A3B8] max-w-2xl leading-relaxed">
-            Bạn muốn thay đổi kiểu cổ, dời khuy cài hay phối hoa văn mới? Đặt câu hỏi để hệ thống thẩm định tác động và đề xuất giải pháp thay thế (Stylist Counter-Proposal) chuẩn mực.
+            Bạn muốn thay đổi kiểu cổ, dời khuy cài hay phối hoa văn mới? Đặt câu hỏi để hệ thống đối chiếu với quy tắc tham chiếu và đề xuất giải pháp thay thế (Stylist Counter-Proposal) hợp lý.
           </p>
         </div>
       </div>
@@ -273,8 +332,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             return (
               <button
                 key={idx}
-                disabled={isConflict}
+                disabled={isConflict || loading}
                 onClick={() => {
+                  if (loading || isConflict) return;
                   if (!effectiveActiveProposal) {
                     setSelectedGarment(item.garment);
                   }
@@ -283,6 +343,8 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                 className={`text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
                   isConflict
                     ? 'opacity-40 cursor-not-allowed bg-[#14161C] border-[#20242E]'
+                    : loading
+                    ? 'opacity-60 cursor-wait bg-[#161920] border-[#272D3A]'
                     : 'bg-[#161920] border-[#272D3A] hover:border-[#14B8A6] hover:bg-[#1C212B] cursor-pointer group'
                 }`}
               >
@@ -340,7 +402,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <select
               value={selectedGarment}
               onChange={(e) => setSelectedGarment(e.target.value as GarmentKey)}
-              disabled={!!effectiveActiveProposal}
+              disabled={!!effectiveActiveProposal || loading}
               className={`w-full text-sm font-medium bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] focus:outline-none focus:border-[#14B8A6] min-h-[44px] ${
                 effectiveActiveProposal ? 'opacity-60 cursor-not-allowed' : ''
               }`}
@@ -358,10 +420,16 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <input
               type="text"
               value={queryInput}
+              disabled={loading}
               onChange={(e) => setQueryInput(e.target.value)}
               placeholder="VD: What if đổi vải áo sang dạ tweed và cắt tà áo ngắn ngang thắt lưng?"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleRunWhatIf(queryInput);
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (!loading && queryInput.trim()) {
+                    handleRunWhatIf(queryInput);
+                  }
+                }
               }}
               className="w-full text-sm bg-[#161920] border border-[#2B3342] rounded-xl px-3.5 py-2.5 text-[#E2E8F0] placeholder:text-[#64748B] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
             />
@@ -375,7 +443,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             {loading ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang thẩm định...</span>
+                <span>Đang đối chiếu...</span>
               </>
             ) : (
               <>
@@ -401,7 +469,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-mono uppercase tracking-wider text-[#94A3B8]">
-                  Kết quả phản biện di sản
+                  Kết quả tham chiếu văn hóa
                 </span>
                 {renderSourceBadge()}
               </div>
@@ -415,19 +483,19 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               {evaluation.status === 'Supported' && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
                   <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
-                  <span>HỢP THỨC DI SẢN</span>
+                  <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
                 </div>
               )}
               {evaluation.status === 'Supported with Caution' && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span>CÓ ĐIỂM CẦN LƯU Ý</span>
+                  <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
                 </div>
               )}
               {evaluation.status === 'Insufficient Evidence' && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
                   <HelpCircle className="w-4 h-4 text-rose-400" />
-                  <span>THIẾU SỬ LIỆU XÁC THỰC</span>
+                  <span>Chưa đủ dữ liệu tham chiếu</span>
                 </div>
               )}
             </div>
@@ -438,10 +506,10 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs sm:text-sm text-rose-200">
               <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
                 <AlertOctagon className="w-4 h-4 text-rose-400" />
-                <span>Chi tiết nằm ngoài sử liệu xác thực</span>
+                <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
               </div>
               <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
-                Chi tiết hoặc họa tiết bạn hỏi chưa có tài liệu xác thực trong kho tri thức di sản. Cần lưu ý đây là sáng tác tự do đương đại, tránh ngộ nhận là trang phục cổ truyền.
+                Chi tiết hoặc họa tiết bạn hỏi chưa có tài liệu xác thực trong dữ liệu tham chiếu của bản thử nghiệm. Cần lưu ý đây là sáng tác tự do đương đại.
               </p>
             </div>
           )}
@@ -451,7 +519,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs sm:text-sm text-amber-200 space-y-1.5">
               <div className="font-semibold flex items-center gap-1.5 text-amber-300">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <span>Cảnh báo điểm vi phạm cốt lõi:</span>
+                <span>Điểm cần lưu ý theo quy tắc tham chiếu:</span>
               </div>
               <ul className="list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm pl-1 leading-relaxed">
                 {evaluation.cautions_and_redlines.map((c, i) => (
@@ -464,7 +532,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           {/* Cultural Impact Analysis */}
           <div className="p-4 bg-[#161920] border border-[#272D3A] rounded-xl space-y-1.5">
             <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6] font-semibold block">
-              Phân tích tác động văn hóa
+              Phân tích tham chiếu văn hóa
             </span>
             <p className="text-sm sm:text-base text-[#E2E8F0] leading-relaxed font-serif">
               {evaluation.impact_analysis}
@@ -473,14 +541,14 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
           {/* Relevant Evidence Badges */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-[#94A3B8]">Dẫn chứng di sản liên quan:</span>
+            <span className="text-[#94A3B8]">Dẫn chứng quy tắc liên quan:</span>
             {evaluation.violated_evidence_ids.map((id) => (
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
                 className="font-mono text-xs font-semibold px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/40 rounded-lg hover:bg-rose-500/25 cursor-pointer"
               >
-                Vi phạm: {id}
+                Cần lưu ý: {id}
               </button>
             ))}
             {evaluation.applicable_evidence_ids.map((id) => (
@@ -522,7 +590,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <div className="space-y-1.5">
                 <span className="font-semibold text-[#10B981] flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
-                  Bảo toàn di sản
+                  Bảo toàn quy tắc tham chiếu
                 </span>
                 <p className="text-[#94A3B8] leading-relaxed text-xs sm:text-sm">
                   {evaluation.stylist_counter_proposal.heritage_safeguard}

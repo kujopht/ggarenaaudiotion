@@ -20,10 +20,10 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#2A313E] gap-3">
         <div>
           <span className="text-xs font-mono text-[#14B8A6] font-semibold tracking-wide block mb-0.5">
-            THẨM ĐỊNH DI SẢN
+            GHI CHÚ THAM CHIẾU VĂN HÓA
           </span>
           <h4 className="text-base font-serif font-bold text-[#F1F5F9]">
-            Tóm tắt mức độ hợp thức di sản
+            Tóm tắt mức độ phù hợp với quy tắc tham chiếu
           </h4>
         </div>
 
@@ -32,21 +32,21 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
           {isSupported && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
               <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
-              <span>HỢP THỨC DI SẢN</span>
+              <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
             </div>
           )}
 
           {isCaution && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span>CÓ ĐIỂM CẦN LƯU Ý</span>
+              <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
             </div>
           )}
 
           {isInsufficient && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
               <HelpCircle className="w-4 h-4 text-rose-400" />
-              <span>THIẾU SỬ LIỆU XÁC THỰC</span>
+              <span>Chưa đủ dữ liệu tham chiếu</span>
             </div>
           )}
         </div>
@@ -57,10 +57,10 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 text-rose-200 rounded-lg text-sm">
           <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
             <AlertOctagon className="w-4 h-4 text-rose-400" />
-            <span>Chi tiết nằm ngoài sử liệu xác thực</span>
+            <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
           </div>
           <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
-            {audit.uncertainty_note || 'Chi tiết này chưa có chứng cứ trong kho tri thức lịch sử đã kiểm chứng. Nên xem đây là nét sáng tạo đương đại.'}
+            {audit.uncertainty_note || 'Chi tiết này chưa có căn cứ trong tài liệu tham chiếu hiện tại của bản thử nghiệm. Nên xem đây là nét sáng tạo tự do.'}
           </p>
         </div>
       )}
@@ -70,7 +70,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-lg text-sm text-amber-200">
           <div className="font-semibold flex items-center gap-1.5 text-amber-300 mb-1.5">
             <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>Điểm cần lưu ý đặc biệt:</span>
+            <span>Điểm cần lưu ý theo quy tắc tham chiếu:</span>
           </div>
           <ul className="space-y-1 list-disc list-inside text-amber-200/90 text-xs sm:text-sm leading-relaxed pl-1">
             {audit.cautions_and_redlines.map((caution, idx) => (
@@ -94,7 +94,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         >
           <span className="flex items-center gap-2">
             <BookOpen className="w-3.5 h-3.5 text-[#14B8A6]" />
-            <span>{showDetails ? 'Thu gọn chi tiết quy thức' : 'Xem chi tiết các quy thức cốt lõi & vùng sáng tạo'}</span>
+            <span>{showDetails ? 'Thu gọn chi tiết quy tắc' : 'Xem chi tiết các quy tắc cốt lõi & vùng sáng tạo'}</span>
           </span>
           {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
@@ -189,7 +189,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                   </button>
                 ))}
               </div>
-              <span className="text-[11px] text-[#64748B]">Đối chiếu từ Cultural Knowledge Base</span>
+              <span className="text-[11px] text-[#64748B]">Tham chiếu theo Cultural Knowledge Base (CKB) bản thử nghiệm</span>
             </div>
           </div>
         )}
