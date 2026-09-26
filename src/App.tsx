@@ -12,12 +12,18 @@ import { OutfitProposal, GarmentKey } from './types/vietphuc';
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('studio');
   const [selectedGarment, setSelectedGarment] = useState<GarmentKey>('ngu_than');
-  const [selectedProposal, setSelectedProposal] = useState<OutfitProposal | null>(null);
+  
+  // State lifted to App so proposals and provenance source are retained across tab switches
+  const [studioProposals, setStudioProposals] = useState<OutfitProposal[]>([]);
+  const [selectedPlanIndex, setSelectedPlanIndex] = useState<number>(0);
+  const [proposalSource, setProposalSource] = useState<string | null>(null);
 
   const [ckbModalOpen, setCkbModalOpen] = useState(false);
   const [highlightedCKBId, setHighlightedCKBId] = useState<string | null>(null);
   const [lookbookModalOpen, setLookbookModalOpen] = useState(false);
   const [activeLookbookProposal, setActiveLookbookProposal] = useState<OutfitProposal | null>(null);
+
+  const selectedProposal = studioProposals[selectedPlanIndex] || null;
 
   const handleOpenCKB = (evidenceId?: string) => {
     if (evidenceId) {
@@ -33,17 +39,30 @@ export default function App() {
     setLookbookModalOpen(true);
   };
 
-  const handleSelectProposal = (proposal: OutfitProposal) => {
-    setSelectedProposal(proposal);
-    setSelectedGarment(proposal.garment_type);
+  const handleSelectPlanIndex = (idx: number) => {
+    setSelectedPlanIndex(idx);
   };
 
+  const handleUpdateProposals = (newProposals: OutfitProposal[], source: string) => {
+    setStudioProposals(newProposals);
+    setSelectedPlanIndex(0);
+    setProposalSource(source);
+  };
+
+  // When user changes garment in Studio, clear old proposals + plan index + source
   const handleChangeGarment = (g: GarmentKey) => {
-    setSelectedGarment(g);
-    // If the active proposal belongs to another garment, clear it to avoid mismatch
-    if (selectedProposal && selectedProposal.garment_type !== g) {
-      setSelectedProposal(null);
+    if (selectedGarment !== g) {
+      setSelectedGarment(g);
+      setStudioProposals([]);
+      setSelectedPlanIndex(0);
+      setProposalSource(null);
     }
+  };
+
+  const handleClearActiveProposal = () => {
+    setStudioProposals([]);
+    setSelectedPlanIndex(0);
+    setProposalSource(null);
   };
 
   return (
@@ -59,8 +78,11 @@ export default function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === 'studio' && (
           <CoDesignStudio
-            activeProposal={selectedProposal}
-            onSelectProposal={handleSelectProposal}
+            proposals={studioProposals}
+            selectedPlanIndex={selectedPlanIndex}
+            onSelectPlanIndex={handleSelectPlanIndex}
+            onUpdateProposals={handleUpdateProposals}
+            proposalSource={proposalSource}
             selectedGarment={selectedGarment}
             onChangeGarment={handleChangeGarment}
             onOpenCKB={handleOpenCKB}
@@ -73,7 +95,7 @@ export default function App() {
           <WhatIfLab
             currentGarment={selectedGarment}
             activeProposal={selectedProposal}
-            onClearActiveProposal={() => setSelectedProposal(null)}
+            onClearActiveProposal={handleClearActiveProposal}
             onOpenCKB={handleOpenCKB}
           />
         )}

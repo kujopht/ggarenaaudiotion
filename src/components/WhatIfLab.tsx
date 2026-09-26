@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
-import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, Check } from 'lucide-react';
+import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
@@ -13,6 +13,7 @@ const PRESET_QUERIES = [
   {
     title: 'Cài vạt sang trái (Tả nhậm)',
     garment: 'ngu_than' as GarmentKey,
+    garmentLabel: 'Áo Ngũ Thân',
     query: 'What if đổi vạt áo và cài khuy sang bên trái (Tả nhậm) để người thuận tay trái dễ mặc?',
     badge: 'KB-RULE-01',
     badgeType: 'redline',
@@ -21,6 +22,7 @@ const PRESET_QUERIES = [
   {
     title: 'Thêu Rồng 5 móng dạo phố',
     garment: 'ao_tac' as GarmentKey,
+    garmentLabel: 'Áo Tấc',
     query: 'What if thêu họa tiết Rồng 5 móng ánh kim lên tà áo Tấc đi dự tiệc cưới và dạo phố?',
     badge: 'KB-RULE-03',
     badgeType: 'redline',
@@ -29,6 +31,7 @@ const PRESET_QUERIES = [
   {
     title: 'Đổi cổ Lập Lĩnh thành Cổ Vest V',
     garment: 'ngu_than' as GarmentKey,
+    garmentLabel: 'Áo Ngũ Thân',
     query: 'What if đổi cổ áo lập lĩnh của áo Ngũ thân thành cổ vest khoét sâu thoáng mát?',
     badge: 'KB-NGUTHAN-01',
     badgeType: 'invariant',
@@ -37,6 +40,7 @@ const PRESET_QUERIES = [
   {
     title: 'Áo Tấc Mở Khuy Làm Duster Coat',
     garment: 'ao_tac' as GarmentKey,
+    garmentLabel: 'Áo Tấc',
     query: 'What if cởi mở toàn bộ khuy áo Tấc mặc buông làm áo khoác duster coat phối với quần tây và boots?',
     badge: 'KB-TAC-03',
     badgeType: 'mutable',
@@ -45,6 +49,7 @@ const PRESET_QUERIES = [
   {
     title: 'Bỏ Dải Ngũ Sắc Ở Cổ Tay Nhật Bình',
     garment: 'nhat_binh' as GarmentKey,
+    garmentLabel: 'Áo Nhật Bình',
     query: 'What if bỏ dải màu ngũ sắc ở viền tay áo Nhật Bình để chuyển sang phối màu monochrome tối giản?',
     badge: 'KB-NHATBINH-02',
     badgeType: 'invariant',
@@ -53,6 +58,7 @@ const PRESET_QUERIES = [
   {
     title: 'Thêu Chim Lạc Thời Đông Sơn / Lý',
     garment: 'ngu_than' as GarmentKey,
+    garmentLabel: 'Áo Ngũ Thân',
     query: 'What if thêu hình chim Lạc trống đồng thời Đông Sơn và rồng thời Lý lên tà áo ngũ thân?',
     badge: 'NGOÀI CKB',
     badgeType: 'insufficient',
@@ -76,14 +82,35 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   const [evaluationSource, setEvaluationSource] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // When activeProposal changes, sync the target garment
+  const activeProposalId = activeProposal?.id ?? null;
+  const prevProposalIdRef = React.useRef(activeProposalId);
+
+  // When activeProposal changes, sync the target garment and clear previous evaluation
   useEffect(() => {
     if (activeProposal) {
       setSelectedGarment(activeProposal.garment_type);
     } else {
       setSelectedGarment(currentGarment);
     }
-  }, [activeProposal, currentGarment]);
+
+    if (prevProposalIdRef.current !== activeProposalId) {
+      prevProposalIdRef.current = activeProposalId;
+      setEvaluation(null);
+      setEvaluationSource(null);
+      setQueryInput('');
+      setErrorMsg(null);
+    }
+  }, [activeProposal, activeProposalId, currentGarment]);
+
+  const handleClearActive = () => {
+    setEvaluation(null);
+    setEvaluationSource(null);
+    setQueryInput('');
+    setErrorMsg(null);
+    if (onClearActiveProposal) {
+      onClearActiveProposal();
+    }
+  };
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
     if (!queryText.trim()) return;
@@ -98,7 +125,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         body: JSON.stringify({
           garment: targetGarment,
           query: queryText,
-          // CRITICAL: send current_outfit when user has an active look!
+          // Send current_outfit when user has an active look
           current_outfit: activeProposal || undefined,
         }),
       });
@@ -175,15 +202,13 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            {onClearActiveProposal && (
-              <button
-                onClick={onClearActiveProposal}
-                className="text-[11px] font-medium text-[#78716C] hover:text-[#991B1B] bg-white border border-[#D6CEBE] hover:border-[#991B1B] px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs"
-              >
-                <X className="w-3 h-3" />
-                <span>Bỏ chọn (Về chế độ tự do)</span>
-              </button>
-            )}
+            <button
+              onClick={handleClearActive}
+              className="text-[11px] font-medium text-[#78716C] hover:text-[#991B1B] bg-white border border-[#D6CEBE] hover:border-[#991B1B] px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+            >
+              <X className="w-3 h-3" />
+              <span>Bỏ chọn (Về chế độ tự do)</span>
+            </button>
           </div>
         </div>
       ) : (
@@ -204,54 +229,73 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <Compass className="w-4 h-4 text-[#B45309]" />
             <span>Tình Huống Giả Định Nổi Bật (Bấm Để Thử Nghiệm Ngay)</span>
           </span>
-          <span className="text-[11px] text-[#78716C] font-mono">6 kịch bản thử thách</span>
+          <span className="text-[11px] text-[#78716C] font-mono">
+            {activeProposal ? `Lọc cho ${activeProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân' : activeProposal.garment_type === 'ao_tac' ? 'Áo Tấc' : 'Áo Nhật Bình'}` : '6 kịch bản thử thách'}
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-          {PRESET_QUERIES.map((item, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                // If user didn't lock a proposal, allow switching garment with preset
-                if (!activeProposal) {
-                  setSelectedGarment(item.garment);
-                }
-                handleRunWhatIf(item.query, activeProposal ? activeProposal.garment_type : item.garment);
-              }}
-              className="text-left p-3 rounded-lg border border-[#E2DBD0] bg-white hover:border-[#991B1B] hover:shadow-xs transition-all flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <span className="text-xs font-bold text-[#1C1917] font-serif group-hover:text-[#991B1B] transition-colors">
-                    {item.title}
-                  </span>
-                  <span
-                    className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                      item.badgeType === 'redline'
-                        ? 'border-[#991B1B] text-[#991B1B] bg-[#991B1B]/10'
-                        : item.badgeType === 'invariant'
-                        ? 'border-[#065F46] text-[#065F46] bg-[#065F46]/10'
-                        : item.badgeType === 'mutable'
-                        ? 'border-[#0284C7] text-[#0284C7] bg-[#0284C7]/10'
-                        : 'border-[#64748B] text-[#64748B] bg-[#64748B]/10'
-                    }`}
-                  >
-                    {item.badge}
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#57534E] line-clamp-2 leading-relaxed">
-                  "{item.query}"
-                </p>
-              </div>
+          {PRESET_QUERIES.map((item, idx) => {
+            // When activeProposal exists, check if preset matches active look's garment
+            const isConflict = Boolean(activeProposal && item.garment !== activeProposal.garment_type);
 
-              <div className="mt-2 pt-2 border-t border-[#F2ECE0] flex items-center justify-between text-[10px] text-[#78716C]">
-                <span>{item.hint}</span>
-                <span className="text-[#991B1B] font-semibold group-hover:translate-x-0.5 transition-transform">
-                  Kiểm tra →
-                </span>
-              </div>
-            </button>
-          ))}
+            return (
+              <button
+                key={idx}
+                disabled={isConflict}
+                onClick={() => {
+                  if (!activeProposal) {
+                    setSelectedGarment(item.garment);
+                  }
+                  handleRunWhatIf(item.query, activeProposal ? activeProposal.garment_type : item.garment);
+                }}
+                className={`text-left p-3 rounded-lg border transition-all flex flex-col justify-between ${
+                  isConflict
+                    ? 'opacity-40 cursor-not-allowed bg-[#ECE7DC]/60 border-[#DDD5C5]'
+                    : 'bg-white border-[#E2DBD0] hover:border-[#991B1B] hover:shadow-xs cursor-pointer group'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className={`text-xs font-bold font-serif ${isConflict ? 'text-[#8C827A]' : 'text-[#1C1917] group-hover:text-[#991B1B]'}`}>
+                      {item.title}
+                    </span>
+                    <span
+                      className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                        item.badgeType === 'redline'
+                          ? 'border-[#991B1B] text-[#991B1B] bg-[#991B1B]/10'
+                          : item.badgeType === 'invariant'
+                          ? 'border-[#065F46] text-[#065F46] bg-[#065F46]/10'
+                          : item.badgeType === 'mutable'
+                          ? 'border-[#0284C7] text-[#0284C7] bg-[#0284C7]/10'
+                          : 'border-[#64748B] text-[#64748B] bg-[#64748B]/10'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  </div>
+                  <p className={`text-[11px] line-clamp-2 leading-relaxed ${isConflict ? 'text-[#8C827A]' : 'text-[#57534E]'}`}>
+                    "{item.query}"
+                  </p>
+                </div>
+
+                <div className="mt-2 pt-2 border-t border-[#F2ECE0] flex items-center justify-between text-[10px]">
+                  {isConflict ? (
+                    <span className="text-[#8C827A] italic">
+                      Dành cho {item.garmentLabel} (khác loại áo đang chọn)
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-[#78716C]">{item.hint}</span>
+                      <span className="text-[#991B1B] font-semibold group-hover:translate-x-0.5 transition-transform">
+                        Kiểm tra →
+                      </span>
+                    </>
+                  )}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -415,7 +459,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] rounded hover:bg-[#FECACA]"
+                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] rounded hover:bg-[#FECACA] cursor-pointer"
               >
                 Vi phạm: {id}
               </button>
@@ -424,7 +468,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-white text-[#1C1917] border border-[#D6CEBE] rounded hover:bg-[#F2ECE0]"
+                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-white text-[#1C1917] border border-[#D6CEBE] rounded hover:bg-[#F2ECE0] cursor-pointer"
               >
                 Căn cứ: {id}
               </button>

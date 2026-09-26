@@ -5,8 +5,11 @@ import { CulturalAuditPanel } from './CulturalAuditPanel';
 import { Sparkles, Sliders, Layers, Compass, Eye, ShieldCheck, Share2, Wand2, ArrowRight } from 'lucide-react';
 
 interface CoDesignStudioProps {
-  activeProposal: OutfitProposal | null;
-  onSelectProposal: (proposal: OutfitProposal) => void;
+  proposals: OutfitProposal[];
+  selectedPlanIndex: number;
+  onSelectPlanIndex: (idx: number) => void;
+  onUpdateProposals: (newProposals: OutfitProposal[], source: string) => void;
+  proposalSource: string | null;
   selectedGarment: GarmentKey;
   onChangeGarment: (g: GarmentKey) => void;
   onOpenCKB: (evidenceId?: string) => void;
@@ -65,8 +68,11 @@ const STYLE_OPTIONS = [
 ];
 
 export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
-  activeProposal,
-  onSelectProposal,
+  proposals,
+  selectedPlanIndex,
+  onSelectPlanIndex,
+  onUpdateProposals,
+  proposalSource,
   selectedGarment,
   onChangeGarment,
   onOpenCKB,
@@ -78,14 +84,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   const [style, setStyle] = useState<string>('indigo_denim');
   const [customNotes, setCustomNotes] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [proposals, setProposals] = useState<OutfitProposal[]>([]);
-  const [selectedPlanIndex, setSelectedPlanIndex] = useState<number>(0);
-  const [proposalSource, setProposalSource] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<'styling' | 'audit'>('styling');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  // NOTE: Auto-generate useEffect REMOVED to save quota as requested by user.
-  // Generation only happens when user explicitly clicks "Khởi Tạo 2 Phương Án Thiết Kế".
 
   const handleGenerateOutfits = async () => {
     setLoading(true);
@@ -109,11 +109,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
       const data = await res.json();
       if (data.proposals && data.proposals.length > 0) {
-        setProposals(data.proposals);
-        setSelectedPlanIndex(0);
-        setProposalSource(data.source || 'gemini');
-        // Lift active proposal to App state so What-If tab knows immediately
-        onSelectProposal(data.proposals[0]);
+        onUpdateProposals(data.proposals, data.source || 'gemini');
       } else {
         throw new Error('Không nhận được dữ liệu thiết kế từ hệ thống.');
       }
@@ -125,14 +121,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
     }
   };
 
-  const currentProposal = proposals[selectedPlanIndex] || activeProposal || null;
-
-  const handleSwitchPlan = (idx: number) => {
-    setSelectedPlanIndex(idx);
-    if (proposals[idx]) {
-      onSelectProposal(proposals[idx]);
-    }
-  };
+  const currentProposal = proposals[selectedPlanIndex] || null;
 
   return (
     <div className="space-y-6">
@@ -347,8 +336,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 return (
                   <button
                     key={prop.id}
-                    onClick={() => handleSwitchPlan(idx)}
-                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                    onClick={() => onSelectPlanIndex(idx)}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                       isActive
                         ? 'bg-[#1C1917] text-white shadow-sm'
                         : 'bg-white border border-[#E2DBD0] text-[#57534E] hover:text-[#1C1917]'
@@ -372,15 +361,15 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
               <div className="max-w-md mx-auto space-y-1">
                 <h3 className="text-base font-serif font-bold text-[#1C1917]">
-                  Chưa Có Thiết Kế Nào Được Khởi Tạo
+                  Chưa Có Thiết Kế Nào Cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
                 </h3>
                 <p className="text-xs text-[#57534E] leading-relaxed">
-                  Hãy chọn loại cổ phục, nấc phá cách (Dial) và bấm nút <strong className="text-[#1C1917]">"Khởi Tạo 2 Phương Án Thiết Kế"</strong> ở bên trái để xưởng bắt đầu sáng tạo và thẩm định di sản.
+                  Hãy chọn mức độ phá cách (Dial) và bấm nút <strong className="text-[#1C1917]">"Khởi Tạo 2 Phương Án Thiết Kế"</strong> ở bên trái để bắt đầu phối đồ và thẩm định di sản.
                 </p>
               </div>
               <button
                 onClick={handleGenerateOutfits}
-                className="px-4 py-2 bg-[#1C1917] hover:bg-[#991B1B] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors inline-flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#1C1917] hover:bg-[#991B1B] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Wand2 className="w-3.5 h-3.5 text-[#F59E0B]" />
                 <span>Khởi Tạo Ngay Với {GARMENTS.find(g => g.key === selectedGarment)?.name}</span>
@@ -420,7 +409,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   {/* Shortcut to What-If testing this active look */}
                   <button
                     onClick={onNavigateToWhatIf}
-                    className="px-3 py-1.5 text-xs font-semibold text-white bg-[#991B1B] hover:bg-[#7F1D1D] rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shadow-xs"
+                    className="px-3 py-1.5 text-xs font-semibold text-white bg-[#991B1B] hover:bg-[#7F1D1D] rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shadow-xs cursor-pointer"
                     title="Chuyển sang tab What-If để thử nghiệm chi tiết trên look này"
                   >
                     <span>Thử Nghiệm What-If</span>
@@ -429,7 +418,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
                   <button
                     onClick={() => onOpenLookbookCard(currentProposal)}
-                    className="px-3 py-1.5 text-xs font-medium text-[#1C1917] bg-white border border-[#D6CEBE] hover:bg-[#F2ECE0] rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shadow-xs"
+                    className="px-3 py-1.5 text-xs font-medium text-[#1C1917] bg-white border border-[#D6CEBE] hover:bg-[#F2ECE0] rounded-lg flex items-center gap-1.5 transition-colors whitespace-nowrap shadow-xs cursor-pointer"
                   >
                     <Share2 className="w-3.5 h-3.5 text-[#991B1B]" />
                     <span>Thẻ Lookbook</span>
@@ -452,7 +441,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 <div className="flex items-center gap-2 border-b border-[#E2DBD0] pb-2 mb-4">
                   <button
                     onClick={() => setDetailTab('styling')}
-                    className={`text-xs font-bold py-1 px-3 rounded-md transition-colors ${
+                    className={`text-xs font-bold py-1 px-3 rounded-md transition-colors cursor-pointer ${
                       detailTab === 'styling'
                         ? 'bg-[#1C1917] text-white'
                         : 'text-[#57534E] hover:text-[#1C1917] bg-white border border-[#E2DBD0]'
@@ -463,7 +452,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
                   <button
                     onClick={() => setDetailTab('audit')}
-                    className={`text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1.5 ${
+                    className={`text-xs font-bold py-1 px-3 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
                       detailTab === 'audit'
                         ? 'bg-[#1C1917] text-white'
                         : 'text-[#57534E] hover:text-[#1C1917] bg-white border border-[#E2DBD0]'
