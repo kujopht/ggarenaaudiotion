@@ -26,6 +26,9 @@ import {
   normalizeGeminiProposal,
   normalizeGeminiWhatIfEvaluation,
   validateEvidenceId,
+  hasOverconfidentClaim,
+  sanitizeAuditorVerdict,
+  sanitizeWhatIfImpactAnalysis,
 } from '../src/utils/auditNormalization.js';
 import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
 
@@ -722,7 +725,8 @@ runTest('12.3 Normalization Case 3: Gemini trả evidence ID không tồn tại 
   const normalized = normalizeGeminiProposalAudit(fakeGeminiAudit, 'ngu_than');
   assert.strictEqual(normalized.uncertainty_flag, true);
   assert.strictEqual(normalized.status, 'Insufficient Evidence');
-  assert.ok(normalized.cautions_and_redlines.some((c) => c.includes('KB-FAKE-999')));
+  assert.ok(normalized.system_warnings && normalized.system_warnings.some((c) => c.includes('KB-FAKE-999')));
+  assert.strictEqual(normalized.cautions_and_redlines.length, 0, 'Cảnh báo kỹ thuật không được nhét vào cautions_and_redlines');
 });
 
 runTest('12.4 Normalization Case 4: Gemini dùng KB-NGUTHAN-01 cho Nhật Bình -> không coi là evidence hợp lệ cho garment', () => {
@@ -741,7 +745,8 @@ runTest('12.4 Normalization Case 4: Gemini dùng KB-NGUTHAN-01 cho Nhật Bình 
   assert.strictEqual(normalized.evidence_ids.length, 0, 'Rule sai scope không được đưa vào valid evidence');
   assert.strictEqual(normalized.status, 'Insufficient Evidence');
   assert.strictEqual(normalized.uncertainty_flag, true);
-  assert.ok(normalized.cautions_and_redlines.some((c) => c.includes('không áp dụng cho trang phục "nhat_binh"')));
+  assert.ok(normalized.system_warnings && normalized.system_warnings.some((c) => c.includes('không áp dụng cho trang phục "nhat_binh"')));
+  assert.strictEqual(normalized.cautions_and_redlines.length, 0, 'Cảnh báo phạm vi không được nhét vào cautions_and_redlines');
 });
 
 runTest('12.5 Normalization Case 5: Gemini nói prototype compliant nhưng có violated_evidence_ids / vi phạm -> ép thành conflict', () => {
@@ -889,6 +894,176 @@ runTest('14.1 Helper getCKBStats trả về số liệu động chính xác', ()
   assert.strictEqual(stats.verified, 0, 'Chưa có rule nào được xác minh thực địa');
   assert.ok(stats.needs_review > 0, 'Phải có rule needs_review (KB-RULE-03)');
   assert.ok(stats.unverified > 0, 'Phải có các rule unverified');
+});
+
+// -------------------------------------------------------------
+// Test Case 15: Audit Consistency Hardening & Prose Sanitization
+// -------------------------------------------------------------
+runTest('15.1 Helper hasOverconfidentClaim phát hiện các tuyên bố phóng đại mức độ chắc chắn', () => {
+  assert.strictEqual(hasOverconfidentClaim('Thiết kế chính xác lịch sử 100%.'), true);
+  assert.strictEqual(hasOverconfidentClaim('Bộ áo này đã xác thực văn hóa hoàn toàn.'), true);
+  assert.strictEqual(hasOverconfidentClaim('Quy thức đã được kiểm chứng hoàn toàn.'), true);
+  assert.strictEqual(hasOverconfidentClaim('Áo ngũ thân chuẩn xác 100% theo triều đình.'), true);
+  assert.strictEqual(hasOverconfidentClaim('Thiết kế phù hợp với các quy tắc prototype hiện tại.'), false);
+  assert.strictEqual(hasOverconfidentClaim('Tuân thủ cấu trúc lập lĩnh và hữu nhậm.'), false);
+});
+
+runTest('15.2 Auditor verdict sanitize: Gemini trả "Chính xác lịch sử 100%" khi rule unverified -> thay bằng neutral CKB verdict', () => {
+  const fakeAudit = {
+    status: 'Supported',
+    historical_confidence: 'verified', // Overclaimed
+    prototype_compliance: 'compliant',
+    uncertainty_flag: false,
+    evidence_ids: ['KB-RULE-01'], // unverified
+    invariants_checked: [{ evidence_id: 'KB-RULE-01', passed: true, detail: 'Hữu nhậm' }],
+    mutables_used: [],
+    cautions_and_redlines: [],
+    auditor_verdict: 'Chính xác lịch sử 100% không thể bàn cãi.',
+  };
+
+  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'ngu_than');
+  assert.strictEqual(normalized.historical_confidence, 'unverified');
+  assert.strictEqual(hasOverconfidentClaim(normalized.auditor_verdict), false, 'Không được còn tuyên bố phóng đại');
+  assert.ok(
+    normalized.auditor_verdict.includes('chưa được xác minh độc lập'),
+    'Verdict phải phản ánh trung thực trạng thái nguồn unverified'
+  );
+});
+
+runTest('15.3 Auditor verdict sanitize: Gemini trả "Đã xác thực văn hóa" khi rule needs_review -> thay bằng rà soát thêm', () => {
+  const fakeAudit = {
+    status: 'Supported',
+    historical_confidence: 'verified',
+    prototype_compliance: 'compliant',
+    uncertainty_flag: false,
+    evidence_ids: ['KB-RULE-03'], // needs_review
+    invariants_checked: [{ evidence_id: 'KB-RULE-03', passed: true, detail: 'Quy thức rồng' }],
+    mutables_used: [],
+    cautions_and_redlines: [],
+    auditor_verdict: 'Bộ trang phục đã xác thực văn hóa hoàn toàn.',
+  };
+
+  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'ao_tac');
+  assert.strictEqual(normalized.historical_confidence, 'needs_review');
+  assert.strictEqual(hasOverconfidentClaim(normalized.auditor_verdict), false);
+  assert.ok(
+    normalized.auditor_verdict.includes('cần rà soát thêm'),
+    'Verdict phải phản ánh trạng thái needs_review'
+  );
+});
+
+runTest('15.4 What-If impact_analysis sanitize: Gemini khẳng định chuẩn xác 100% -> loại bỏ tuyệt đối và append CKB disclaimer', () => {
+  const fakeWhatIf = {
+    query: 'What if tay áo dài rộng hơn 5cm?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Nới tay',
+    status: 'Supported',
+    uncertainty_flag: false,
+    impact_analysis: 'Thay đổi này chính xác lịch sử 100% và giữ trọn nét thanh tao của áo truyền thống.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: ['KB-NGUTHAN-02'], // unverified
+    cautions_and_redlines: [],
+  };
+
+  const normalized = normalizeGeminiWhatIfEvaluation(fakeWhatIf, 'ngu_than');
+  assert.strictEqual(hasOverconfidentClaim(normalized.impact_analysis), false);
+  assert.ok(
+    normalized.impact_analysis.includes('chưa được xác minh độc lập'),
+    'Impact analysis phải có CKB verification disclaimer khi nguồn unverified'
+  );
+});
+
+runTest('15.5 Validate invariants_checked: Nhật Bình có invariant KB-NGUTHAN-01 passed false -> Không làm Nhật Bình thành conflict', () => {
+  const fakeAudit = {
+    status: 'Supported with Caution',
+    historical_confidence: 'verified',
+    prototype_compliance: 'conflict', // Gemini falsely set conflict because of Ngũ Thân rule!
+    uncertainty_flag: false,
+    evidence_ids: ['KB-NHATBINH-01'],
+    invariants_checked: [
+      { evidence_id: 'KB-NGUTHAN-01', passed: false, detail: 'Không có cổ lập lĩnh ngũ thân' }, // Inapplicable to Nhật Bình!
+      { evidence_id: 'KB-NHATBINH-01', passed: true, detail: 'Nẹp cổ đối khâm chuẩn' },
+    ],
+    mutables_used: [],
+    cautions_and_redlines: [],
+    auditor_verdict: 'Xung đột giả định.',
+  };
+
+  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'nhat_binh');
+  // KB-NGUTHAN-01 must be pruned from valid invariants
+  assert.strictEqual(normalized.invariants_checked.length, 1);
+  assert.strictEqual(normalized.invariants_checked[0].evidence_id, 'KB-NHATBINH-01');
+  assert.strictEqual(normalized.prototype_compliance, 'compliant', 'Nhật Bình không được nhận prototype conflict từ rule của Ngũ Thân');
+  assert.ok(normalized.system_warnings && normalized.system_warnings.length > 0, 'Phải có system warning về rule sai garment scope');
+  assert.strictEqual(normalized.cautions_and_redlines.length, 0, 'Cảnh báo hệ thống không được đưa vào cautions_and_redlines');
+});
+
+runTest('15.6 Validate mutables_used: Mutable ID lạ hoặc sai garment scope -> Không vào mutables_used hợp lệ, chuyển sang system_warnings', () => {
+  const fakeAudit = {
+    status: 'Supported',
+    historical_confidence: 'verified',
+    prototype_compliance: 'compliant',
+    uncertainty_flag: false,
+    evidence_ids: ['KB-NHATBINH-01'],
+    invariants_checked: [{ evidence_id: 'KB-NHATBINH-01', passed: true, detail: 'Chuẩn' }],
+    mutables_used: [
+      { evidence_id: 'KB-MUTABLE-FAKE', element: 'Tà áo', application: 'Cắt tà' },
+      { evidence_id: 'KB-NGUTHAN-03', element: 'Chiều dài vạt', application: 'Vạt lửng' }, // inapplicable to nhat_binh
+    ],
+    cautions_and_redlines: [],
+  };
+
+  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'nhat_binh');
+  assert.strictEqual(normalized.mutables_used.length, 0, 'Các mutables không hợp lệ phải bị loại bỏ');
+  assert.ok(normalized.system_warnings && normalized.system_warnings.length >= 2, 'Phải có 2 cảnh báo hệ thống cho 2 mutable lỗi');
+  assert.strictEqual(normalized.cautions_and_redlines.length, 0, 'cautions_and_redlines không chứa system warnings');
+});
+
+runTest('15.7 getLookSummaryStatus: Có system_warnings nhưng thiết kế compliant và không có cautions -> hasDesignCaution là false', () => {
+  const auditWithSystemWarnings: CulturalAuditResult = {
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    uncertainty_note: 'Nguồn chưa xác minh.',
+    evidence_ids: ['KB-NHATBINH-01'],
+    invariants_checked: [{ evidence_id: 'KB-NHATBINH-01', rule_name: 'Đối khâm', passed: true, detail: 'Đúng' }],
+    mutables_used: [],
+    cautions_and_redlines: [], // No design caution!
+    system_warnings: ['[Lưu ý hệ thống] Mã bằng chứng KB-FAKE không tồn tại.'],
+    auditor_verdict: 'Thiết kế đẹp.',
+    prototype_compliance: 'compliant',
+    historical_confidence: 'unverified',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+
+  const summary = getLookSummaryStatus(auditWithSystemWarnings);
+  assert.strictEqual(summary.hasDesignCaution, false, 'System warnings KHÔNG được biến thành design caution');
+  assert.strictEqual(summary.badges.some((b) => b.label === 'Có điểm cần lưu ý'), false);
+  assert.strictEqual(summary.prototypeComplianceLabel, 'Phù hợp với quy tắc prototype');
+  assert.strictEqual(summary.historicalConfidenceLabel, 'Nguồn lịch sử chưa xác minh độc lập');
+});
+
+runTest('15.8 What-If: Inapplicable violated evidence ID không làm garment thành conflict', () => {
+  const fakeWhatIf = {
+    query: 'What if cổ đứng?',
+    target_garment: 'nhat_binh',
+    proposed_change: 'Đổi cổ',
+    status: 'Supported with Caution',
+    uncertainty_flag: false,
+    violates_invariants: true, // Model claims invariant violated
+    violated_evidence_ids: ['KB-NGUTHAN-01'], // But rule is for ngu_than, inapplicable to nhat_binh!
+    applicable_evidence_ids: ['KB-NHATBINH-01'],
+    cautions_and_redlines: [],
+    impact_analysis: 'Đổi cổ áo',
+  };
+
+  const normalized = normalizeGeminiWhatIfEvaluation(fakeWhatIf, 'nhat_binh');
+  assert.strictEqual(normalized.violated_evidence_ids.length, 0, 'Rule sai scope không được giữ trong violated_evidence_ids');
+  assert.strictEqual(normalized.violates_invariants, false, 'Không vi phạm invariant vì rule không áp dụng cho Nhật Bình');
+  assert.strictEqual(normalized.prototype_compliance, 'compliant', 'Prototype compliance phải là compliant');
+  assert.ok(normalized.system_warnings && normalized.system_warnings.length > 0, 'Phải có system warning về scope');
+  assert.strictEqual(normalized.cautions_and_redlines.length, 0);
 });
 
 console.log('\n-------------------------------------------------------------');

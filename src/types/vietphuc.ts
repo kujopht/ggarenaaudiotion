@@ -70,6 +70,7 @@ export interface CulturalAuditResult {
   invariants_checked: InvariantCheckResult[];
   mutables_used: MutableUsage[];
   cautions_and_redlines: string[];
+  system_warnings?: string[];
   auditor_verdict: string;
 
   // Separation of prototype compliance & historical confidence (Requirement 4)
@@ -132,6 +133,7 @@ export interface WhatIfEvaluation {
   violated_evidence_ids: string[];
   applicable_evidence_ids: string[];
   cautions_and_redlines: string[];
+  system_warnings?: string[];
   stylist_counter_proposal: StylistCounterProposal;
 
   // Separation of prototype compliance & historical confidence (Requirement 4)

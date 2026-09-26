@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
 import { formatSourceBadge, handleWhatIfStandaloneGarmentChange } from '../utils/remixStateHelpers';
-import { Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw, HelpCircle } from 'lucide-react';
+import { Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw, HelpCircle, FileCheck, Layers, Info } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
@@ -518,33 +518,82 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               </h3>
             </div>
 
-            {/* Status Badges */}
+            {/* Status Badges: Two-Layer Semantics (Requirement 4, 5 & 8) */}
             <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
-              {(evaluation.status === 'Supported with Caution' ||
-                evaluation.violates_invariants ||
-                (evaluation.cautions_and_redlines && evaluation.cautions_and_redlines.length > 0)) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                  <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
-                </div>
-              )}
-              {(evaluation.status === 'Insufficient Evidence' || evaluation.uncertainty_flag) && (
+              {/* Layer 1: Prototype Compliance */}
+              {evaluation.prototype_compliance === 'conflict' || evaluation.violates_invariants ? (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                  <HelpCircle className="w-4 h-4 text-rose-400" />
-                  <span>Chưa đủ dữ liệu tham chiếu</span>
+                  <AlertOctagon className="w-4 h-4 text-rose-400" />
+                  <span>Có xung đột với quy tắc prototype</span>
                 </div>
-              )}
-              {evaluation.status === 'Supported' &&
-                !evaluation.uncertainty_flag &&
-                !evaluation.violates_invariants &&
-                (!evaluation.cautions_and_redlines || evaluation.cautions_and_redlines.length === 0) && (
+              ) : evaluation.prototype_compliance === 'unassessed' || evaluation.status === 'Insufficient Evidence' ? (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <HelpCircle className="w-4 h-4 text-neutral-400" />
+                  <span>Chưa đối soát quy tắc prototype</span>
+                </div>
+              ) : (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
                   <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
-                  <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
+                  <span>Phù hợp với quy tắc prototype</span>
+                </div>
+              )}
+
+              {/* Design Caution Badge (only if genuine design caution and NOT already marked conflict) */}
+              {evaluation.has_design_caution &&
+                !evaluation.violates_invariants &&
+                evaluation.prototype_compliance !== 'conflict' &&
+                evaluation.cautions_and_redlines &&
+                evaluation.cautions_and_redlines.length > 0 && (
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                    <AlertTriangle className="w-4 h-4 text-amber-400" />
+                    <span>Có điểm cần lưu ý về thiết kế</span>
+                  </div>
+                )}
+
+              {/* Layer 2: Historical Confidence */}
+              {evaluation.status === 'Insufficient Evidence' ? (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <HelpCircle className="w-4 h-4 text-neutral-400" />
+                  <span>Chưa đủ dữ liệu tham chiếu</span>
+                </div>
+              ) : evaluation.historical_confidence === 'verified' ? (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <FileCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Đã đối chiếu nguồn thư tịch</span>
+                </div>
+              ) : evaluation.historical_confidence === 'needs_review' ? (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <Info className="w-4 h-4 text-amber-400" />
+                  <span>Nguồn lịch sử cần rà soát thêm</span>
+                </div>
+              ) : evaluation.historical_confidence === 'partially_verified' ? (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-200 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <Layers className="w-4 h-4 text-amber-300" />
+                  <span>Nguồn đối chiếu một phần</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                  <Info className="w-4 h-4 text-neutral-400" />
+                  <span>Nguồn lịch sử chưa xác minh độc lập</span>
                 </div>
               )}
             </div>
           </div>
+
+          {/* System & Data Warnings (Technical info in neutral blue-gray) */}
+          {evaluation.system_warnings && evaluation.system_warnings.length > 0 && (
+            <div className="p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-xs text-slate-300 space-y-1 backdrop-blur-xs">
+              <div className="font-semibold flex items-center gap-1.5 text-slate-200">
+                <Info className="w-4 h-4 text-slate-400 shrink-0" />
+                <span>Thông tin dữ liệu kỹ thuật:</span>
+              </div>
+              <ul className="space-y-0.5 list-disc list-inside text-slate-300/90 pl-1 leading-relaxed">
+                {evaluation.system_warnings.map((warn, i) => (
+                  <li key={i}>{warn}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Uncertainty Flag Banner */}
           {evaluation.uncertainty_flag && (

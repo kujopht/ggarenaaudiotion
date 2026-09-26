@@ -72,11 +72,16 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
     };
   }
 
-  // Design caution: prototype conflict, failed invariants, or cautions/redlines
-  const hasDesignCaution = Boolean(
+  // True prototype conflict: rule conflict or failed invariant
+  const isPrototypeConflict = Boolean(
     audit.prototype_compliance === 'conflict' ||
+    (audit.invariants_checked && audit.invariants_checked.some((inv) => !inv.passed))
+  );
+
+  // Design caution: prototype conflict, failed invariants, or genuine design cautions
+  const hasDesignCaution = Boolean(
+    isPrototypeConflict ||
     audit.has_design_caution ||
-    (audit.invariants_checked && audit.invariants_checked.some((inv) => !inv.passed)) ||
     (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0)
   );
 
@@ -92,7 +97,7 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
   );
 
   const prototypeComplianceLabel =
-    hasDesignCaution || audit.prototype_compliance === 'conflict'
+    isPrototypeConflict
       ? 'Có xung đột với quy tắc prototype'
       : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence'
       ? 'Chưa đối soát quy tắc prototype'

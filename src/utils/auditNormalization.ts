@@ -18,6 +18,127 @@ import {
 } from '../types/vietphuc.js';
 
 /**
+ * Common regex patterns for overconfident or inflated historical certainty claims.
+ * Used to guard against Gemini or external models asserting 100% historical accuracy
+ * when underlying CKB rules are unverified or needs_review.
+ */
+export const OVERCONFIDENT_PHRASES = [
+  /chính\s+xác\s+lịch\s+sử\s+100%/gi,
+  /100%\s+chính\s+xác\s+lịch\s+sử/gi,
+  /100%\s+chuẩn\s+lịch\s+sử/gi,
+  /chuẩn\s+lịch\s+sử\s+100%/gi,
+  /chuẩn\s+xác\s+100%/gi,
+  /100%\s+chuẩn\s+xác/gi,
+  /xác\s+thực\s+100%/gi,
+  /100%\s+xác\s+thực/gi,
+  /chính\s+xác\s+tuyệt\s+đối/gi,
+  /tuyệt\s+đối\s+chính\s+xác/gi,
+  /hoàn\s+toàn\s+chính\s+xác/gi,
+  /hoàn\s+toàn\s+chuẩn\s+xác/gi,
+  /đã\s+xác\s+thực\s+văn\s+hóa/gi,
+  /được\s+chứng\s+nhận/gi,
+  /chắc\s+chắn\s+đúng\s+lịch\s+sử/gi,
+  /đã\s+được\s+kiểm\s+chứng\s+hoàn\s+toàn/gi,
+  /xác\s+minh\s+hoàn\s+toàn/gi,
+  /chứng\s+thực\s+tuyệt\s+đối/gi,
+  /được\s+chứng\s+minh\s+lịch\s+sử/gi,
+  /tuyệt\s+đối\s+chuẩn\s+xác/gi,
+];
+
+/**
+ * Checks whether a given prose text contains overconfident historical certainty claims.
+ */
+export function hasOverconfidentClaim(text: string): boolean {
+  if (!text || typeof text !== 'string') return false;
+  return OVERCONFIDENT_PHRASES.some((regex) => {
+    regex.lastIndex = 0;
+    return regex.test(text);
+  });
+}
+
+/**
+ * Normalizes and guards auditor verdict prose.
+ * If historical confidence is not 'verified' and text asserts absolute historical certainty,
+ * replaces it with honest, neutral CKB-grounded phrasing.
+ */
+export function sanitizeAuditorVerdict(
+  rawVerdict: string,
+  historicalConfidence: HistoricalConfidence,
+  prototypeCompliance: PrototypeCompliance
+): string {
+  let text = typeof rawVerdict === 'string' && rawVerdict.trim()
+    ? rawVerdict.trim()
+    : 'Đối soát theo quy thức CKB trong bản thử nghiệm.';
+
+  // If historical confidence is verified, keep original verdict
+  if (historicalConfidence === 'verified') {
+    return text;
+  }
+
+  // If text contains overconfident claims when evidence is not verified
+  if (hasOverconfidentClaim(text)) {
+    if (prototypeCompliance === 'conflict') {
+      return 'Thay đổi này xung đột với quy tắc prototype hiện tại. Mức độ xác minh lịch sử phụ thuộc vào trạng thái nguồn của evidence liên quan.';
+    }
+    if (prototypeCompliance === 'unassessed') {
+      return 'Chưa đủ dữ liệu tham chiếu trong bản thử nghiệm để đánh giá độ chuẩn xác lịch sử.';
+    }
+    if (historicalConfidence === 'needs_review') {
+      return 'Thiết kế phù hợp với các quy tắc prototype hiện tại. Nguồn lịch sử của các quy tắc liên quan đang trong diện cần rà soát thêm thư tịch.';
+    }
+    if (historicalConfidence === 'partially_verified') {
+      return 'Thiết kế phù hợp với các quy tắc prototype hiện tại. Nguồn lịch sử của các quy tắc liên quan mới được đối chiếu một phần.';
+    }
+    return 'Thiết kế phù hợp với các quy tắc prototype hiện tại. Nguồn lịch sử của các quy tắc liên quan chưa được xác minh độc lập.';
+  }
+
+  return text;
+}
+
+/**
+ * Normalizes and guards What-If impact analysis prose.
+ * Removes absolute certainty wording and appends CKB verification status disclaimer.
+ */
+export function sanitizeWhatIfImpactAnalysis(
+  rawAnalysis: string,
+  historicalConfidence: HistoricalConfidence,
+  prototypeCompliance: PrototypeCompliance
+): string {
+  let text = typeof rawAnalysis === 'string' && rawAnalysis.trim()
+    ? rawAnalysis.trim()
+    : 'Chưa có phân tích tác động cụ thể.';
+
+  if (historicalConfidence === 'verified') {
+    return text;
+  }
+
+  // Replace any absolute certainty phrases with neutral phrasing
+  for (const regex of OVERCONFIDENT_PHRASES) {
+    regex.lastIndex = 0;
+    text = text.replace(regex, 'phù hợp với quy tắc tham chiếu');
+  }
+
+  // Ensure cultural conclusion has appropriate verification disclaimer
+  const hasDisclaimer =
+    text.includes('chưa được xác minh độc lập') ||
+    text.includes('cần rà soát thêm') ||
+    text.includes('đối chiếu một phần') ||
+    text.includes('chưa đủ dữ liệu');
+
+  if (!hasDisclaimer) {
+    if (historicalConfidence === 'unverified') {
+      text += ' (Lưu ý: Nguồn lịch sử của các quy tắc liên quan trong bản thử nghiệm chưa được xác minh độc lập).';
+    } else if (historicalConfidence === 'needs_review') {
+      text += ' (Lưu ý: Nguồn lịch sử của các quy tắc liên quan trong bản thử nghiệm cần được rà soát thêm).';
+    } else if (historicalConfidence === 'partially_verified') {
+      text += ' (Lưu ý: Nguồn lịch sử của các quy tắc liên quan mới được đối chiếu một phần).';
+    }
+  }
+
+  return text;
+}
+
+/**
  * Validate an evidence ID against CKB_REGISTRY and garment scope.
  * Requirement 6:
  * - Reject unknown evidence IDs
@@ -68,9 +189,11 @@ export function validateEvidenceId(
  * Guarantees:
  * 1. Final historical confidence is strictly derived from CKB_REGISTRY, never blindly trusted from model.
  * 2. Unverified or needs_review evidence forces uncertainty_flag = true and prevents fully Supported status.
- * 3. Invariants violations force prototype_compliance = 'conflict'.
- * 4. Invalid or out-of-scope evidence IDs are demoted with transparent warnings.
- * 5. Explicitly separates has_design_caution from has_evidence_uncertainty.
+ * 3. Invariants violations force prototype_compliance = 'conflict'. Invariants outside garment scope are moved to system_warnings and do NOT trigger conflict.
+ * 4. Invalid or out-of-scope mutables are moved to system_warnings and excluded from mutables_used.
+ * 5. Technical warnings are segregated into system_warnings, keeping cautions_and_redlines clean for real design cautions.
+ * 6. Explicitly separates has_design_caution from has_evidence_uncertainty.
+ * 7. Enforces prose certainty sanitation on auditor_verdict and uncertainty_note.
  */
 export function normalizeGeminiProposalAudit(
   rawAudit: any,
@@ -85,7 +208,8 @@ export function normalizeGeminiProposalAudit(
       evidence_ids: [],
       invariants_checked: [],
       mutables_used: [],
-      cautions_and_redlines: ['[Lưu ý hệ thống] Không nhận được phản hồi thẩm định từ mô hình.'],
+      cautions_and_redlines: [],
+      system_warnings: ['[Lưu ý hệ thống] Không nhận được phản hồi thẩm định từ mô hình.'],
       auditor_verdict: 'Không có dữ liệu thẩm định khả dụng.',
       prototype_compliance: 'unassessed',
       historical_confidence: 'unverified',
@@ -95,13 +219,14 @@ export function normalizeGeminiProposalAudit(
     };
   }
 
+  const systemWarnings: string[] = [];
+
   // 1. Evidence ID parsing & validation (Requirement 6)
   const rawEvidenceIds: string[] = Array.isArray(rawAudit.evidence_ids)
     ? rawAudit.evidence_ids.map(String)
     : [];
 
   const validEvidenceIds: string[] = [];
-  const systemWarnings: string[] = [];
   let hasUnknown = false;
   let hasInapplicable = false;
 
@@ -116,36 +241,78 @@ export function normalizeGeminiProposalAudit(
     }
   }
 
-  // 2. Invariants & Mutables parsing
-  const invariantsChecked: InvariantCheckResult[] = Array.isArray(rawAudit.invariants_checked)
-    ? rawAudit.invariants_checked.map((inv: any) => {
-        const id = String(inv?.evidence_id || '');
-        const entry = getCKBEntry(id);
-        return {
-          evidence_id: id,
-          rule_name: inv?.rule_name || entry?.title || id,
-          passed: Boolean(inv?.passed),
-          detail: String(inv?.detail || ''),
-        };
-      })
+  // 2. Invariants parsing & validation (Requirement 3 & 5)
+  // Invariants must exist in CKB and apply to garmentKey. Inapplicable/unknown invariants
+  // are routed to system_warnings and CANNOT trigger prototype conflict.
+  const rawInvariants: any[] = Array.isArray(rawAudit.invariants_checked)
+    ? rawAudit.invariants_checked
     : [];
 
-  const mutablesUsed: MutableUsage[] = Array.isArray(rawAudit.mutables_used)
-    ? rawAudit.mutables_used.map((mut: any) => ({
-        evidence_id: String(mut?.evidence_id || ''),
-        element: String(mut?.element || ''),
-        application: String(mut?.application || ''),
-      }))
+  const validInvariantsChecked: InvariantCheckResult[] = [];
+  for (const inv of rawInvariants) {
+    const id = String(inv?.evidence_id || '').trim();
+    const validation = validateEvidenceId(id, garmentKey);
+    if (!validation.valid) {
+      if (validation.warning) {
+        systemWarnings.push(validation.warning);
+      } else {
+        systemWarnings.push(`[Lưu ý hệ thống] Quy tắc bất biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`);
+      }
+      if (validation.isUnknown) hasUnknown = true;
+      if (validation.isInapplicable) hasInapplicable = true;
+      // Do not include in valid invariants list
+      continue;
+    }
+
+    const entry = validation.entry!;
+    validInvariantsChecked.push({
+      evidence_id: entry.id,
+      rule_name: inv?.rule_name || entry.title || entry.id,
+      passed: Boolean(inv?.passed),
+      detail: String(inv?.detail || ''),
+    });
+  }
+
+  // 3. Mutables parsing & validation (Requirement 4 & 5)
+  // Inapplicable/unknown mutables are routed to system_warnings and excluded from mutables_used.
+  const rawMutables: any[] = Array.isArray(rawAudit.mutables_used)
+    ? rawAudit.mutables_used
     : [];
 
-  // 3. Derive prototype compliance (Requirement 7)
-  const hasFailedInvariant = invariantsChecked.some((inv: InvariantCheckResult) => !inv.passed);
+  const validMutablesUsed: MutableUsage[] = [];
+  for (const mut of rawMutables) {
+    const id = String(mut?.evidence_id || '').trim();
+    const validation = validateEvidenceId(id, garmentKey);
+    if (!validation.valid) {
+      if (validation.warning) {
+        systemWarnings.push(validation.warning);
+      } else {
+        systemWarnings.push(`[Lưu ý hệ thống] Vùng khả biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`);
+      }
+      if (validation.isUnknown) hasUnknown = true;
+      if (validation.isInapplicable) hasInapplicable = true;
+      continue;
+    }
+
+    validMutablesUsed.push({
+      evidence_id: validation.entry!.id,
+      element: String(mut?.element || ''),
+      application: String(mut?.application || ''),
+    });
+  }
+
+  // 4. Derive prototype compliance (Requirement 3 & 7)
+  // Only valid invariants for this garment can cause a failed invariant
+  const hasFailedInvariant = validInvariantsChecked.some((inv: InvariantCheckResult) => !inv.passed);
   const rawCautions: string[] = Array.isArray(rawAudit.cautions_and_redlines)
-    ? rawAudit.cautions_and_redlines.map(String)
+    ? rawAudit.cautions_and_redlines.map(String).filter((s: string) => s.trim().length > 0)
     : [];
 
   let prototype_compliance: PrototypeCompliance;
-  if (hasFailedInvariant || rawAudit.prototype_compliance === 'conflict') {
+  if (hasFailedInvariant) {
+    prototype_compliance = 'conflict';
+  } else if (rawInvariants.length === 0 && rawAudit.prototype_compliance === 'conflict') {
+    // Model flagged conflict without invariant list
     prototype_compliance = 'conflict';
   } else if (validEvidenceIds.length === 0) {
     prototype_compliance = 'unassessed';
@@ -153,7 +320,7 @@ export function normalizeGeminiProposalAudit(
     prototype_compliance = 'compliant';
   }
 
-  // 4. Derive historical confidence from CKB_REGISTRY (Requirement 1)
+  // 5. Derive historical confidence from CKB_REGISTRY (Requirement 1)
   const isConflict = prototype_compliance === 'conflict';
   const derivedConfidence = deriveAuditConfidence(validEvidenceIds, isConflict);
 
@@ -168,7 +335,7 @@ export function normalizeGeminiProposalAudit(
     }
   }
 
-  // 5. Enforce Status & Uncertainty Flag (Requirement 2)
+  // 6. Enforce Status & Uncertainty Flag (Requirement 2)
   let status: CulturalAuditStatus;
   let uncertainty_flag = false;
 
@@ -186,9 +353,9 @@ export function normalizeGeminiProposalAudit(
     uncertainty_flag = false;
   }
 
-  const combinedCautions = [...rawCautions, ...systemWarnings];
-
-  // 6. Explicitly separate design caution from evidence uncertainty (Requirement 3 & 4)
+  // 7. Explicitly separate design caution from evidence uncertainty (Requirement 3 & 5)
+  // Design caution is STRICTLY from actual rule conflict, invariant failures, or genuine design cautions.
+  // It does NOT include technical system_warnings!
   const has_design_caution =
     prototype_compliance === 'conflict' ||
     hasFailedInvariant ||
@@ -196,11 +363,21 @@ export function normalizeGeminiProposalAudit(
 
   const has_evidence_uncertainty = uncertainty_flag;
 
+  // 8. Prose Certainty Hardening (Requirement 1 & 2)
+  // Ensure auditor_verdict and uncertainty_note never claim 100% historical accuracy if unverified
+  const auditor_verdict = sanitizeAuditorVerdict(
+    String(rawAudit.auditor_verdict || ''),
+    historical_confidence,
+    prototype_compliance
+  );
+
   let uncertainty_note = rawAudit.uncertainty_note;
-  if (uncertainty_flag && (!uncertainty_note || uncertainty_note.trim() === '')) {
+  if (uncertainty_flag && (!uncertainty_note || uncertainty_note.trim() === '' || hasOverconfidentClaim(uncertainty_note))) {
     uncertainty_note =
       prototype_compliance === 'unassessed' || validEvidenceIds.length === 0
         ? 'Bộ quy tắc hiện tại trong bản thử nghiệm chưa đủ dữ liệu tham chiếu để kết luận sâu hơn.'
+        : historical_confidence === 'needs_review'
+        ? 'Bản thiết kế phù hợp với quy ước của prototype, tuy nhiên các quy tắc tham chiếu hiện đang trong diện cần rà soát thêm thư tịch.'
         : 'Bản thiết kế phù hợp với quy ước của prototype, tuy nhiên các quy tắc tham chiếu trong bản thử nghiệm hiện chưa được đối chiếu thư tịch độc lập.';
   }
 
@@ -209,12 +386,11 @@ export function normalizeGeminiProposalAudit(
     uncertainty_flag,
     uncertainty_note,
     evidence_ids: validEvidenceIds,
-    invariants_checked: invariantsChecked,
-    mutables_used: mutablesUsed,
-    cautions_and_redlines: combinedCautions,
-    auditor_verdict: String(
-      rawAudit.auditor_verdict || 'Đối soát theo quy thức CKB trong bản thử nghiệm.'
-    ),
+    invariants_checked: validInvariantsChecked,
+    mutables_used: validMutablesUsed,
+    cautions_and_redlines: rawCautions,
+    system_warnings: systemWarnings,
+    auditor_verdict,
     prototype_compliance,
     historical_confidence,
     verification_summary: derivedConfidence.verification_summary,
@@ -271,10 +447,11 @@ export function normalizeGeminiProposal(
 /**
  * Normalizes a What-If evaluation returned by Gemini.
  * Enforces:
- * 1. Prototype compliance is forced to 'conflict' if violates_invariants is true or violated_evidence_ids has entries.
- * 2. Historical confidence is strictly derived from CKB_REGISTRY.
- * 3. Status is Insufficient Evidence if no valid evidence applies.
- * 4. Demotes certainty on unknown or inapplicable evidence IDs.
+ * 1. Prototype compliance is forced to 'conflict' if valid violated invariants exist.
+ * 2. Out-of-scope or unknown evidence IDs are demoted to system_warnings and do NOT trigger conflict.
+ * 3. Historical confidence is strictly derived from CKB_REGISTRY.
+ * 4. Technical warnings are segregated into system_warnings, keeping cautions_and_redlines clean.
+ * 5. Impact analysis prose is sanitized against overconfident claims and grounded with CKB disclaimer.
  */
 export function normalizeGeminiWhatIfEvaluation(
   rawEvaluation: any,
@@ -324,14 +501,19 @@ export function normalizeGeminiWhatIfEvaluation(
     }
   }
 
-  // 1. Prototype compliance (Requirement 7)
-  let violates_invariants = Boolean(rawEvaluation?.violates_invariants) || validViolatedIds.length > 0;
-  let prototype_compliance: PrototypeCompliance;
+  // 1. Prototype compliance (Requirement 3 & 7)
+  // An invariant is only violated if valid for this garment
+  let violates_invariants = validViolatedIds.length > 0;
+  // If model flagged invariant violation without specific IDs, preserve only if no invalid IDs demoted
+  if (!violates_invariants && rawEvaluation?.violates_invariants && rawViolated.length === 0) {
+    violates_invariants = true;
+  }
 
-  if (violates_invariants) {
+  let prototype_compliance: PrototypeCompliance;
+  if (violates_invariants || rawEvaluation?.prototype_compliance === 'conflict') {
     prototype_compliance = 'conflict';
     violates_invariants = true;
-  } else if (validApplicableIds.length === 0) {
+  } else if (validApplicableIds.length === 0 && validViolatedIds.length === 0) {
     prototype_compliance = 'unassessed';
     violates_invariants = false;
   } else {
@@ -373,10 +555,15 @@ export function normalizeGeminiWhatIfEvaluation(
   }
 
   const rawCautions = Array.isArray(rawEvaluation?.cautions_and_redlines)
-    ? rawEvaluation.cautions_and_redlines.map(String)
+    ? rawEvaluation.cautions_and_redlines.map(String).filter((s: string) => s.trim().length > 0)
     : [];
 
-  const combinedCautions = [...rawCautions, ...systemWarnings];
+  // 4. Prose Certainty Hardening (Requirement 1 & 2)
+  const impact_analysis = sanitizeWhatIfImpactAnalysis(
+    String(rawEvaluation?.impact_analysis || ''),
+    historical_confidence,
+    prototype_compliance
+  );
 
   return {
     query: String(rawEvaluation?.query || ''),
@@ -384,11 +571,12 @@ export function normalizeGeminiWhatIfEvaluation(
     proposed_change: String(rawEvaluation?.proposed_change || ''),
     status,
     uncertainty_flag,
-    impact_analysis: String(rawEvaluation?.impact_analysis || ''),
+    impact_analysis,
     violates_invariants,
     violated_evidence_ids: validViolatedIds,
     applicable_evidence_ids: validApplicableIds,
-    cautions_and_redlines: combinedCautions,
+    cautions_and_redlines: rawCautions,
+    system_warnings: systemWarnings,
     stylist_counter_proposal: rawEvaluation?.stylist_counter_proposal || {
       title: 'Đề xuất thay thế từ stylist',
       solution: 'Tham khảo quy thức trong Cultural Knowledge Base.',

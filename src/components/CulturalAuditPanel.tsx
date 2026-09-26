@@ -39,18 +39,18 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
           </h4>
         </div>
 
-        {/* Two-Layer Status Badges (Requirement 4 & 5) */}
+        {/* Two-Layer Status Badges (Requirement 4, 5 & 7) */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Lớp 1: Prototype Compliance */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-xs border bg-[#241A17] border-[#C9A66B]/30">
-            {audit.prototype_compliance === 'conflict' || (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0) ? (
-              <div className="flex items-center gap-1.5 text-amber-300">
-                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            {audit.prototype_compliance === 'conflict' ? (
+              <div className="flex items-center gap-1.5 text-rose-300">
+                <AlertOctagon className="w-3.5 h-3.5 text-rose-400 shrink-0" />
                 <span>Có xung đột với quy tắc prototype</span>
               </div>
             ) : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence' ? (
-              <div className="flex items-center gap-1.5 text-rose-300">
-                <HelpCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <div className="flex items-center gap-1.5 text-neutral-300">
+                <HelpCircle className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                 <span>Chưa đối soát quy tắc prototype</span>
               </div>
             ) : (
@@ -60,6 +60,14 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
               </div>
             )}
           </div>
+
+          {/* Badge cảnh báo thiết kế (chỉ hiện khi có design caution thật và không phải conflict) */}
+          {audit.has_design_caution && audit.prototype_compliance !== 'conflict' && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-xs border bg-[#241A17] border-amber-600/40 text-amber-300">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Có điểm cần lưu ý về thiết kế</span>
+            </div>
+          )}
 
           {/* Lớp 2: Historical Confidence */}
           <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-xs border bg-[#1A1412] border-neutral-700/50">
@@ -87,6 +95,21 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
           </div>
         </div>
       </div>
+
+      {/* System & Data Warnings (Technical info in neutral blue-gray, not red or yellow) */}
+      {audit.system_warnings && audit.system_warnings.length > 0 && (
+        <div className="p-3 bg-slate-900/60 border border-slate-700/60 text-slate-300 rounded-lg text-xs backdrop-blur-xs">
+          <div className="font-semibold flex items-center gap-1.5 text-slate-200 mb-1">
+            <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span>Thông tin dữ liệu kỹ thuật:</span>
+          </div>
+          <ul className="space-y-0.5 list-disc list-inside text-slate-300/90 pl-1 leading-relaxed">
+            {audit.system_warnings.map((warn, idx) => (
+              <li key={idx}>{warn}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Uncertainty Flag Banner (Always visible if present) */}
       {audit.uncertainty_flag && (
