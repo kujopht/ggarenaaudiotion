@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GarmentKey, OutfitProposal } from '../types/vietphuc';
 import { GarmentSchematic } from './GarmentSchematic';
 import { CulturalAuditPanel } from './CulturalAuditPanel';
+import { formatSourceBadge, getLookSummaryStatus } from '../utils/remixStateHelpers';
 import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
 
 interface CoDesignStudioProps {
@@ -198,35 +199,31 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
   // 1. Format source badge display safely (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
-    if (proposalSource === 'gemini') {
+    const info = formatSourceBadge(proposalSource);
+    if (info.badgeType === 'gemini') {
       return (
         <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#0D9488]/15 text-[#2DD4BF] border border-[#0D9488]/30 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-[#2DD4BF]" />
-          Gemini · Trực tiếp
+          {info.label}
         </span>
       );
     }
-    if (proposalSource === 'deterministic_engine' || proposalSource === 'deterministic_engine_fallback') {
+    if (info.badgeType === 'fallback') {
       return (
         <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
-          Bản mẫu dự phòng
+          {info.label}
         </span>
       );
     }
     return (
       <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
-        Nguồn chưa xác định
+        {info.label}
       </span>
     );
   };
 
   // Determine caution status for the quick summary strip under look title
-  const hasCaution = Boolean(
-    currentProposal &&
-    (currentProposal.audit.status === 'Supported with Caution' ||
-      (currentProposal.audit.cautions_and_redlines && currentProposal.audit.cautions_and_redlines.length > 0))
-  );
-  const isInsufficient = Boolean(currentProposal && currentProposal.audit.status === 'Insufficient Evidence');
+  const summaryStatus = getLookSummaryStatus(currentProposal?.audit);
 
   return (
     <div className="space-y-6">
@@ -508,29 +505,33 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   {/* 4. Quick Cultural Reference & Caution Summary Strip directly under Look Title */}
                   <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#14171E] p-2.5 rounded-xl border border-[#232834]">
                     <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-                      {hasCaution ? (
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1 shrink-0">
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                          Có điểm cần lưu ý
-                        </span>
-                      ) : isInsufficient ? (
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300 flex items-center gap-1 shrink-0">
-                          <HelpCircle className="w-3.5 h-3.5 text-rose-400" />
-                          Chưa đủ dữ liệu tham chiếu
-                        </span>
-                      ) : (
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] flex items-center gap-1 shrink-0">
-                          <ShieldCheck className="w-3.5 h-3.5 text-[#2DD4BF]" />
-                          Phù hợp quy tắc tham chiếu
-                        </span>
-                      )}
+                      {summaryStatus.badges.map((badge, idx) => {
+                        if (badge.variant === 'caution') {
+                          return (
+                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1 shrink-0">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                              {badge.label}
+                            </span>
+                          );
+                        }
+                        if (badge.variant === 'uncertainty') {
+                          return (
+                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300 flex items-center gap-1 shrink-0">
+                              <HelpCircle className="w-3.5 h-3.5 text-rose-400" />
+                              {badge.label}
+                            </span>
+                          );
+                        }
+                        return (
+                          <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] flex items-center gap-1 shrink-0">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                            {badge.label}
+                          </span>
+                        );
+                      })}
 
-                      <span className="text-xs text-[#94A3B8] truncate">
-                        {hasCaution
-                          ? (currentProposal.audit.cautions_and_redlines?.[0] || 'Cần chú ý một số điểm biến tấu.')
-                          : isInsufficient
-                          ? (currentProposal.audit.uncertainty_note || 'Chi tiết này chưa có trong dữ liệu tham chiếu.')
-                          : currentProposal.audit.auditor_verdict}
+                      <span className="text-xs text-[#94A3B8] truncate" title={summaryStatus.summaryText}>
+                        {summaryStatus.summaryText}
                       </span>
                     </div>
 

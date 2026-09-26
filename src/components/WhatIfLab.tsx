@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
+import { formatSourceBadge, handleWhatIfStandaloneGarmentChange } from '../utils/remixStateHelpers';
 import { Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw, HelpCircle } from 'lucide-react';
 
 interface WhatIfLabProps {
@@ -87,8 +88,11 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const activeReqIdRef = useRef<number>(0);
+  const activeGarmentRef = useRef<GarmentKey>(selectedGarment);
   const activeProposalId = effectiveActiveProposal?.id ?? null;
   const prevProposalIdRef = useRef(activeProposalId);
+
+  activeGarmentRef.current = selectedGarment;
 
   // Abort on component unmount
   useEffect(() => {
@@ -103,8 +107,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   useEffect(() => {
     if (effectiveActiveProposal) {
       setSelectedGarment(effectiveActiveProposal.garment_type);
-    } else {
-      setSelectedGarment(currentGarment);
+      activeGarmentRef.current = effectiveActiveProposal.garment_type;
     }
 
     if (prevProposalIdRef.current !== activeProposalId) {
@@ -113,13 +116,14 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
       }
+      activeReqIdRef.current++;
       setLoading(false);
       setEvaluation(null);
       setEvaluationSource(null);
       setQueryInput('');
       setErrorMsg(null);
     }
-  }, [effectiveActiveProposal, activeProposalId, currentGarment]);
+  }, [effectiveActiveProposal, activeProposalId]);
 
   // Handle user detaching WhatIf to standalone mode
   const handleDetachToStandalone = () => {
@@ -127,6 +131,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    activeReqIdRef.current++;
     setLoading(false);
     setIsDetached(true);
     setEvaluation(null);
@@ -141,12 +146,40 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    activeReqIdRef.current++;
     setLoading(false);
     setIsDetached(false);
     setEvaluation(null);
     setEvaluationSource(null);
     setQueryInput('');
     setErrorMsg(null);
+  };
+
+  // 1. When changing garment dropdown in standalone mode:
+  // Clears evaluation, evaluationSource, errorMsg, aborts in-flight request,
+  // does not auto-call Gemini and does not affect Studio proposals!
+  const handleSelectGarmentInStandalone = (newGarment: GarmentKey) => {
+    if (newGarment === selectedGarment) return;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    activeReqIdRef.current++;
+    activeGarmentRef.current = newGarment;
+
+    const nextState = handleWhatIfStandaloneGarmentChange(selectedGarment, newGarment, {
+      selectedGarment,
+      evaluation,
+      evaluationSource,
+      errorMsg,
+      loading,
+    });
+
+    setSelectedGarment(nextState.selectedGarment);
+    setEvaluation(nextState.evaluation);
+    setEvaluationSource(nextState.evaluationSource);
+    setErrorMsg(nextState.errorMsg);
+    setLoading(nextState.loading);
   };
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
@@ -163,10 +196,14 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     const reqId = ++activeReqIdRef.current;
     const outfitAtRequestTime = effectiveActiveProposal;
     const garmentAtRequestTime = targetGarment;
+    activeGarmentRef.current = targetGarment;
 
     setLoading(true);
     setErrorMsg(null);
     setQueryInput(queryText);
+    // Clear previous evaluation immediately while running
+    setEvaluation(null);
+    setEvaluationSource(null);
 
     try {
       const res = await fetch('/api/remix/what-if', {
@@ -187,10 +224,11 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
       const data = await res.json();
 
-      // Check if request was aborted, or target changed, or a new request was fired
+      // Check if request was aborted, garment changed, or active proposal changed
       if (
         controller.signal.aborted ||
         reqId !== activeReqIdRef.current ||
+        activeGarmentRef.current !== garmentAtRequestTime ||
         (effectiveActiveProposal?.id !== outfitAtRequestTime?.id)
       ) {
         return;
@@ -207,7 +245,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       if (err.name === 'AbortError' || controller.signal.aborted) {
         return;
       }
-      if (reqId === activeReqIdRef.current) {
+      if (reqId === activeReqIdRef.current && activeGarmentRef.current === garmentAtRequestTime) {
         console.error('Failed to run What-If evaluation:', err);
         setErrorMsg(err.message || 'Lỗi kết nối khi gửi yêu cầu What-If.');
       }
@@ -220,24 +258,25 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
   // 1. Format source badge display safely (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
-    if (evaluationSource === 'gemini') {
+    const info = formatSourceBadge(evaluationSource);
+    if (info.badgeType === 'gemini') {
       return (
         <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#0D9488]/15 text-[#2DD4BF] border border-[#0D9488]/30 flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-[#2DD4BF]" />
-          Gemini · Trực tiếp
+          {info.label}
         </span>
       );
     }
-    if (evaluationSource === 'deterministic_engine' || evaluationSource === 'deterministic_engine_fallback') {
+    if (info.badgeType === 'fallback') {
       return (
         <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
-          Bản mẫu dự phòng
+          {info.label}
         </span>
       );
     }
     return (
       <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
-        Nguồn chưa xác định
+        {info.label}
       </span>
     );
   };
@@ -336,7 +375,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                 onClick={() => {
                   if (loading || isConflict) return;
                   if (!effectiveActiveProposal) {
-                    setSelectedGarment(item.garment);
+                    if (item.garment !== selectedGarment) {
+                      handleSelectGarmentInStandalone(item.garment);
+                    }
                   }
                   handleRunWhatIf(item.query, effectiveActiveProposal ? effectiveActiveProposal.garment_type : item.garment);
                 }}
@@ -401,7 +442,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             </label>
             <select
               value={selectedGarment}
-              onChange={(e) => setSelectedGarment(e.target.value as GarmentKey)}
+              onChange={(e) => handleSelectGarmentInStandalone(e.target.value as GarmentKey)}
               disabled={!!effectiveActiveProposal || loading}
               className={`w-full text-sm font-medium bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] focus:outline-none focus:border-[#14B8A6] min-h-[44px] ${
                 effectiveActiveProposal ? 'opacity-60 cursor-not-allowed' : ''
@@ -478,24 +519,29 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               </h3>
             </div>
 
-            {/* Status Badge */}
-            <div className="shrink-0">
-              {evaluation.status === 'Supported' && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
-                  <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
-                </div>
-              )}
-              {evaluation.status === 'Supported with Caution' && (
+            {/* Status Badges */}
+            <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+              {(evaluation.status === 'Supported with Caution' ||
+                evaluation.violates_invariants ||
+                (evaluation.cautions_and_redlines && evaluation.cautions_and_redlines.length > 0)) && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
                 </div>
               )}
-              {evaluation.status === 'Insufficient Evidence' && (
+              {(evaluation.status === 'Insufficient Evidence' || evaluation.uncertainty_flag) && (
                 <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
                   <HelpCircle className="w-4 h-4 text-rose-400" />
                   <span>Chưa đủ dữ liệu tham chiếu</span>
+                </div>
+              )}
+              {evaluation.status === 'Supported' &&
+                !evaluation.uncertainty_flag &&
+                !evaluation.violates_invariants &&
+                (!evaluation.cautions_and_redlines || evaluation.cautions_and_redlines.length === 0) && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
+                  <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
                 </div>
               )}
             </div>

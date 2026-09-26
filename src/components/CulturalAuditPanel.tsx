@@ -10,9 +10,15 @@ interface CulturalAuditPanelProps {
 export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, onOpenCKB }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const isSupported = audit.status === 'Supported';
-  const isCaution = audit.status === 'Supported with Caution';
-  const isInsufficient = audit.status === 'Insufficient Evidence';
+  const hasCaution = Boolean(
+    audit.status === 'Supported with Caution' ||
+    (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0)
+  );
+  const hasUncertainty = Boolean(
+    audit.uncertainty_flag ||
+    audit.status === 'Insufficient Evidence'
+  );
+  const isPurelySupported = !hasCaution && !hasUncertainty && audit.status === 'Supported';
 
   return (
     <div className="border border-[#2A313E] bg-[#1A1E26] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
@@ -27,23 +33,23 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
           </h4>
         </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          {isSupported && (
+        {/* Status Badges */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {isPurelySupported && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
               <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
               <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
             </div>
           )}
 
-          {isCaution && (
+          {hasCaution && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
               <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
             </div>
           )}
 
-          {isInsufficient && (
+          {hasUncertainty && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
               <HelpCircle className="w-4 h-4 text-rose-400" />
               <span>Chưa đủ dữ liệu tham chiếu</span>

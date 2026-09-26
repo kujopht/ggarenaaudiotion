@@ -3,6 +3,41 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Ensure window.fetch has both getter and setter so host/test environments
+      // can intercept or wrap window.fetch without throwing "Cannot set property fetch of #<Window> which has only a getter"
+      (function() {
+        try {
+          var _nativeFetch = window.fetch;
+          Object.defineProperty(window, 'fetch', {
+            get: function() {
+              return _nativeFetch;
+            },
+            set: function(fn) {
+              _nativeFetch = fn;
+            },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {
+          try {
+            var proto = Object.getPrototypeOf(window);
+            if (proto) {
+              var desc = Object.getOwnPropertyDescriptor(proto, 'fetch');
+              if (desc && desc.configurable) {
+                var _pFetch = desc.get ? desc.get.call(window) : window.fetch;
+                Object.defineProperty(proto, 'fetch', {
+                  get: function() { return _pFetch; },
+                  set: function(fn) { _pFetch = fn; },
+                  configurable: true,
+                  enumerable: true
+                });
+              }
+            }
+          } catch (_) {}
+        }
+      })();
+    </script>
     <title>Việt Phục Remix Lab</title>
     <meta name="description" content="Hệ thống đồng sáng tạo thời trang đương đại và thẩm định di sản văn hóa Việt phục chuẩn mực." />
     <meta property="og:title" content="Việt Phục Remix Lab" />
