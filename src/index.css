@@ -87,68 +87,81 @@
 }
 
 .animate-drum-spin-slow {
-  animation: drum-spin 260s linear infinite;
+  animation: drum-spin 280s linear infinite;
   will-change: transform;
 }
 
-/* Phoenix Flight Across Viewport (10.5s duration with gentle curved arc) */
-@keyframes phoenix-viewport-glide {
+/* Majestic Phoenix Flight Across Viewport (22s duration with expansive graceful arc) */
+@keyframes phoenix-majestic-glide {
   0% {
-    transform: translate3d(-140px, 16vh, 0) scale(0.85) rotate(4deg);
+    transform: translate3d(-180px, 18vh, 0) scale(0.85) rotate(5deg);
     opacity: 0;
   }
-  12% {
-    transform: translate3d(15vw, 12vh, 0) scale(0.94) rotate(1deg);
-    opacity: 0.42;
+  15% {
+    transform: translate3d(14vw, 12vh, 0) scale(0.96) rotate(1deg);
+    opacity: 0.48;
   }
   45% {
-    transform: translate3d(48vw, 24vh, 0) scale(1.02) rotate(-2deg);
-    opacity: 0.50;
+    transform: translate3d(46vw, 22vh, 0) scale(1.04) rotate(-3deg);
+    opacity: 0.55;
   }
-  78% {
-    transform: translate3d(82vw, 15vh, 0) scale(0.95) rotate(2deg);
-    opacity: 0.40;
+  75% {
+    transform: translate3d(78vw, 14vh, 0) scale(0.98) rotate(2deg);
+    opacity: 0.42;
+  }
+  92% {
+    transform: translate3d(96vw, 19vh, 0) scale(0.90) rotate(4deg);
+    opacity: 0.20;
   }
   100% {
-    transform: translate3d(calc(100vw + 140px), 20vh, 0) scale(0.88) rotate(5deg);
+    transform: translate3d(calc(100vw + 180px), 24vh, 0) scale(0.85) rotate(6deg);
     opacity: 0;
   }
 }
 
-.animate-phoenix-viewport-glide {
-  animation: phoenix-viewport-glide 11s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+.animate-phoenix-majestic-glide {
+  animation: phoenix-majestic-glide 22s cubic-bezier(0.3, 0.05, 0.2, 1) forwards;
   will-change: transform, opacity;
 }
 
 /* Dial Level Micro-Interaction (Gentle pulse and momentary golden shimmer) */
 @keyframes dial-micro-shift {
   0% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
     filter: drop-shadow(0 0 0px rgba(201, 166, 107, 0));
   }
   40% {
-    transform: scale(1.06) rotate(12deg);
+    transform: scale(1.05);
     filter: drop-shadow(0 0 10px rgba(201, 166, 107, 0.6));
   }
   100% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
     filter: drop-shadow(0 0 0px rgba(201, 166, 107, 0));
   }
 }
 
 .animate-dial-shift {
-  animation: dial-micro-shift 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: dial-micro-shift 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Respect user's motion preference */
 @media (prefers-reduced-motion: reduce) {
   .animate-drum-spin,
   .animate-drum-spin-slow,
-  .animate-phoenix-viewport-glide,
+  .animate-phoenix-majestic-glide,
   .animate-dial-shift {
     animation: none !important;
     transform: none !important;
   }
+}
+
+/* Hide scrollbar for clean horizontal tab lists */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Custom Lacquer Scrollbar */

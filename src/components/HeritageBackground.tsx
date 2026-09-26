@@ -10,13 +10,15 @@ interface HeritageBackgroundProps {
  * Fixed behind all content, pointer-events none, aria-hidden.
  * Features:
  * 1. Warm lacquer vignette & atmospheric depth
- * 2. Grand Dong Son Bronze Drum (700-1000px) on upper-right, cropped at viewport edge
+ * 2. Grand Dong Son Bronze Drum on upper-right, cropped at viewport edge
  * 3. Secondary subtle concentric arc on bottom-left for spatial depth
- * 4. Gliding Phoenix flying across the global space BEHIND translucent UI panels
+ * 4. Majestic soaring phoenix gliding across the global space (22s slow flight, 50-75s rest)
+ * 5. Mobile optimized: phoenix disabled on mobile, drum opacity reduced to 0.08
  */
 export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEnabled }) => {
   const [phoenixVisible, setPhoenixVisible] = useState(false);
   const [phoenixVariant, setPhoenixVariant] = useState<0 | 1>(0);
+  const [verticalLane, setVerticalLane] = useState(14); // percentage top
 
   useEffect(() => {
     if (!motionEnabled) {
@@ -31,40 +33,59 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       return;
     }
 
+    // Disable flight on mobile viewports (< 768px) to prioritize reading comfort and battery performance
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      setPhoenixVisible(false);
+      return;
+    }
+
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
-    let flightInterval: ReturnType<typeof setInterval> | null = null;
+    let nextFlightTimer: ReturnType<typeof setTimeout> | null = null;
 
-    const launchPhoenix = () => {
-      if (document.hidden) return;
-      setPhoenixVariant((prev) => (prev === 0 ? 1 : 0));
-      setPhoenixVisible(true);
+    const scheduleNextFlight = (delayMs: number) => {
+      nextFlightTimer = setTimeout(() => {
+        if (document.hidden) {
+          // If tab is backgrounded, retry in 15s
+          scheduleNextFlight(15000);
+          return;
+        }
 
-      if (hideTimer) clearTimeout(hideTimer);
-      // Flight lasts 11 seconds
-      hideTimer = setTimeout(() => {
-        setPhoenixVisible(false);
-      }, 11000);
+        // Randomize phoenix variant (0 or 1) and vertical altitude (10% to 22%)
+        setPhoenixVariant((prev) => (prev === 0 ? 1 : 0));
+        setVerticalLane(10 + Math.floor(Math.random() * 12));
+        setPhoenixVisible(true);
+
+        if (hideTimer) clearTimeout(hideTimer);
+        // Majestic flight duration is 22 seconds
+        hideTimer = setTimeout(() => {
+          setPhoenixVisible(false);
+          // Rest interval between 50 to 75 seconds
+          const restPeriod = 50000 + Math.floor(Math.random() * 25000);
+          scheduleNextFlight(restPeriod);
+        }, 22500);
+      }, delayMs);
     };
 
-    // First flight 4 seconds after page arrival
-    const initialTimer = setTimeout(launchPhoenix, 4000);
-
-    // Subsequent flights every 58 seconds (flight 11s + rest ~47s)
-    flightInterval = setInterval(launchPhoenix, 58000);
+    // First flight begins 5 seconds after page arrival
+    scheduleNextFlight(5000);
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
         setPhoenixVisible(false);
         if (hideTimer) clearTimeout(hideTimer);
+        if (nextFlightTimer) clearTimeout(nextFlightTimer);
+      } else {
+        // Reschedule when user returns
+        scheduleNextFlight(8000);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      clearTimeout(initialTimer);
       if (hideTimer) clearTimeout(hideTimer);
-      if (flightInterval) clearInterval(flightInterval);
+      if (nextFlightTimer) clearTimeout(nextFlightTimer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [motionEnabled]);
@@ -77,17 +98,17 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       {/* 1. Atmospheric Ambient Gradients & Glows */}
       {/* Bronze glow behind Dong Son drum at upper right */}
       <div
-        className="absolute top-0 right-0 w-[800px] h-[800px] opacity-70 pointer-events-none"
+        className="absolute top-0 right-0 w-[500px] sm:w-[700px] lg:w-[850px] h-[500px] sm:h-[700px] lg:h-[850px] opacity-70 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 75% 20%, rgba(201, 166, 107, 0.14) 0%, rgba(201, 166, 107, 0.04) 45%, transparent 70%)',
+          background: 'radial-gradient(circle at 75% 20%, rgba(201, 166, 107, 0.14) 0%, rgba(201, 166, 107, 0.03) 45%, transparent 70%)',
         }}
       />
 
       {/* Subtle warm cinnabar glow on left-mid viewport */}
       <div
-        className="absolute top-[25%] left-0 w-[600px] h-[600px] opacity-60 pointer-events-none"
+        className="absolute top-[25%] left-0 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] opacity-60 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 15% 40%, rgba(184, 52, 43, 0.08) 0%, rgba(184, 52, 43, 0.02) 40%, transparent 70%)',
+          background: 'radial-gradient(circle at 15% 40%, rgba(184, 52, 43, 0.07) 0%, rgba(184, 52, 43, 0.01) 40%, transparent 70%)',
         }}
       />
 
@@ -100,16 +121,16 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       />
 
       {/* 2. Primary Dong Son Bronze Drum Artwork (Top-Right, partially cropped) */}
-      <div className="absolute -top-12 -right-24 sm:-top-16 sm:-right-24 md:-top-12 md:-right-20 lg:-top-6 lg:-right-16 translate-x-[15%] sm:translate-x-[10%] lg:translate-x-[8%] opacity-[0.14] sm:opacity-[0.18] transition-opacity duration-1000">
+      <div className="absolute -top-16 -right-24 sm:-top-16 sm:-right-24 md:-top-12 md:-right-20 lg:-top-6 lg:-right-16 translate-x-[15%] sm:translate-x-[10%] lg:translate-x-[8%] opacity-[0.08] sm:opacity-[0.12] lg:opacity-[0.16] transition-opacity duration-1000">
         <DongSonBronzeDrum
-          size={920}
+          size={940}
           isRotating={motionEnabled}
-          className="w-[420px] h-[420px] sm:w-[680px] sm:h-[680px] md:w-[820px] md:h-[820px] lg:w-[940px] lg:h-[940px]"
+          className="w-[340px] h-[340px] sm:w-[620px] sm:h-[620px] md:w-[780px] md:h-[780px] lg:w-[940px] lg:h-[940px]"
         />
       </div>
 
       {/* 3. Secondary Deep Concentric Arc at Bottom-Left (Asymmetric depth balance) */}
-      <div className="absolute -bottom-36 -left-36 sm:-bottom-44 sm:-left-44 md:-bottom-52 md:-left-52 opacity-[0.08] sm:opacity-[0.11] pointer-events-none">
+      <div className="hidden sm:block absolute -bottom-36 -left-36 md:-bottom-52 md:-left-52 opacity-[0.08] sm:opacity-[0.10] pointer-events-none">
         <svg
           width="540"
           height="540"
@@ -126,19 +147,22 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
         </svg>
       </div>
 
-      {/* 4. Global Gliding Phoenix in Flight (Flies behind semi-transparent panels) */}
+      {/* 4. Global Majestic Phoenix in Flight (22s slow graceful sweep, desktop only) */}
       {motionEnabled && phoenixVisible && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          <div className="absolute animate-phoenix-viewport-glide" style={{ top: '8%', left: '0' }}>
+        <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <div
+            className="absolute animate-phoenix-majestic-glide"
+            style={{ top: `${verticalLane}%`, left: '0' }}
+          >
             {phoenixVariant === 0 ? (
               <VietnamesePhoenix
-                size={180}
-                className="opacity-75 drop-shadow-[0_4px_16px_rgba(201,166,107,0.35)]"
+                size={190}
+                className="opacity-75 drop-shadow-[0_6px_20px_rgba(201,166,107,0.4)]"
               />
             ) : (
               <VietnameseSoaringPhoenix
-                size={180}
-                className="opacity-75 drop-shadow-[0_4px_16px_rgba(201,166,107,0.35)]"
+                size={190}
+                className="opacity-75 drop-shadow-[0_6px_20px_rgba(201,166,107,0.4)]"
               />
             )}
           </div>
