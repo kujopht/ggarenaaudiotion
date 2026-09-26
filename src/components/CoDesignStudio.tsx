@@ -25,6 +25,7 @@ interface CoDesignStudioProps {
   onOpenCKB: (evidenceId?: string) => void;
   onOpenLookbookCard: (proposal: OutfitProposal) => void;
   onNavigateToWhatIf: () => void;
+  motionEnabled?: boolean;
 }
 
 const DIAL_LEVELS = [
@@ -146,6 +147,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   onOpenCKB,
   onOpenLookbookCard,
   onNavigateToWhatIf,
+  motionEnabled = true,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [detailTab, setDetailTab] = useState<'styling' | 'audit'>('styling');
@@ -482,7 +484,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
               {/* Ornamental Circular Bronze Ring Display: Rotating Motif, Stationary Number */}
               <div className="py-1">
-                <DongSonDialRing dialLevel={dialLevel} isRotating={true} />
+                <DongSonDialRing dialLevel={dialLevel} isRotating={motionEnabled} />
               </div>
 
               {/* Slider track for touch, mouse, and keyboard */}

@@ -141,6 +141,7 @@ export default function App() {
               onOpenCKB={handleOpenCKB}
               onOpenLookbookCard={handleOpenLookbook}
               onNavigateToWhatIf={() => setActiveTab('what-if')}
+              motionEnabled={motionEnabled}
             />
           </>
         )}

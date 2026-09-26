@@ -5,6 +5,7 @@ import {
   handleWhatIfStandaloneGarmentChange,
   isResponseValid,
 } from '../src/utils/remixStateHelpers.js';
+import { evaluateWhatIfDeterministic } from '../src/utils/deterministicEngines.js';
 import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
 
 console.log('--- BẮT ĐẦU CHẠY BỘ KIỂM THỬ: REMIX STATE & FLOW VALIDATION ---\n');
@@ -311,6 +312,117 @@ runTest('7.1 Thanh tóm tắt: Look chuẩn mực hoàn toàn hiển thị nhãn
   assert.strictEqual(summary.badges[0].variant, 'supported');
   assert.strictEqual(summary.badges[0].label, 'Phù hợp quy tắc tham chiếu');
   assert.strictEqual(summary.summaryText, 'Thiết kế chuẩn mực theo quy thức y phục cổ truyền.');
+});
+
+// -------------------------------------------------------------
+// Test Case 8: Kiểm thử trực tiếp hàm fallback What If đang chạy thực tế
+// -------------------------------------------------------------
+runTest('8.1 Fallback: "Đeo túi bên trái" không được coi là vi phạm đổi vạt Tả nhậm', () => {
+  const result = evaluateWhatIfDeterministic('ngu_than', 'Đeo túi bên trái có hợp không?');
+  assert.strictEqual(result.violates_invariants, false, 'Đeo túi không được coi là vi phạm cấu trúc bất biến');
+  assert.strictEqual(result.status, 'Insufficient Evidence');
+  assert.strictEqual(result.uncertainty_flag, true);
+  assert.ok(!result.violated_evidence_ids.includes('KB-RULE-01'), 'Không được gán vi phạm KB-RULE-01');
+  assert.ok(result.impact_analysis.includes('túi xách') || result.impact_analysis.includes('phụ kiện'), 'Phải nhận diện đây là phụ kiện cá nhân');
+});
+
+runTest('8.2 Fallback: "Không muốn đổi vạt áo" (phủ định) không được coi là đề xuất Tả nhậm', () => {
+  const result = evaluateWhatIfDeterministic('ngu_than', 'Không muốn đổi vạt áo sang trái');
+  assert.strictEqual(result.violates_invariants, false, 'Phủ định không được suy diễn thành vi phạm tang ma');
+  assert.strictEqual(result.status, 'Insufficient Evidence');
+  assert.strictEqual(result.uncertainty_flag, true);
+  assert.ok(!result.violated_evidence_ids.includes('KB-RULE-01'));
+});
+
+runTest('8.3 Fallback: "Đổi màu cổ tay của Nhật Bình" giữ nguyên target_garment là nhat_binh, không nhầm sang ngu_than', () => {
+  const result = evaluateWhatIfDeterministic('nhat_binh', 'Đổi màu cổ tay của Nhật Bình');
+  assert.strictEqual(result.target_garment, 'nhat_binh', 'target_garment phải là nhat_binh');
+  assert.strictEqual(result.violates_invariants, true, 'Đổi màu cổ tay ngũ sắc vi phạm Invariant KB-NHATBINH-02');
+  assert.ok(result.violated_evidence_ids.includes('KB-NHATBINH-02'));
+  assert.ok(!result.violated_evidence_ids.includes('KB-NGUTHAN-01'), 'Không được nhầm cổ tay thành cổ áo Lập Lĩnh');
+  assert.strictEqual(result.status, 'Supported with Caution');
+});
+
+runTest('8.4 Fallback: "Đổi cổ áo của Ngũ Thân" kiểm tra đúng KB-NGUTHAN-01', () => {
+  const result = evaluateWhatIfDeterministic('ngu_than', 'Đổi cổ áo của Ngũ Thân thành cổ bẻ');
+  assert.strictEqual(result.target_garment, 'ngu_than');
+  assert.strictEqual(result.violates_invariants, true, 'Thay cổ lập lĩnh vi phạm KB-NGUTHAN-01');
+  assert.ok(result.violated_evidence_ids.includes('KB-NGUTHAN-01'));
+  assert.strictEqual(result.status, 'Supported with Caution');
+});
+
+runTest('8.5 Fallback: Câu hỏi ngoài khả năng xử lý trả về Insufficient Evidence & nêu rõ giới hạn fallback', () => {
+  const result = evaluateWhatIfDeterministic('ngu_than', 'Thời tiết 15 độ C ở Sa Pa thì mặc thế nào cho ấm?');
+  assert.strictEqual(result.status, 'Insufficient Evidence');
+  assert.strictEqual(result.uncertainty_flag, true);
+  assert.strictEqual(result.violates_invariants, false, 'Không được suy đoán vi phạm khi không có cơ sở');
+  assert.strictEqual(result.violated_evidence_ids.length, 0);
+  assert.ok(result.impact_analysis.toLowerCase().includes('chế độ dự phòng') || result.impact_analysis.toLowerCase().includes('dự phòng'), 'Phải nêu rõ giới hạn của bộ suy luận dự phòng');
+});
+
+runTest('8.6 Fallback: Thiếu API key hoặc Gemini lỗi, nhãn nguồn trả về dự phòng', () => {
+  const badge1 = formatSourceBadge('deterministic_engine');
+  assert.strictEqual(badge1.badgeType, 'fallback');
+  assert.strictEqual(badge1.label, 'Bản mẫu dự phòng');
+
+  const badge2 = formatSourceBadge('deterministic_engine_fallback');
+  assert.strictEqual(badge2.badgeType, 'fallback');
+  assert.strictEqual(badge2.label, 'Bản mẫu dự phòng');
+});
+
+// -------------------------------------------------------------
+// Test Case 9: Luồng tạo Look ở Studio chuyển tiếp sang What If (Mock flow)
+// -------------------------------------------------------------
+runTest('9.1 Luồng tạo Look -> Chọn chuyển sang What-If: Dữ liệu kế thừa chuẩn xác', () => {
+  // Giả lập outfit được tạo thành công ở Studio
+  const selectedProposal: OutfitProposal = {
+    id: 'prop-custom-1',
+    plan_type: 'contemporary_remix',
+    title: 'Áo Ngũ Thân Indigo Denim Minimalist Cut',
+    concept_tag: 'Streetwear Hybrid',
+    garment_type: 'ngu_than',
+    dial_level: 3,
+    visual_details: {
+      collar_style: 'Cổ Lập Lĩnh 4.2cm',
+      lapel_side: 'Hữu Nhậm',
+      sleeve_style: 'Tay chẽn',
+      cut_length: 'Vạt lửng',
+      fabric_materials: ['Denim'],
+      layering_pieces: ['Áo thun trắng'],
+      bottom_garment: 'Quần tây suông',
+      footwear: 'Loafers',
+      accessories: ['Túi đeo chéo'],
+      color_palette: ['#172554'],
+    },
+    audit: {
+      status: 'Supported',
+      uncertainty_flag: false,
+      uncertainty_note: '',
+      evidence_ids: ['KB-RULE-01', 'KB-NGUTHAN-01'],
+      invariants_checked: [
+        { evidence_id: 'KB-RULE-01', rule_name: 'Hữu nhậm', passed: true, detail: 'Chuẩn vạt phải' },
+      ],
+      mutables_used: [],
+      cautions_and_redlines: [],
+      auditor_verdict: 'Hợp lệ',
+    },
+    stylist_notes: {
+      philosophy: 'Đương đại',
+      gen_z_tips: ['Xắn tay nhẹ'],
+      occasions: ['Dạo phố'],
+    },
+  };
+
+  // Người dùng chuyển sang tab What-If và gửi câu hỏi dựa trên outfit đang chọn
+  const whatIfResult = evaluateWhatIfDeterministic(
+    selectedProposal.garment_type,
+    'What if đổi vạt áo và cài sang trái?',
+    selectedProposal
+  );
+
+  assert.strictEqual(whatIfResult.violates_invariants, true);
+  assert.ok(whatIfResult.violated_evidence_ids.includes('KB-RULE-01'));
+  assert.ok(whatIfResult.impact_analysis.includes(selectedProposal.title), 'Kết quả What-If phải tham chiếu trang phục nền đang chọn');
 });
 
 console.log('\n-------------------------------------------------------------');

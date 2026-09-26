@@ -19,23 +19,46 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
   const [phoenixVisible, setPhoenixVisible] = useState(false);
   const [phoenixVariant, setPhoenixVariant] = useState<0 | 1>(0);
   const [verticalLane, setVerticalLane] = useState(14); // percentage top
+  const [isDesktop, setIsDesktop] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 768 : false));
+  const [prefersReduced, setPrefersReduced] = useState(() => (typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false));
+
+  // Dynamic viewport & preference tracking across resizes without reload
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 768;
+      setIsDesktop((prev) => {
+        if (prev !== desktop) {
+          if (!desktop) {
+            setPhoenixVisible(false);
+          }
+          return desktop;
+        }
+        return prev;
+      });
+    };
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleMotionChange = (e: MediaQueryListEvent) => {
+      setPrefersReduced(e.matches);
+      if (e.matches) {
+        setPhoenixVisible(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    mediaQuery.addEventListener('change', handleMotionChange);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      mediaQuery.removeEventListener('change', handleMotionChange);
+    };
+  }, []);
 
   useEffect(() => {
-    if (!motionEnabled) {
-      setPhoenixVisible(false);
-      return;
-    }
-
-    // Respect system prefers-reduced-motion
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (mediaQuery.matches) {
-      setPhoenixVisible(false);
-      return;
-    }
-
-    // Disable flight on mobile viewports (< 768px) to prioritize reading comfort and battery performance
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
+    // Immediate cancellation if motion is disabled, reduced-motion is requested, or viewport is mobile
+    if (!motionEnabled || prefersReduced || !isDesktop) {
       setPhoenixVisible(false);
       return;
     }
@@ -84,11 +107,12 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      setPhoenixVisible(false);
       if (hideTimer) clearTimeout(hideTimer);
       if (nextFlightTimer) clearTimeout(nextFlightTimer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [motionEnabled]);
+  }, [motionEnabled, prefersReduced, isDesktop]);
 
   return (
     <div
@@ -124,7 +148,7 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       <div className="absolute -top-16 -right-24 sm:-top-16 sm:-right-24 md:-top-12 md:-right-20 lg:-top-6 lg:-right-16 translate-x-[15%] sm:translate-x-[10%] lg:translate-x-[8%] opacity-[0.08] sm:opacity-[0.12] lg:opacity-[0.16] transition-opacity duration-1000">
         <DongSonBronzeDrum
           size={940}
-          isRotating={motionEnabled}
+          isRotating={motionEnabled && !prefersReduced}
           className="w-[340px] h-[340px] sm:w-[620px] sm:h-[620px] md:w-[780px] md:h-[780px] lg:w-[940px] lg:h-[940px]"
         />
       </div>
@@ -148,7 +172,7 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       </div>
 
       {/* 4. Global Majestic Phoenix in Flight (22s slow graceful sweep, desktop only) */}
-      {motionEnabled && phoenixVisible && (
+      {motionEnabled && !prefersReduced && isDesktop && phoenixVisible && (
         <div className="hidden md:block absolute inset-0 pointer-events-none overflow-hidden z-0">
           <div
             className="absolute animate-phoenix-majestic-glide"

@@ -23,22 +23,22 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Desktop / Tablet Bar (md:h-16 flex items-center justify-between) */}
         <div className="flex flex-col md:flex-row md:items-center justify-between py-2.5 md:py-0 md:h-16 gap-2 md:gap-4">
           {/* Brand Lockup & Top Row on Mobile */}
-          <div className="flex items-center justify-between w-full md:w-auto">
+          <div className="flex items-center justify-between w-full md:w-auto gap-2">
             <a
               href="#"
               onClick={(e) => {
                 e.preventDefault();
                 onSelectTab('studio');
               }}
-              className="flex items-center gap-2.5 group shrink-0"
+              className="flex items-center gap-2 sm:gap-2.5 group shrink min-w-0"
               aria-label="Về trang chủ Xưởng phối đồ"
             >
               {/* Lacquer Cinnabar & Gold Emblem */}
-              <div className="w-8 h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-xs tracking-tight group-hover:border-[#C9A66B] group-hover:bg-[#B8342B]/35 transition-all shadow-xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-xs tracking-tight group-hover:border-[#C9A66B] group-hover:bg-[#B8342B]/35 transition-all shadow-xs shrink-0">
                 VP
               </div>
-              <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-serif font-bold tracking-tight text-[#F2E9D8] group-hover:text-[#C9A66B] transition-colors leading-none whitespace-nowrap">
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm sm:text-base md:text-lg font-serif font-bold tracking-tight text-[#F2E9D8] group-hover:text-[#C9A66B] transition-colors leading-none truncate">
                   Việt Phục Remix Lab
                 </span>
                 {/* Subtitle: Hidden on mobile to prevent crowding */}
@@ -48,27 +48,32 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </a>
 
-            {/* Mobile Motion Toggle (Placed cleanly in top right corner on mobile) */}
+            {/* Mobile Motion Toggle (Placed cleanly in top right corner on mobile < md) */}
             {onToggleMotion && (
-              <div className="md:hidden">
+              <div className="md:hidden shrink-0">
                 <button
                   type="button"
                   onClick={onToggleMotion}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-medium border border-[#C9A66B]/25 bg-[#211815]/80 text-[#B8AA96] hover:text-[#C9A66B] active:bg-[#2C211D] transition-colors cursor-pointer min-h-[38px] shadow-xs"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-mono font-medium border border-[#C9A66B]/25 bg-[#211815]/80 text-[#B8AA96] hover:text-[#C9A66B] active:bg-[#2C211D] transition-colors cursor-pointer min-h-[36px] shadow-xs"
                   title={motionEnabled ? 'Tắt hiệu ứng chuyển động' : 'Bật hiệu ứng chuyển động'}
-                  aria-label={`Chuyển động: ${motionEnabled ? 'Bật' : 'Tắt'}`}
+                  aria-label={`Hiệu ứng chuyển động: ${motionEnabled ? 'Đang bật' : 'Đang tắt'}`}
                 >
-                  <Wind className={`w-3.5 h-3.5 ${motionEnabled ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />
-                  <span>{motionEnabled ? 'Chuyển động: Bật' : 'Tắt'}</span>
+                  <Wind className={`w-3.5 h-3.5 shrink-0 ${motionEnabled ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />
+                  <span>
+                    <span className="hidden min-[380px]:inline">Chuyển động: </span>
+                    <span className={motionEnabled ? 'text-[#E6C88B] font-semibold' : 'text-[#8C7E6C]'}>
+                      {motionEnabled ? 'Bật' : 'Tắt'}
+                    </span>
+                  </span>
                 </button>
               </div>
             )}
           </div>
 
           {/* Tab Navigation: Horizontal bar on desktop, clean scrolling bar on mobile */}
-          <div className="w-full md:w-auto overflow-hidden">
+          <div className="w-full md:w-auto max-w-full">
             <nav
-              className="flex items-center gap-1.5 p-1 bg-[#211815]/60 backdrop-blur-md rounded-xl border border-[#C9A66B]/20 overflow-x-auto no-scrollbar w-full md:w-auto"
+              className="flex items-center gap-1.5 p-1 bg-[#211815]/60 backdrop-blur-md rounded-xl border border-[#C9A66B]/20 overflow-x-auto no-scrollbar w-full md:w-auto overscroll-x-contain touch-pan-x"
               aria-label="Điều hướng không gian làm việc"
             >
               <button
@@ -127,14 +132,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             </nav>
           </div>
 
-          {/* Desktop Motion Toggle (Hidden on mobile, visible on lg) */}
+          {/* Desktop/Tablet Motion Toggle (Visible on md and lg, exactly one toggle at every breakpoint) */}
           {onToggleMotion && (
-            <div className="hidden lg:block shrink-0">
+            <div className="hidden md:block shrink-0">
               <button
                 type="button"
                 onClick={onToggleMotion}
                 className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-mono font-medium border border-[#C9A66B]/25 bg-[#211815]/60 hover:bg-[#2C211D]/80 backdrop-blur-md text-[#B8AA96] hover:text-[#C9A66B] transition-colors cursor-pointer min-h-[38px]"
                 title={motionEnabled ? 'Tắt hiệu ứng chuyển động' : 'Bật hiệu ứng chuyển động'}
+                aria-label={`Hiệu ứng chuyển động: ${motionEnabled ? 'Đang bật' : 'Đang tắt'}`}
               >
                 <Wind className={`w-3.5 h-3.5 ${motionEnabled ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />
                 <span>{motionEnabled ? 'Chuyển động: Bật' : 'Chuyển động: Tắt'}</span>
