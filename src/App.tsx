@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
+import { Navbar, WorkspaceTab } from './components/Navbar';
 import { CoDesignStudio } from './components/CoDesignStudio';
 import { WhatIfLab } from './components/WhatIfLab';
 import { AnatomySection } from './components/AnatomySection';
-import { ManifestoSection } from './components/ManifestoSection';
+import { CKBRegistryView } from './components/CKBRegistryView';
 import { Footer } from './components/Footer';
 import { CKBExplorerModal } from './components/CKBExplorerModal';
 import { LookbookCardModal } from './components/LookbookCardModal';
 import { OutfitProposal } from './types/vietphuc';
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState<WorkspaceTab>('studio');
   const [ckbModalOpen, setCkbModalOpen] = useState(false);
   const [highlightedCKBId, setHighlightedCKBId] = useState<string | null>(null);
   const [lookbookModalOpen, setLookbookModalOpen] = useState(false);
@@ -30,48 +30,38 @@ export default function App() {
     setLookbookModalOpen(true);
   };
 
-  const handleScrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#F8F6F0] text-[#1E1B18] font-sans flex flex-col">
-      {/* Top Bar Navigation */}
+    <div className="min-h-screen bg-[#F6F3EC] text-[#221F1C] flex flex-col font-sans">
+      {/* Top Bar with Workspace Tab Switcher */}
       <Navbar
-        onOpenCKB={() => handleOpenCKB()}
-        onScrollToSection={handleScrollToSection}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenCKBModal={() => handleOpenCKB()}
       />
 
-      {/* Main Content Sections */}
-      <main className="flex-1">
-        {/* Editorial Hero Marquee */}
-        <HeroSection
-          onStartCoDesign={() => handleScrollToSection('studio')}
-          onOpenCKB={() => handleOpenCKB()}
-        />
+      {/* Main Workspace (Direct Tab View - No endless vertical scroll!) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {activeTab === 'studio' && (
+          <CoDesignStudio
+            onOpenCKB={handleOpenCKB}
+            onOpenLookbookCard={handleOpenLookbook}
+          />
+        )}
 
-        {/* Mode 1: Co-Design Studio & Cultural Audit */}
-        <CoDesignStudio
-          onOpenCKB={handleOpenCKB}
-          onOpenLookbookCard={handleOpenLookbook}
-        />
-
-        {/* Mode 2: "What If...?" Heritage Experimentation Simulator */}
-        <div id="what-if" className="py-12 px-6 max-w-7xl mx-auto border-b border-stone-200">
+        {activeTab === 'what-if' && (
           <WhatIfLab
             currentGarment="ngu_than"
             onOpenCKB={handleOpenCKB}
           />
-        </div>
+        )}
 
-        {/* Anatomical Schematic & Heritage Invariants */}
-        <AnatomySection onOpenCKB={handleOpenCKB} />
+        {activeTab === 'anatomy' && (
+          <AnatomySection onOpenCKB={handleOpenCKB} />
+        )}
 
-        {/* Cultural Audit Governance Manifesto */}
-        <ManifestoSection onOpenCKB={() => handleOpenCKB()} />
+        {activeTab === 'ckb' && (
+          <CKBRegistryView />
+        )}
       </main>
 
       {/* Institutional Footer */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { WhatIfEvaluation, GarmentKey } from '../types/vietphuc';
-import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight } from 'lucide-react';
+import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2 } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
@@ -12,37 +12,49 @@ const PRESET_QUERIES = [
     title: 'Cài vạt sang trái (Tả nhậm)',
     garment: 'ngu_than' as GarmentKey,
     query: 'What if đổi vạt áo và cài khuy sang bên trái (Tả nhậm) để người thuận tay trái dễ mặc?',
-    hint: 'Thử nghiệm KB-RULE-01 (Redline Tang Ma)',
+    badge: 'KB-RULE-01',
+    badgeType: 'redline',
+    hint: 'Tang ma cấm kỵ',
   },
   {
     title: 'Thêu Rồng 5 móng dạo phố',
     garment: 'ao_tac' as GarmentKey,
     query: 'What if thêu họa tiết Rồng 5 móng ánh kim lên tà áo Tấc đi dự tiệc cưới và dạo phố?',
-    hint: 'Thử nghiệm KB-RULE-03 (Hoàng Quyền)',
+    badge: 'KB-RULE-03',
+    badgeType: 'redline',
+    hint: 'Hoàng quyền cấm kỵ',
   },
   {
-    title: 'Đổi cổ Lập Lĩnh thành cổ Vest chữ V',
+    title: 'Đổi cổ Lập Lĩnh thành Cổ Vest V',
     garment: 'ngu_than' as GarmentKey,
     query: 'What if đổi cổ áo lập lĩnh của áo Ngũ thân thành cổ vest khoét sâu thoáng mát?',
-    hint: 'Thử nghiệm KB-NGUTHAN-01 (Invariant)',
+    badge: 'KB-NGUTHAN-01',
+    badgeType: 'invariant',
+    hint: 'Bất biến cốt lõi',
   },
   {
-    title: 'Áo Tấc mở khuy làm Duster Coat',
+    title: 'Áo Tấc Mở Khuy Làm Duster Coat',
     garment: 'ao_tac' as GarmentKey,
     query: 'What if cởi mở toàn bộ khuy áo Tấc mặc buông làm áo khoác duster coat phối với quần tây và boots?',
-    hint: 'Thử nghiệm KB-TAC-03 (Mutable)',
+    badge: 'KB-TAC-03',
+    badgeType: 'mutable',
+    hint: 'Vùng khả biến hợp thức',
   },
   {
-    title: 'Bỏ dải Ngũ sắc ở cổ tay Nhật Bình',
+    title: 'Bỏ Dải Ngũ Sắc Ở Cổ Tay Nhật Bình',
     garment: 'nhat_binh' as GarmentKey,
     query: 'What if bỏ dải màu ngũ sắc ở viền tay áo Nhật Bình để chuyển sang phối màu monochrome tối giản?',
-    hint: 'Thử nghiệm KB-NHATBINH-02 (Invariant)',
+    badge: 'KB-NHATBINH-02',
+    badgeType: 'invariant',
+    hint: 'Ngũ hành bất biến',
   },
   {
-    title: 'Thêu chim Lạc thời Đông Sơn / Lý',
+    title: 'Thêu Chim Lạc Thời Đông Sơn / Lý',
     garment: 'ngu_than' as GarmentKey,
     query: 'What if thêu hình chim Lạc trống đồng thời Đông Sơn và rồng thời Lý lên tà áo ngũ thân?',
-    hint: 'Thử nghiệm Insufficient Evidence',
+    badge: 'NGOÀI CKB',
+    badgeType: 'insufficient',
+    hint: 'Thiếu căn cứ sử liệu',
   },
 ];
 
@@ -79,28 +91,42 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
   };
 
   return (
-    <section className="border border-stone-200 bg-white rounded-xl p-6 sm:p-8">
-      {/* Header */}
-      <div className="max-w-2xl mb-6">
-        <div className="text-[11px] uppercase tracking-widest font-mono text-stone-500 mb-1">
-          MODE 2 · HERITAGE EXPERIMENTATION SIMULATOR
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#1E3A8A] text-[#FEF3C7] flex items-center justify-center font-serif font-bold text-lg border border-[#172554] shrink-0">
+            BIỆN
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-[#1E3A8A] uppercase tracking-wider">
+                SIMULATOR GIẢ ĐỊNH & THẨM ĐỊNH
+              </span>
+              <span className="text-[#A8A29E]">·</span>
+              <span className="text-xs text-[#78716C]">Quy tắc CKB Bất Biến & Khả Biến</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1C1917] tracking-tight">
+              "What If...?" Phản Biện & Đề Xuất Thay Thế
+            </h2>
+          </div>
         </div>
-        <h3 className="text-2xl font-serif font-bold text-stone-900 tracking-tight">
-          "What If...?" Thử Nghiệm & Phản Biện Di Sản
-        </h3>
-        <p className="text-sm text-stone-600 mt-1 leading-relaxed">
-          Đưa ra bất kỳ giả định táo bạo nào về việc thay đổi kết cấu, chất liệu, họa tiết. Hệ thống sẽ kích hoạt 
-          <span className="font-semibold text-stone-800"> what_if_evaluation</span> để thẩm định tác động theo CKB và kiến tạo 
-          <span className="font-semibold text-stone-800"> giải pháp thay thế thông minh (Stylist counter-proposal)</span>.
+
+        <p className="text-xs text-[#57534E] max-w-md leading-relaxed">
+          Thử nghiệm mọi ý tưởng táo bạo. Hệ thống sẽ thẩm định theo CKB và tạo <strong className="text-[#1C1917]">Stylist Counter-Proposal</strong> thông minh giúp đạt thẩm mỹ mong muốn mà vẫn chuẩn mực di sản.
         </p>
       </div>
 
-      {/* Preset Scenario Cards */}
-      <div className="mb-6">
-        <div className="text-xs font-semibold text-stone-800 mb-3 flex items-center gap-1.5">
-          <Compass className="w-4 h-4 text-stone-500" />
-          <span>TÌNH HUỐNG GIẢ ĐỊNH KINH ĐIỂN CỦA GEN Z</span>
+      {/* Preset Fast-Test Scenarios */}
+      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#1C1917] font-serif flex items-center gap-1.5">
+            <Compass className="w-4 h-4 text-[#B45309]" />
+            <span>Tình Huống Giả Định Nổi Bật (Bấm Để Thử Nghiệm Ngay)</span>
+          </span>
+          <span className="text-[11px] text-[#78716C] font-mono">6 kịch bản thử thách</span>
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
           {PRESET_QUERIES.map((item, idx) => (
             <button
@@ -109,25 +135,54 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
                 setSelectedGarment(item.garment);
                 handleRunWhatIf(item.query, item.garment);
               }}
-              className="text-left p-3 rounded-lg border border-stone-200 bg-stone-50 hover:bg-stone-100 hover:border-stone-300 transition-colors"
+              className="text-left p-3 rounded-lg border border-[#E2DBD0] bg-white hover:border-[#991B1B] hover:shadow-xs transition-all flex flex-col justify-between group"
             >
-              <div className="text-xs font-semibold text-stone-900 mb-1">{item.title}</div>
-              <div className="text-[11px] text-stone-500 line-clamp-2 leading-relaxed">{item.query}</div>
-              <div className="mt-2 text-[10px] font-mono text-stone-400">{item.hint}</div>
+              <div>
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-xs font-bold text-[#1C1917] font-serif group-hover:text-[#991B1B] transition-colors">
+                    {item.title}
+                  </span>
+                  <span
+                    className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                      item.badgeType === 'redline'
+                        ? 'border-[#991B1B] text-[#991B1B] bg-[#991B1B]/10'
+                        : item.badgeType === 'invariant'
+                        ? 'border-[#065F46] text-[#065F46] bg-[#065F46]/10'
+                        : item.badgeType === 'mutable'
+                        ? 'border-[#0284C7] text-[#0284C7] bg-[#0284C7]/10'
+                        : 'border-[#64748B] text-[#64748B] bg-[#64748B]/10'
+                    }`}
+                  >
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#57534E] line-clamp-2 leading-relaxed">
+                  "{item.query}"
+                </p>
+              </div>
+
+              <div className="mt-2 pt-2 border-t border-[#F2ECE0] flex items-center justify-between text-[10px] text-[#78716C]">
+                <span>{item.hint}</span>
+                <span className="text-[#991B1B] font-semibold group-hover:translate-x-0.5 transition-transform">
+                  Kiểm tra →
+                </span>
+              </div>
             </button>
           ))}
         </div>
       </div>
 
       {/* Query Bar */}
-      <div className="p-4 bg-stone-50 border border-stone-200 rounded-xl mb-6">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="sm:w-48 shrink-0">
-            <label className="text-[11px] font-mono text-stone-500 block mb-1">LOẠI VIỆT PHỤC</label>
+      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+          <div className="sm:w-52 shrink-0">
+            <label className="text-[11px] font-mono text-[#78716C] block mb-1">
+              CHỌN CỔ PHỤC THỬ NGHIỆM
+            </label>
             <select
               value={selectedGarment}
               onChange={(e) => setSelectedGarment(e.target.value as GarmentKey)}
-              className="w-full text-xs font-medium bg-white border border-stone-300 rounded px-2.5 py-2 text-stone-800 focus:outline-none focus:ring-1 focus:ring-stone-400"
+              className="w-full text-xs font-semibold bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] focus:outline-none focus:ring-1 focus:ring-[#991B1B]"
             >
               <option value="ngu_than">Áo Ngũ Thân tay chẽn</option>
               <option value="ao_tac">Áo Tấc lễ phục</option>
@@ -136,126 +191,124 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
           </div>
 
           <div className="flex-1">
-            <label className="text-[11px] font-mono text-stone-500 block mb-1">CÂU HỎI THỬ NGHIỆM CHI TIẾT</label>
+            <label className="text-[11px] font-mono text-[#78716C] block mb-1">
+              NHẬP CÂU HỎI THỬ NGHIỆM CỦA BẠN
+            </label>
             <input
               type="text"
               value={queryInput}
               onChange={(e) => setQueryInput(e.target.value)}
-              placeholder="VD: What if đổi vải áo sang dạ tweed và cắt tà áo ngắn tới hông?"
+              placeholder="VD: What if đổi vải áo sang dạ tweed và cắt tà áo ngắn ngang thắt lưng?"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleRunWhatIf(queryInput);
               }}
-              className="w-full text-xs bg-white border border-stone-300 rounded px-3 py-2 text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-400"
+              className="w-full text-xs bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-1 focus:ring-[#991B1B]"
             />
           </div>
 
-          <div className="sm:self-end">
-            <button
-              onClick={() => handleRunWhatIf(queryInput)}
-              disabled={loading || !queryInput.trim()}
-              className="w-full sm:w-auto px-5 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap"
-            >
-              {loading ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Đang Thẩm Định...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Kích Hoạt What-If</span>
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={() => handleRunWhatIf(queryInput)}
+            disabled={loading || !queryInput.trim()}
+            className="px-5 py-2 bg-[#1C1917] hover:bg-[#991B1B] disabled:bg-[#A8A29E] text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm h-[36px]"
+          >
+            {loading ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Đang Thẩm Định...</span>
+              </>
+            ) : (
+              <>
+                <Wand2 className="w-3.5 h-3.5 text-[#F59E0B]" />
+                <span>Thẩm Định Ngay</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Evaluation Results Card */}
+      {/* Results Viewport */}
       {evaluation && (
-        <div className="border border-stone-300 bg-white rounded-xl p-6 shadow-sm animate-in fade-in slide-in-from-bottom-2">
-          {/* Status Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-stone-200 gap-3">
+        <div className="bg-[#FAF7F0] border-2 border-[#1C1917] rounded-xl p-5 sm:p-6 shadow-md space-y-5 animate-in fade-in slide-in-from-bottom-2">
+          {/* Top Status Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E2DBD0] gap-3">
             <div>
-              <div className="text-[11px] font-mono text-stone-500 uppercase tracking-widest mb-1">
-                KẾT QUẢ THẨM ĐỊNH WHAT-IF
+              <div className="text-[11px] font-mono uppercase tracking-wider text-[#78716C] mb-0.5">
+                KẾT QUẢ PHẢN BIỆN DI SẢN (WHAT-IF EVALUATION)
               </div>
-              <h4 className="text-lg font-serif font-bold text-stone-900">
+              <h3 className="text-lg sm:text-xl font-serif font-bold text-[#1C1917]">
                 "{evaluation.query}"
-              </h4>
+              </h3>
             </div>
 
-            {/* Audit Status Display */}
-            <div>
+            {/* Strict 3 Status Badge */}
+            <div className="shrink-0">
               {evaluation.status === 'Supported' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded text-xs font-bold">
-                  <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] rounded-md text-xs font-bold">
+                  <ShieldCheck className="w-4 h-4 text-[#059669]" />
                   <span>SUPPORTED (HỢP THỨC DI SẢN)</span>
                 </div>
               )}
               {evaluation.status === 'Supported with Caution' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-300 text-amber-900 rounded text-xs font-bold">
-                  <AlertTriangle className="w-4 h-4 text-amber-700" />
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] rounded-md text-xs font-bold">
+                  <AlertTriangle className="w-4 h-4 text-[#D97706]" />
                   <span>SUPPORTED WITH CAUTION (CẢNH BÁO)</span>
                 </div>
               )}
               {evaluation.status === 'Insufficient Evidence' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50 border border-rose-300 text-rose-900 rounded text-xs font-bold">
-                  <HelpCircle className="w-4 h-4 text-rose-700" />
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] rounded-md text-xs font-bold">
+                  <HelpCircle className="w-4 h-4 text-[#DC2626]" />
                   <span>INSUFFICIENT EVIDENCE (THIẾU SỬ LIỆU)</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Uncertainty Flag Banner */}
+          {/* Uncertainty Flag Banner if true */}
           {evaluation.uncertainty_flag && (
-            <div className="mt-4 p-3.5 bg-rose-50 border-l-4 border-rose-600 rounded-r text-xs text-rose-900">
-              <div className="font-semibold flex items-center gap-1.5 mb-1">
-                <AlertOctagon className="w-4 h-4 text-rose-600" />
-                <span>UNCERTAINTY FLAG ĐƯỢC KÍCH HOẠT</span>
+            <div className="p-3.5 bg-[#FEF2F2] border-l-4 border-[#DC2626] rounded-r text-xs text-[#991B1B]">
+              <div className="font-bold flex items-center gap-1.5 mb-1">
+                <AlertOctagon className="w-4 h-4 text-[#DC2626]" />
+                <span>UNCERTAINTY FLAG: KHÔNG CÓ TRONG CULTURAL KNOWLEDGE BASE</span>
               </div>
-              <p className="text-rose-800 leading-relaxed">
-                Chi tiết hoặc họa tiết bạn vừa hỏi KHÔNG CÓ trong Cultural Knowledge Base (CKB) được cấp. Cần thận trọng ghi rõ tính chất suy đoán hoặc thiếu tài liệu lịch sử chứng thực.
+              <p className="text-[#7F1D1D] leading-relaxed">
+                Chi tiết hoặc họa tiết bạn hỏi chưa được chứng thực trong CKB. Cần thận trọng ghi chú tính chất sáng tác đương đại, tránh ngộ nhận là lịch sử.
               </p>
             </div>
           )}
 
-          {/* Redlines / Cautions */}
+          {/* Redlines & Invariant Warnings */}
           {evaluation.cautions_and_redlines.length > 0 && (
-            <div className="mt-4 p-4 bg-amber-50/90 border border-amber-300 rounded text-xs text-amber-950">
-              <div className="font-bold flex items-center gap-1.5 text-amber-900 mb-2">
-                <AlertTriangle className="w-4 h-4 text-amber-700" />
-                <span>CẢNH BÁO CỐT LÕI (REDLINES & INVARIANTS)</span>
+            <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl text-xs text-[#991B1B] space-y-1.5">
+              <div className="font-bold flex items-center gap-1.5 text-[#7F1D1D]">
+                <AlertOctagon className="w-4 h-4 text-[#DC2626]" />
+                <span>CẢNH BÁO VI PHẠM CỐT LÕI (REDLINES):</span>
               </div>
-              <ul className="space-y-1.5 list-disc list-inside text-amber-900 pl-1">
+              <ul className="list-disc list-inside space-y-1 text-[#7F1D1D] pl-1 font-medium leading-relaxed">
                 {evaluation.cautions_and_redlines.map((c, i) => (
-                  <li key={i} className="leading-relaxed font-medium">
-                    {c}
-                  </li>
+                  <li key={i}>{c}</li>
                 ))}
               </ul>
             </div>
           )}
 
-          {/* Impact Analysis */}
-          <div className="mt-5">
-            <h5 className="text-xs font-mono uppercase tracking-wider text-stone-500 mb-1.5">
-              PHÂN TÍCH TÁC ĐỘNG VĂN HÓA (IMPACT ANALYSIS)
-            </h5>
-            <p className="text-sm text-stone-700 leading-relaxed bg-stone-50 p-3.5 rounded border border-stone-200">
+          {/* Cultural Impact Analysis */}
+          <div className="p-4 bg-white border border-[#E2DBD0] rounded-xl space-y-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#78716C] block font-semibold">
+              PHÂN TÍCH TÁC ĐỘNG VĂN HÓA TỪ AUDITOR
+            </span>
+            <p className="text-xs text-[#44403C] leading-relaxed font-serif text-sm">
               {evaluation.impact_analysis}
             </p>
           </div>
 
-          {/* Violated or Applicable Evidence IDs */}
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-stone-500">Căn cứ CKB liên đới:</span>
+          {/* Relevant Evidence Badges */}
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-[#78716C]">Hồ sơ CKB liên đới:</span>
             {evaluation.violated_evidence_ids.map((id) => (
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-300 rounded hover:bg-rose-200"
+                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] rounded hover:bg-[#FECACA]"
               >
                 Vi phạm: {id}
               </button>
@@ -264,54 +317,54 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] px-2 py-0.5 bg-stone-100 text-stone-800 border border-stone-300 rounded hover:bg-stone-200"
+                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-white text-[#1C1917] border border-[#D6CEBE] rounded hover:bg-[#F2ECE0]"
               >
                 Căn cứ: {id}
               </button>
             ))}
           </div>
 
-          {/* Stylist Counter-Proposal (The Co-Designer's Smart Alternative) */}
-          <div className="mt-6 p-5 bg-[#FAF7F0] border-2 border-stone-900 rounded-xl">
-            <div className="flex items-center gap-2 mb-3">
-              <Lightbulb className="w-5 h-5 text-amber-600" />
+          {/* Stylist Counter-Proposal (Smart Alternative) */}
+          <div className="p-5 bg-white border-2 border-[#B45309] rounded-xl shadow-xs space-y-3">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-[#B45309]" />
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-stone-500 block">
-                  CONTEMPORARY CO-DESIGNER RESPONSE
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#B45309] font-bold block">
+                  STYLIST COUNTER-PROPOSAL (GIẢI PHÁP THAY THẾ THÔNG MINH)
                 </span>
-                <h5 className="text-base font-serif font-bold text-stone-950">
-                  Stylist Counter-Proposal: {evaluation.stylist_counter_proposal.title}
-                </h5>
+                <h4 className="text-base font-serif font-bold text-[#1C1917]">
+                  {evaluation.stylist_counter_proposal.title}
+                </h4>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-3 border-t border-stone-300 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#E2DBD0] text-xs">
               <div className="space-y-1">
-                <span className="font-semibold text-stone-900 flex items-center gap-1">
-                  <ArrowRight className="w-3.5 h-3.5 text-stone-600" />
+                <span className="font-bold text-[#1C1917] flex items-center gap-1">
+                  <ArrowRight className="w-3.5 h-3.5 text-[#B45309]" />
                   Giải Pháp Thiết Kế
                 </span>
-                <p className="text-stone-700 leading-relaxed text-[11px]">
+                <p className="text-[#57534E] leading-relaxed text-[11px]">
                   {evaluation.stylist_counter_proposal.solution}
                 </p>
               </div>
 
               <div className="space-y-1">
-                <span className="font-semibold text-emerald-900 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="font-bold text-[#065F46] flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
                   Bảo Toàn Di Sản
                 </span>
-                <p className="text-stone-700 leading-relaxed text-[11px]">
+                <p className="text-[#57534E] leading-relaxed text-[11px]">
                   {evaluation.stylist_counter_proposal.heritage_safeguard}
                 </p>
               </div>
 
               <div className="space-y-1">
-                <span className="font-semibold text-stone-900 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span className="font-bold text-[#1C1917] flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
                   Vật Liệu & Cắt May
                 </span>
-                <p className="text-stone-700 leading-relaxed text-[11px]">
+                <p className="text-[#57534E] leading-relaxed text-[11px]">
                   {evaluation.stylist_counter_proposal.materials_and_cuts}
                 </p>
               </div>
@@ -319,6 +372,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 };

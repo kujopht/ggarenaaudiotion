@@ -1,76 +1,99 @@
 import React from 'react';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BookOpen, Sparkles, Compass, HelpCircle, Layers } from 'lucide-react';
+
+export type WorkspaceTab = 'studio' | 'what-if' | 'anatomy' | 'ckb';
 
 interface NavbarProps {
-  onOpenCKB: () => void;
-  onScrollToSection: (sectionId: string) => void;
+  activeTab: WorkspaceTab;
+  onSelectTab: (tab: WorkspaceTab) => void;
+  onOpenCKBModal: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenCKB, onScrollToSection }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, onSelectTab, onOpenCKBModal }) => {
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#F8F6F0]/95 backdrop-blur-md border-b border-stone-200">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Zone 1: Single text element wordmark in display face */}
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          className="text-xl font-serif font-bold tracking-tight text-stone-900 whitespace-nowrap shrink-0 hover:text-amber-900 transition-colors"
-        >
-          ViệtPhục Remix Lab
-        </a>
+    <header className="sticky top-0 z-40 w-full bg-[#FAF7F0]/95 backdrop-blur-md border-b border-[#E2DBD0] shadow-[0_1px_4px_rgba(40,30,20,0.04)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        {/* Brand Lockup: Modern Vietnamese Traditional Seal + Typography */}
+        <div className="flex items-center gap-3">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onSelectTab('studio');
+            }}
+            className="flex items-center gap-2.5 group"
+          >
+            {/* Vietnamese Square Heritage Seal */}
+            <div className="w-8 h-8 rounded bg-[#991B1B] text-[#FEF3C7] flex items-center justify-center font-serif font-black text-sm tracking-tighter shadow-sm border border-[#7F1D1D] group-hover:scale-105 transition-transform">
+              VIỆT
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base sm:text-lg font-serif font-bold tracking-tight text-[#1C1917] group-hover:text-[#991B1B] transition-colors leading-none">
+                ViệtPhục Remix Lab
+              </span>
+              <span className="text-[10px] font-sans font-medium text-[#78716C] tracking-wider uppercase mt-0.5">
+                Đồng Sáng Tạo & Thẩm Định Di Sản
+              </span>
+            </div>
+          </a>
+        </div>
 
-        {/* Zone 2: 4-6 clean text navigation links (single line, subtle hover underline) */}
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-stone-600">
+        {/* Tab Navigation: Direct Screen Switchers (No Endless Scrolling) */}
+        <nav className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#ECE6DA] rounded-xl border border-[#DCD4C4]">
           <button
-            onClick={() => onScrollToSection('studio')}
-            className="hover:text-stone-900 transition-colors whitespace-nowrap underline-offset-4 hover:underline"
+            onClick={() => onSelectTab('studio')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              activeTab === 'studio'
+                ? 'bg-[#1C1917] text-[#FAF7F0] shadow-sm'
+                : 'text-[#57534E] hover:text-[#1C1917] hover:bg-[#E2DAD0]/60'
+            }`}
           >
-            Co-Designer
+            <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'studio' ? 'text-[#F59E0B]' : 'text-[#78716C]'}`} />
+            <span>Xưởng Phối Đồ</span>
           </button>
+
           <button
-            onClick={() => onScrollToSection('what-if')}
-            className="hover:text-stone-900 transition-colors whitespace-nowrap underline-offset-4 hover:underline"
+            onClick={() => onSelectTab('what-if')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              activeTab === 'what-if'
+                ? 'bg-[#1C1917] text-[#FAF7F0] shadow-sm'
+                : 'text-[#57534E] hover:text-[#1C1917] hover:bg-[#E2DAD0]/60'
+            }`}
           >
-            What-If Lab
+            <HelpCircle className={`w-3.5 h-3.5 ${activeTab === 'what-if' ? 'text-[#38BDF8]' : 'text-[#78716C]'}`} />
+            <span>"What If...?" Lab</span>
           </button>
+
           <button
-            onClick={() => onScrollToSection('schematic')}
-            className="hover:text-stone-900 transition-colors whitespace-nowrap underline-offset-4 hover:underline"
+            onClick={() => onSelectTab('anatomy')}
+            className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              activeTab === 'anatomy'
+                ? 'bg-[#1C1917] text-[#FAF7F0] shadow-sm'
+                : 'text-[#57534E] hover:text-[#1C1917] hover:bg-[#E2DAD0]/60'
+            }`}
           >
-            Anatomy
+            <Layers className={`w-3.5 h-3.5 ${activeTab === 'anatomy' ? 'text-[#34D399]' : 'text-[#78716C]'}`} />
+            <span>Giải Phẫu Cổ Phục</span>
           </button>
+
           <button
-            onClick={onOpenCKB}
-            className="hover:text-stone-900 transition-colors whitespace-nowrap underline-offset-4 hover:underline"
+            onClick={() => onSelectTab('ckb')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${
+              activeTab === 'ckb'
+                ? 'bg-[#1C1917] text-[#FAF7F0] shadow-sm'
+                : 'text-[#57534E] hover:text-[#1C1917] hover:bg-[#E2DAD0]/60'
+            }`}
           >
-            Evidence CKB
-          </button>
-          <button
-            onClick={() => onScrollToSection('manifesto')}
-            className="hover:text-stone-900 transition-colors whitespace-nowrap underline-offset-4 hover:underline"
-          >
-            Tôn Chỉ
+            <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'ckb' ? 'text-[#F59E0B]' : 'text-[#78716C]'}`} />
+            <span>Quy Thức CKB</span>
           </button>
         </nav>
 
-        {/* Zone 3: 1-2 primary actions */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onOpenCKB}
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-stone-800 bg-white border border-stone-300 hover:bg-stone-50 rounded-lg transition-colors whitespace-nowrap shadow-sm"
-          >
-            <BookOpen className="w-3.5 h-3.5 text-amber-700" />
-            <span>Tra Cứu CKB</span>
-          </button>
-          <button
-            onClick={() => onScrollToSection('studio')}
-            className="px-4 py-2 text-xs font-semibold text-white bg-stone-900 hover:bg-stone-800 rounded-lg transition-colors whitespace-nowrap shadow-sm"
-          >
-            Phối Đồ Ngay
-          </button>
+        {/* Traditional Accent Stamp */}
+        <div className="hidden lg:flex items-center gap-2">
+          <div className="text-[11px] font-mono text-[#78716C] bg-[#FAF7F0] border border-[#D6CEBE] px-2.5 py-1 rounded-md">
+            <span>TRIỀU NGUYỄN · CKB v2.4</span>
+          </div>
         </div>
       </div>
     </header>

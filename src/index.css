@@ -1,1 +1,64 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Lora', 'Playfair Display', Georgia, serif;
+    --font-display: 'Playfair Display', 'Lora', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #F6F3EC;
+    color: #221F1C;
+    background-image: 
+      radial-gradient(#d5cebe 0.75px, transparent 0.75px),
+      radial-gradient(#d5cebe 0.75px, #F6F3EC 0.75px);
+    background-size: 30px 30px;
+    background-position: 0 0, 15px 15px;
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Vietnamese Traditional Ornamental Accents */
+.border-viet-pattern {
+  border-image: linear-gradient(to right, #B45309, #991B1B, #B45309) 1;
+}
+
+.bg-do-paper {
+  background-color: #FAF7F0;
+  box-shadow: 0 1px 3px rgba(35, 30, 20, 0.05);
+}
+
+.viet-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #991B1B;
+  color: #991B1B;
+  font-family: var(--font-serif);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+/* Custom Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #EFECE4;
+}
+::-webkit-scrollbar-thumb {
+  background: #C7BFA8;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #991B1B;
+}
