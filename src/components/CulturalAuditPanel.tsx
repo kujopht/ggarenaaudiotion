@@ -21,14 +21,14 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
   const isPurelySupported = !hasCaution && !hasUncertainty && audit.status === 'Supported';
 
   return (
-    <div className="border border-[#2A313E] bg-[#1A1E26] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
+    <div className="border border-[#3A2B25] bg-[#181311] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#2A313E] gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#3A2B25] gap-3">
         <div>
-          <span className="text-xs font-mono text-[#14B8A6] font-semibold tracking-wide block mb-0.5">
+          <span className="text-xs font-mono text-[#C9A66B] font-semibold tracking-wide block mb-0.5">
             GHI CHÚ THAM CHIẾU VĂN HÓA
           </span>
-          <h4 className="text-base font-serif font-bold text-[#F1F5F9]">
+          <h4 className="text-base font-serif font-bold text-[#F2E9D8]">
             Tóm tắt mức độ phù hợp với quy tắc tham chiếu
           </h4>
         </div>
@@ -36,8 +36,8 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         {/* Status Badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {isPurelySupported && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
-              <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold">
+              <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
               <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
             </div>
           )}
@@ -87,7 +87,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
       )}
 
       {/* Auditor Verdict Summary Prose */}
-      <div className="text-sm sm:text-base text-[#CBD5E1] leading-relaxed border-l-2 border-[#14B8A6] pl-3 py-1 font-serif">
+      <div className="text-sm sm:text-base text-[#F2E9D8] leading-relaxed border-l-2 border-[#C9A66B] pl-3 py-1 font-serif">
         "{audit.auditor_verdict}"
       </div>
 
@@ -96,49 +96,49 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
-          className="w-full py-2 px-3 rounded-lg bg-[#222834] hover:bg-[#28303F] text-xs font-semibold text-[#94A3B8] hover:text-[#E2E8F0] border border-[#2D3646] flex items-center justify-between transition-colors cursor-pointer min-h-[40px]"
+          className="w-full py-2 px-3 rounded-lg bg-[#261C19] hover:bg-[#322521] text-xs font-semibold text-[#B8AA96] hover:text-[#F2E9D8] border border-[#3A2B25] flex items-center justify-between transition-colors cursor-pointer min-h-[40px]"
         >
           <span className="flex items-center gap-2">
-            <BookOpen className="w-3.5 h-3.5 text-[#14B8A6]" />
+            <BookOpen className="w-3.5 h-3.5 text-[#C9A66B]" />
             <span>{showDetails ? 'Thu gọn chi tiết quy tắc' : 'Xem chi tiết các quy tắc cốt lõi & vùng sáng tạo'}</span>
           </span>
           {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
 
         {showDetails && (
-          <div className="mt-3 pt-3 border-t border-[#2A313E] space-y-4 animate-in fade-in duration-200">
+          <div className="mt-3 pt-3 border-t border-[#3A2B25] space-y-4 animate-in fade-in duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left Column: Core Rules (Invariants) */}
               <div>
-                <div className="flex items-center justify-between text-xs font-semibold text-[#E2E8F0] mb-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#F2E9D8] mb-2">
                   <span>Quy thức cốt lõi (Không nên đổi)</span>
-                  <span className="text-[11px] font-mono text-[#94A3B8]">{audit.invariants_checked.length} hạng mục</span>
+                  <span className="text-[11px] font-mono text-[#8C7E6C]">{audit.invariants_checked.length} hạng mục</span>
                 </div>
 
                 <div className="space-y-2">
                   {audit.invariants_checked.map((inv, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-[#202530] border border-[#2C3444] rounded-lg text-xs"
+                      className="p-2.5 bg-[#211815] border border-[#3A2B25] rounded-lg text-xs"
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-[#F1F5F9] flex items-center gap-1.5">
+                        <span className="font-medium text-[#F2E9D8] flex items-center gap-1.5">
                           {inv.passed ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#43B6A4]" />
                           ) : (
-                            <AlertOctagon className="w-3.5 h-3.5 text-[#F43F5E]" />
+                            <AlertOctagon className="w-3.5 h-3.5 text-[#B8342B]" />
                           )}
                           {inv.rule_name}
                         </span>
                         <button
                           type="button"
                           onClick={() => onOpenCKB?.(inv.evidence_id)}
-                          className="text-[10px] font-mono font-medium text-[#2DD4BF] hover:underline"
+                          className="text-[10px] font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
                         >
                           {inv.evidence_id}
                         </button>
                       </div>
-                      <p className="text-[#94A3B8] leading-normal text-[11px]">{inv.detail}</p>
+                      <p className="text-[#B8AA96] leading-normal text-[11px]">{inv.detail}</p>
                     </div>
                   ))}
                 </div>
@@ -146,9 +146,9 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
 
               {/* Right Column: Creative Freedom (Mutables) */}
               <div>
-                <div className="flex items-center justify-between text-xs font-semibold text-[#E2E8F0] mb-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#F2E9D8] mb-2">
                   <span>Vùng tự do sáng tạo (Được phép biến tấu)</span>
-                  <span className="text-[11px] font-mono text-[#94A3B8]">{audit.mutables_used.length} ứng dụng</span>
+                  <span className="text-[11px] font-mono text-[#8C7E6C]">{audit.mutables_used.length} ứng dụng</span>
                 </div>
 
                 {audit.mutables_used.length > 0 ? (
@@ -156,24 +156,24 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                     {audit.mutables_used.map((mut, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 bg-[#17252A] border border-[#115E59]/40 rounded-lg text-xs"
+                        className="p-2.5 bg-[#261C19] border border-[#C9A66B]/30 rounded-lg text-xs"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-[#2DD4BF]">{mut.element}</span>
+                          <span className="font-medium text-[#E6C88B]">{mut.element}</span>
                           <button
                             type="button"
                             onClick={() => onOpenCKB?.(mut.evidence_id)}
-                            className="text-[10px] font-mono font-medium text-[#14B8A6] hover:underline"
+                            className="text-[10px] font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
                           >
                             {mut.evidence_id}
                           </button>
                         </div>
-                        <p className="text-[#99F6E4] leading-normal text-[11px]">{mut.application}</p>
+                        <p className="text-[#F2E9D8]/80 leading-normal text-[11px]">{mut.application}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-3 bg-[#202530] border border-[#2C3444] rounded-lg text-xs text-[#94A3B8] italic">
+                  <div className="p-3 bg-[#211815] border border-[#3A2B25] rounded-lg text-xs text-[#8C7E6C] italic">
                     Bản phối bám sát truyền thống, không can thiệp nhiều vào vùng biến tấu.
                   </div>
                 )}
@@ -181,7 +181,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
             </div>
 
             {/* Evidence Footnote */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[#94A3B8]">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[#B8AA96]">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span>Hồ sơ dẫn chứng:</span>
                 {audit.evidence_ids.map((id) => (
@@ -189,13 +189,13 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                     key={id}
                     type="button"
                     onClick={() => onOpenCKB?.(id)}
-                    className="font-mono font-medium text-[#2DD4BF] hover:underline"
+                    className="font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
                   >
                     {id}
                   </button>
                 ))}
               </div>
-              <span className="text-[11px] text-[#64748B]">Tham chiếu theo Cultural Knowledge Base (CKB) bản thử nghiệm</span>
+              <span className="text-[11px] text-[#8C7E6C]">Tham chiếu theo Cultural Knowledge Base (CKB) bản thử nghiệm</span>
             </div>
           </div>
         )}

@@ -16,23 +16,26 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 }) => {
   const [activePin, setActivePin] = useState<string | null>(null);
 
-  // Palette from visual details or defaults
-  const primaryColor = visualDetails?.color_palette?.[0]?.split(' ')?.[0] || (
+  // Extract dynamic colors from visual details if available, otherwise use iconic Vietnamese silk hues
+  const primaryColor = visualDetails?.color_palette?.[0]?.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/)?.[0] || (
     garment === 'ngu_than' ? '#1E3A8A' : garment === 'ao_tac' ? '#065F46' : '#991B1B'
+  );
+  const secondaryColor = visualDetails?.color_palette?.[1]?.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/)?.[0] || (
+    garment === 'ngu_than' ? '#2563EB' : garment === 'ao_tac' ? '#059669' : '#C9A66B'
   );
 
   return (
-    <div className="relative w-full h-[400px] sm:h-[440px] bg-[#161920] border border-[#272D3A] rounded-xl overflow-hidden flex flex-col items-center justify-center p-4">
-      {/* Background Architectural Grid Lines */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+    <div className="relative w-full h-[400px] sm:h-[440px] bg-[#181311] border border-[#3A2B25] rounded-xl overflow-hidden flex flex-col items-center justify-center p-4">
+      {/* Background Architectural Grid Lines in Warm Bronze */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(201,166,107,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(201,166,107,0.06)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
       {/* Structural exploration caption */}
-      <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 text-xs text-[#94A3B8] font-mono">
-        <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]" />
+      <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 text-xs text-[#C9A66B] font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#B8342B]" />
         <span>SƠ ĐỒ CẤU TRÚC · {garment === 'ngu_than' ? 'ÁO NGŨ THÂN' : garment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}</span>
       </div>
 
-      <div className="absolute top-3.5 right-4 z-10 text-[11px] font-mono text-[#94A3B8]">
+      <div className="absolute top-3.5 right-4 z-10 text-[11px] font-mono text-[#B8AA96]">
         MỨC REMIX {dialLevel}/5
       </div>
 
@@ -40,25 +43,25 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
       <div className="relative z-10 w-full max-w-[340px] h-[360px] flex items-center justify-center">
         <svg viewBox="0 0 320 380" className="w-full h-full drop-shadow-2xl">
           <defs>
-            {/* Gradients */}
+            {/* Dynamic Gradients reflecting current look visualDetails */}
             <linearGradient id="fabricGradNguThan" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#2563EB" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#1E3A8A" stopOpacity="0.95" />
+              <stop offset="0%" stopColor={secondaryColor || '#2563EB'} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={primaryColor || '#1E3A8A'} stopOpacity="0.98" />
             </linearGradient>
 
             <linearGradient id="fabricGradAoTac" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#064E3B" stopOpacity="0.95" />
+              <stop offset="0%" stopColor={secondaryColor || '#059669'} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={primaryColor || '#064E3B'} stopOpacity="0.98" />
             </linearGradient>
 
             <linearGradient id="fabricGradNhatBinh" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#DC2626" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#7F1D1D" stopOpacity="0.95" />
+              <stop offset="0%" stopColor={secondaryColor || '#DC2626'} stopOpacity="0.9" />
+              <stop offset="100%" stopColor={primaryColor || '#7F1D1D'} stopOpacity="0.98" />
             </linearGradient>
 
             {/* Pattern */}
             <pattern id="silkPattern" width="16" height="16" patternUnits="userSpaceOnUse">
-              <path d="M0 8 Q4 4, 8 8 T16 8" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="0.75" />
+              <path d="M0 8 Q4 4, 8 8 T16 8" fill="none" stroke="rgba(242,233,216,0.08)" strokeWidth="0.75" />
             </pattern>
           </defs>
 
@@ -330,14 +333,14 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
       {/* Interactive Tooltip Card */}
       {activePin && (
-        <div className="absolute bottom-3 left-4 right-4 z-20 bg-stone-900/95 backdrop-blur-md border border-stone-700 p-3 rounded-lg text-xs text-stone-200 animate-in fade-in slide-in-from-bottom-2">
+        <div className="absolute bottom-3 left-4 right-4 z-20 bg-[#1C1513]/95 backdrop-blur-md border border-[#4A3830] p-3 rounded-xl text-xs text-[#F2E9D8] shadow-xl animate-in fade-in slide-in-from-bottom-2">
           {activePin === 'collar' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-emerald-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#43B6A4] mb-1">
                 <span>KB-NGUTHAN-01 · CỔ LẬP LĨNH</span>
-                <span className="text-[10px] text-emerald-300 font-mono">INVARIANT</span>
+                <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cài cổ cố định. Đây là đặc trưng cốt lõi bất biến, thể hiện phong thái đoan chính.
               </p>
             </div>
@@ -345,11 +348,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'lapel' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-amber-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#E6C88B] mb-1">
                 <span>KB-RULE-01 · QUY THỨC HỮU NHẬM</span>
-                <span className="text-[10px] text-amber-300 font-mono">INVARIANT · SỐNG CÒN</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">BẤT BIẾN · CẤM TẢ NHẬM</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Vạt trái đè lên vạt phải, khuy áo cài bên phải. Tuyệt đối cấm cài vạt sang trái (Tả nhậm - quy thức y phục tang ma).
               </p>
             </div>
@@ -357,11 +360,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'sleeve' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-blue-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#C9A66B] mb-1">
                 <span>KB-NGUTHAN-02 · ỐNG TAY CHẼN</span>
-                <span className="text-[10px] text-blue-300 font-mono">INVARIANT</span>
+                <span className="text-[10px] text-[#C9A66B] font-mono">BẤT BIẾN</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Ống tay áo ôm thon dần về phía cổ tay, tạo sự gọn gàng, thuận tiện cho cử động hàng ngày.
               </p>
             </div>
@@ -369,11 +372,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'ao_tac_sleeve' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-emerald-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#43B6A4] mb-1">
                 <span>KB-TAC-01 · TAY THỤNG CHỮ NHẬT</span>
-                <span className="text-[10px] text-emerald-300 font-mono">INVARIANT BẤT BIẾN</span>
+                <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Ống tay áo thụng rộng hình chữ nhật, khi thả xuôi dài bằng hoặc qua ngón tay. Đây là nhận diện cốt lõi của Áo Tấc lễ phục.
               </p>
             </div>
@@ -381,11 +384,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'ao_tac_duster' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-sky-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#C9A66B] mb-1">
                 <span>KB-TAC-03 · DUSTER COAT KHẢ BIẾN</span>
-                <span className="text-[10px] text-sky-300 font-mono">MUTABLE KHẢ BIẾN</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">KHẢ BIẾN SÁNG TẠO</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Cho phép cởi mở khuy áo phía trước để tạo layer dạng áo khoác dáng dài (duster coat) hiện đại, phối với quần tây và giày bốt.
               </p>
             </div>
@@ -393,11 +396,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'nhatbinh_collar' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-emerald-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#43B6A4] mb-1">
                 <span>KB-NHATBINH-01 · NẸP CỔ ĐỐI KHÂM</span>
-                <span className="text-[10px] text-emerald-300 font-mono">INVARIANT BẤT BIẾN</span>
+                <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Nẹp cổ to bản chạy dọc song song từ cổ xuống ngực tạo thành hình chữ nhật đặc trưng, có dải dây buộc ở ngực. Bất biến.
               </p>
             </div>
@@ -405,11 +408,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
 
           {activePin === 'nhatbinh_cuff' && (
             <div>
-              <div className="flex items-center justify-between font-semibold text-amber-400 mb-1">
+              <div className="flex items-center justify-between font-semibold text-[#E6C88B] mb-1">
                 <span>KB-NHATBINH-02 · CỔ TAY NGŨ SẮC</span>
-                <span className="text-[10px] text-amber-300 font-mono">INVARIANT BIỂU TƯỢNG</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">BIỂU TƯỢNG NGŨ HÀNH</span>
               </div>
-              <p className="text-stone-300">
+              <p className="text-[#B8AA96]">
                 Dải màu ngũ hành/ngũ thường ở viền tay áo mang tính nhận diện biểu tượng. Bất biến, không đảo lộn lung tung.
               </p>
             </div>
@@ -418,18 +421,18 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
       )}
 
       {/* Footer legend */}
-      <div className="w-full flex items-center justify-between pt-2 border-t border-stone-800 text-[11px] text-stone-400">
+      <div className="w-full flex items-center justify-between pt-2 border-t border-[#3A2B25] text-[11px] text-[#8C7E6C]">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Invariant (Bất biến)
+          <span className="flex items-center gap-1 text-[#43B6A4]">
+            <span className="w-2 h-2 rounded-full bg-[#43B6A4]" />
+            Quy thức Bất biến
           </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-sky-500" />
-            Mutable (Khả biến)
+          <span className="flex items-center gap-1 text-[#C9A66B]">
+            <span className="w-2 h-2 rounded-full bg-[#C9A66B]" />
+            Vùng Khả biến
           </span>
         </div>
-        <span className="text-stone-400">Bấm điểm ghim để xem quy thức</span>
+        <span className="text-[#8C7E6C]">Bấm điểm ghim để xem quy thức</span>
       </div>
     </div>
   );

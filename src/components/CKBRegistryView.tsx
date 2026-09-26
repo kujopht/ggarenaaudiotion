@@ -23,34 +23,34 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-semibold text-[#F59E0B] uppercase tracking-wider">
+            <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
               QUY TẮC THAM CHIẾU VĂN HÓA
             </span>
-            <span className="text-[#64748B]">·</span>
-            <span className="text-xs text-[#94A3B8]">12 Điều khoản tham chiếu</span>
+            <span className="text-[#8C7E6C]">·</span>
+            <span className="text-xs text-[#B8AA96]">12 Điều khoản tham chiếu</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] tracking-tight">
             Quy tắc tham chiếu cổ phục triều Nguyễn (CKB)
           </h2>
-          <p className="text-sm text-[#94A3B8] max-w-2xl leading-relaxed">
+          <p className="text-sm text-[#B8AA96] max-w-2xl leading-relaxed">
             Nguồn tài liệu tham chiếu được sử dụng để đối chiếu tính phù hợp với quy tắc tham chiếu của bản thử nghiệm, bảo lưu các quy thức cốt lõi và hướng dẫn vùng sáng tạo an toàn.
           </p>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#8C7E6C] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm theo mã điều khoản, tên quy thức..."
-            className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 bg-[#161920] border border-[#2B3342] rounded-xl text-[#E2E8F0] placeholder:text-[#64748B] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
+            className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 bg-[#181311] border border-[#3A2B25] rounded-xl text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
           />
         </div>
 
@@ -59,8 +59,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('all')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'all'
-                ? 'bg-[#222834] text-[#2DD4BF] border border-[#0D9488]/40'
-                : 'text-[#94A3B8] hover:text-white bg-[#161920] border border-[#272D3A]'
+                ? 'bg-[#2E201B] text-[#C9A66B] border border-[#C9A66B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
             }`}
           >
             Tất cả (12)
@@ -69,8 +69,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('invariant')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'invariant'
-                ? 'bg-[#222834] text-[#10B981] border border-[#10B981]/40'
-                : 'text-[#94A3B8] hover:text-white bg-[#161920] border border-[#272D3A]'
+                ? 'bg-[#2E201B] text-[#43B6A4] border border-[#43B6A4]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
             }`}
           >
             Bất biến (Invariants)
@@ -79,8 +79,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('mutable')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'mutable'
-                ? 'bg-[#222834] text-[#38BDF8] border border-[#0284C7]/40'
-                : 'text-[#94A3B8] hover:text-white bg-[#161920] border border-[#272D3A]'
+                ? 'bg-[#2E201B] text-[#E6C88B] border border-[#C9A66B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
             }`}
           >
             Khả biến (Mutables)
@@ -89,8 +89,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('sacred_rule')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'sacred_rule'
-                ? 'bg-[#222834] text-[#F43F5E] border border-[#F43F5E]/40'
-                : 'text-[#94A3B8] hover:text-white bg-[#161920] border border-[#272D3A]'
+                ? 'bg-[#2E201B] text-[#F5A39D] border border-[#B8342B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
             }`}
           >
             Cấm kỵ (Redlines)
@@ -108,42 +108,42 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
           return (
             <div
               key={entry.id}
-              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 bg-[#181C24] ${
+              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 bg-[#1C1513] ${
                 isInvariant
-                  ? 'border-[#272D3A] hover:border-[#10B981]/60'
+                  ? 'border-[#3A2B25] hover:border-[#43B6A4]/60'
                   : isMutable
-                  ? 'border-[#272D3A] hover:border-[#0284C7]/60'
-                  : 'border-[#272D3A] hover:border-[#F43F5E]/60'
+                  ? 'border-[#3A2B25] hover:border-[#C9A66B]/60'
+                  : 'border-[#3A2B25] hover:border-[#B8342B]/60'
               }`}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-xs font-bold text-[#14B8A6]">{entry.id}</span>
+                  <span className="font-mono text-xs font-bold text-[#C9A66B]">{entry.id}</span>
                   <span
                     className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                       isInvariant
-                        ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                        ? 'border-[#43B6A4]/40 text-[#43B6A4] bg-[#43B6A4]/10'
                         : isMutable
-                        ? 'border-sky-500/40 text-sky-400 bg-sky-500/10'
-                        : 'border-rose-500/40 text-rose-400 bg-rose-500/10'
+                        ? 'border-[#C9A66B]/40 text-[#E6C88B] bg-[#C9A66B]/10'
+                        : 'border-[#B8342B]/40 text-[#F5A39D] bg-[#B8342B]/10'
                     }`}
                   >
                     {isInvariant ? 'BẤT BIẾN' : isMutable ? 'KHẢ BIẾN' : 'CẤM KỴ'}
                   </span>
                 </div>
 
-                <h3 className="text-base font-serif font-bold text-[#F1F5F9] leading-snug">
+                <h3 className="text-base font-serif font-bold text-[#F2E9D8] leading-snug">
                   {entry.title}
                 </h3>
 
-                <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed">
+                <p className="text-xs sm:text-sm text-[#B8AA96] leading-relaxed">
                   {entry.core_rule}
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[#272D3A] text-xs space-y-1.5">
-                <div className="text-[#94A3B8] leading-relaxed">
-                  <span className="font-semibold text-[#E2E8F0]">Bối cảnh sử liệu: </span>
+              <div className="pt-3 border-t border-[#3A2B25] text-xs space-y-1.5">
+                <div className="text-[#8C7E6C] leading-relaxed">
+                  <span className="font-semibold text-[#D4C7B4]">Bối cảnh sử liệu: </span>
                   {entry.historical_context}
                 </div>
                 {entry.redline_warning && (

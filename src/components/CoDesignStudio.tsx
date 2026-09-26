@@ -3,7 +3,8 @@ import { GarmentKey, OutfitProposal } from '../types/vietphuc';
 import { GarmentSchematic } from './GarmentSchematic';
 import { CulturalAuditPanel } from './CulturalAuditPanel';
 import { formatSourceBadge, getLookSummaryStatus } from '../utils/remixStateHelpers';
-import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle } from 'lucide-react';
+import { DongSonDialRing } from './MotionMotifs';
+import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info } from 'lucide-react';
 
 interface CoDesignStudioProps {
   proposals: OutfitProposal[];
@@ -34,30 +35,80 @@ const DIAL_LEVELS = [
   { level: 5, label: 'Phá cách thể nghiệm', short: 'Phá cách', desc: 'Ứng dụng chất liệu kỹ thuật (techwear), cấu trúc giải tỏa trong vùng biến tấu an toàn.' },
 ];
 
+/**
+ * Garment Icon Silhouettes - Stylized authentic vector line sketches
+ */
+const GarmentSketchIcon: React.FC<{ garment: GarmentKey; isSelected: boolean }> = ({ garment, isSelected }) => {
+  const strokeColor = isSelected ? '#C9A66B' : '#8C7E6C';
+
+  if (garment === 'ngu_than') {
+    return (
+      <svg width="40" height="40" viewBox="0 0 44 44" fill="none" className="shrink-0">
+        {/* Collar standing 4-5cm */}
+        <rect x="18" y="6" width="8" height="5" rx="1" stroke={strokeColor} strokeWidth="1.5" />
+        {/* Left overlap seam (Hữu nhậm to right) */}
+        <path d="M22,11 Q24,18 29,22 L31,38 L13,38 L15,22 Q20,18 22,11 Z" stroke={strokeColor} strokeWidth="1.5" fill={isSelected ? '#C9A66B15' : 'none'} />
+        <path d="M22,11 Q24,17 29,21" stroke="#E6C88B" strokeWidth="1.5" />
+        {/* Narrow sleeves */}
+        <path d="M17,13 L8,24 L12,25 L16,18" stroke={strokeColor} strokeWidth="1.25" />
+        <path d="M27,13 L36,24 L32,25 L28,18" stroke={strokeColor} strokeWidth="1.25" />
+      </svg>
+    );
+  }
+
+  if (garment === 'ao_tac') {
+    return (
+      <svg width="40" height="40" viewBox="0 0 44 44" fill="none" className="shrink-0">
+        {/* Standing collar */}
+        <rect x="18" y="6" width="8" height="5" rx="1" stroke={strokeColor} strokeWidth="1.5" />
+        {/* Wide rectangular loose sleeves (Tay thụng) */}
+        <path d="M16,13 L4,17 L6,34 L14,30 L15,21" stroke={strokeColor} strokeWidth="1.25" fill={isSelected ? '#C9A66B15' : 'none'} />
+        <path d="M28,13 L40,17 L38,34 L30,30 L29,21" stroke={strokeColor} strokeWidth="1.25" fill={isSelected ? '#C9A66B15' : 'none'} />
+        {/* Robe body */}
+        <path d="M17,11 L27,11 L29,38 L15,38 Z" stroke={strokeColor} strokeWidth="1.5" />
+      </svg>
+    );
+  }
+
+  // Nhật Bình
+  return (
+    <svg width="40" height="40" viewBox="0 0 44 44" fill="none" className="shrink-0">
+      {/* Rectangular straight collar band (Đối khâm) */}
+      <rect x="18" y="6" width="8" height="32" stroke="#E6C88B" strokeWidth="1.5" fill={isSelected ? '#B8342B25' : 'none'} />
+      {/* Outer panels */}
+      <path d="M18,10 L10,13 L12,38 L18,38" stroke={strokeColor} strokeWidth="1.25" />
+      <path d="M26,10 L34,13 L32,38 L26,38" stroke={strokeColor} strokeWidth="1.25" />
+      {/* 5-color striped cuffs indicator */}
+      <line x1="8" y1="26" x2="13" y2="27" stroke="#43B6A4" strokeWidth="1.5" />
+      <line x1="31" y1="27" x2="36" y2="26" stroke="#43B6A4" strokeWidth="1.5" />
+    </svg>
+  );
+};
+
 const GARMENTS = [
   {
     key: 'ngu_than' as GarmentKey,
     name: 'Áo Ngũ Thân Tay Chẽn',
     dynasty: 'Thường phục triều Nguyễn',
-    seal: 'LẬP LĨNH',
-    desc: 'Cổ đứng 4-5cm ôm khít, vạt Hữu nhậm cài sang phải, tay chẽn gọn gàng cử động linh hoạt.',
-    badgeColor: 'border-[#38BDF8]/40 text-[#38BDF8] bg-[#38BDF8]/10',
+    seal: 'LẬP LĨNH · HỮU NHẬM',
+    desc: 'Cổ đứng 4-5cm ôm khít, vạt Hữu nhậm cài sang phải, tay chẽn gọn gàng năng động.',
+    badgeColor: 'border-[#C9A66B]/50 text-[#E6C88B] bg-[#C9A66B]/15',
   },
   {
     key: 'ao_tac' as GarmentKey,
     name: 'Áo Tấc Lễ Phục',
     dynasty: 'Đại lễ phục triều Nguyễn',
-    seal: 'TAY THỤNG',
-    desc: 'Ống tay thụng hình chữ nhật buông quá ngón tay trang trọng; có thể mở khuy mặc như áo khoác dáng dài.',
-    badgeColor: 'border-[#34D399]/40 text-[#34D399] bg-[#34D399]/10',
+    seal: 'TAY THỤNG · DUSTER COAT',
+    desc: 'Ống tay thụng hình chữ nhật buông quá ngón tay trang trọng; có thể mở khuy làm áo khoác ngoài.',
+    badgeColor: 'border-[#43B6A4]/50 text-[#43B6A4] bg-[#43B6A4]/15',
   },
   {
     key: 'nhat_binh' as GarmentKey,
     name: 'Áo Nhật Bình',
     dynasty: 'Cung tần & Mệnh phụ',
-    seal: 'ĐỐI KHÂM',
-    desc: 'Nẹp cổ chữ nhật đối khâm thêu hoa văn, dải màu ngũ sắc ở viền tay; phối cùng chân váy xếp ly hiện đại.',
-    badgeColor: 'border-[#F43F5E]/40 text-[#F43F5E] bg-[#F43F5E]/10',
+    seal: 'ĐỐI KHÂM · NGŨ SẮC',
+    desc: 'Nẹp cổ chữ nhật đối khâm hoa văn, dải màu ngũ sắc ở viền tay; phối cùng chân váy xếp ly hiện đại.',
+    badgeColor: 'border-[#B8342B]/50 text-[#F5A39D] bg-[#B8342B]/15',
   },
 ];
 
@@ -99,6 +150,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [detailTab, setDetailTab] = useState<'styling' | 'audit'>('styling');
   const [showAdvancedNotes, setShowAdvancedNotes] = useState<boolean>(false);
+  const [expandedGarmentKey, setExpandedGarmentKey] = useState<GarmentKey | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Request lifecycle management refs to invalidate late/stale responses
@@ -128,7 +180,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   }, [selectedGarment]);
 
   const handleGenerateOutfits = async () => {
-    // 3. Prevent duplicate requests inside handler
+    // Prevent duplicate requests inside handler
     if (loading) return;
 
     // Abort previous in-flight request if still running
@@ -174,14 +226,12 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
       }
 
       if (data.proposals && data.proposals.length > 0) {
-        // 1. Only pass actual source, no 'gemini' default fallback
         onUpdateProposals(data.proposals, data.source || '');
       } else {
         throw new Error('Không nhận được dữ liệu thiết kế từ hệ thống.');
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || controller.signal.aborted) {
-        // Request was aborted cleanly, do nothing
         return;
       }
       if (reqId === activeReqIdRef.current && activeGarmentRef.current === targetGarment) {
@@ -197,26 +247,26 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
   const currentProposal = proposals[selectedPlanIndex] || null;
 
-  // 1. Format source badge display safely (Gemini only when source === 'gemini')
+  // Safe format source badge display (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
     const info = formatSourceBadge(proposalSource);
     if (info.badgeType === 'gemini') {
       return (
-        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#0D9488]/15 text-[#2DD4BF] border border-[#0D9488]/30 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#2DD4BF]" />
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#C9A66B]/15 text-[#E6C88B] border border-[#C9A66B]/40 flex items-center gap-1.5 shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-[#E6C88B]" />
           {info.label}
         </span>
       );
     }
     if (info.badgeType === 'fallback') {
       return (
-        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#B8342B]/15 text-[#F5A39D] border border-[#B8342B]/40 shadow-xs">
           {info.label}
         </span>
       );
     }
     return (
-      <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
+      <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#2C211D] text-[#B8AA96] border border-[#4A3830]">
         {info.label}
       </span>
     );
@@ -225,20 +275,43 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   // Determine caution status for the quick summary strip under look title
   const summaryStatus = getLookSummaryStatus(currentProposal?.audit);
 
+  // Helper to render real color swatch tile with authentic shade labels
+  const renderColorSwatch = (colorStr: string, idx: number) => {
+    const hexMatch = colorStr.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
+    const hex = hexMatch ? hexMatch[0] : '#3A2B25';
+    const label = colorStr.replace(hex, '').trim() || hex;
+
+    return (
+      <div
+        key={idx}
+        className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-[#181311] border border-[#3A2B25] shadow-xs"
+      >
+        <span
+          className="w-4 h-4 rounded-md border border-white/20 shadow-xs shrink-0"
+          style={{ backgroundColor: hex }}
+        />
+        <span className="text-xs font-medium text-[#F2E9D8]">{label}</span>
+        {hexMatch && label !== hex && (
+          <span className="text-[10px] font-mono text-[#8C7E6C]">{hex}</span>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Studio Header */}
-      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div id="studio-workspace" className="space-y-6">
+      {/* Studio Header Bar */}
+      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-semibold text-[#14B8A6] uppercase tracking-wider">
-              Studio Phối Đồ Việt Phục Đương Đại
+            <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
+              Xưởng Phối Đồ Sơn Mài Đương Đại
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] tracking-tight">
             Tạo bản phối Việt phục theo phong cách riêng của bạn
           </h2>
-          <p className="text-sm sm:text-base text-[#94A3B8] max-w-2xl leading-relaxed">
+          <p className="text-sm sm:text-base text-[#B8AA96] max-w-2xl leading-relaxed">
             Chọn loại áo cổ truyền, dịp mặc và mức độ phá cách mong muốn. Hệ thống sẽ khởi tạo 2 phương án thiết kế độc đáo kèm ghi chú tham chiếu văn hóa.
           </p>
         </div>
@@ -246,7 +319,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
           <button
             onClick={() => onOpenCKB()}
-            className="text-xs font-medium text-[#2DD4BF] hover:text-white bg-[#0D9488]/10 hover:bg-[#0D9488]/20 border border-[#0D9488]/30 px-3 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5"
+            className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19] hover:bg-[#322521] border border-[#4A3830] px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5"
           >
             <span>Xem quy tắc tham chiếu</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -258,58 +331,116 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Compact Design Controls (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
-            <h3 className="text-base font-serif font-bold text-[#F1F5F9] pb-3 border-b border-[#272D3A] flex items-center justify-between">
+          <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
+            <h3 className="text-base font-serif font-bold text-[#F2E9D8] pb-3 border-b border-[#3A2B25] flex items-center justify-between">
               <span>Tùy chỉnh bản phối</span>
-              <span className="text-xs font-mono font-normal text-[#94A3B8]">4 bước đơn giản</span>
+              <span className="text-xs font-mono font-normal text-[#B8AA96]">4 bước tạo kiểu</span>
             </h3>
 
-            {/* 1. Chọn loại áo */}
+            {/* 1. Chọn loại áo với hình phác họa vector riêng biệt */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] block">
-                1. Loại áo cổ truyền
-              </label>
-              <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block">
+                  1. Loại áo cổ truyền
+                </label>
+                <span className="text-[11px] font-sans text-[#8C7E6C]">
+                  Phác họa quy thức minh họa
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
                 {GARMENTS.map((g) => {
                   const isSelected = selectedGarment === g.key;
+                  const isExpanded = expandedGarmentKey === g.key;
                   return (
-                    <button
+                    <div
                       key={g.key}
-                      type="button"
-                      onClick={() => onChangeGarment(g.key)}
-                      className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer min-h-[52px] ${
+                      className={`rounded-xl border transition-all overflow-hidden ${
                         isSelected
-                          ? 'border-[#14B8A6] bg-[#1E2530] text-white shadow-xs ring-1 ring-[#14B8A6]/40'
-                          : 'border-[#28303E] bg-[#161920] hover:bg-[#1E232D] text-[#94A3B8]'
+                          ? 'border-[#C9A66B] bg-[#261C19] shadow-xs ring-1 ring-[#C9A66B]/50'
+                          : 'border-[#3A2B25] bg-[#181311] hover:bg-[#211815]'
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm font-serif font-bold ${isSelected ? 'text-[#F1F5F9]' : 'text-[#CBD5E1]'}`}>
-                          {g.name}
+                      <button
+                        type="button"
+                        onClick={() => onChangeGarment(g.key)}
+                        className="w-full text-left p-3 cursor-pointer min-h-[60px] flex items-start gap-3"
+                      >
+                        {/* Stylized Vector Sketch */}
+                        <GarmentSketchIcon garment={g.key} isSelected={isSelected} />
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-1 mb-0.5">
+                            <span className={`text-sm font-serif font-bold truncate ${isSelected ? 'text-[#F2E9D8]' : 'text-[#D4C7B4]'}`}>
+                              {g.name}
+                            </span>
+                            <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${g.badgeColor}`}>
+                              {g.seal}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#8C7E6C] leading-relaxed line-clamp-2">
+                            {g.desc}
+                          </p>
+                        </div>
+                      </button>
+
+                      {/* Expandable deeper info toggle */}
+                      <div className="px-3 pb-2.5 pt-0 flex items-center justify-between border-t border-[#3A2B25]/50">
+                        <span className="text-[11px] text-[#8C7E6C] italic">
+                          {g.dynasty}
                         </span>
-                        <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${g.badgeColor}`}>
-                          {g.seal}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedGarmentKey(isExpanded ? null : g.key);
+                          }}
+                          className="text-[11px] font-mono text-[#C9A66B] hover:text-[#F2E9D8] flex items-center gap-1 cursor-pointer py-0.5 px-1.5 rounded hover:bg-[#322521] transition-colors"
+                        >
+                          <Info className="w-3 h-3" />
+                          <span>{isExpanded ? 'Thu gọn' : 'Quy thức cổ'}</span>
+                        </button>
                       </div>
-                      <p className="text-xs text-[#94A3B8] leading-relaxed line-clamp-2">
-                        {g.desc}
-                      </p>
-                    </button>
+
+                      {/* Deep Info Drawer */}
+                      {isExpanded && (
+                        <div className="px-3 py-2.5 bg-[#140F0E] border-t border-[#3A2B25] text-xs text-[#B8AA96] space-y-1.5 animate-in fade-in duration-150">
+                          {g.key === 'ngu_than' && (
+                            <>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> 5 thân vải (2 thân trước, 2 thân sau, 1 thân con bên trong), 5 khuy cài tượng trưng ngũ thường (Nhân, Lễ, Nghĩa, Trí, Tín).</p>
+                              <p><strong className="text-[#E6C88B]">Bất biến:</strong> Cổ lập lĩnh ôm khít cổ, vạt Hữu nhậm cài sang phải (tuyệt đối không cài sang trái).</p>
+                            </>
+                          )}
+                          {g.key === 'ao_tac' && (
+                            <>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Tay thụng hình chữ nhật rộng buông dài quá ngón tay, dùng trong các đại lễ trang trọng triều Nguyễn.</p>
+                              <p><strong className="text-[#E6C88B]">Khả biến đương đại:</strong> Cho phép mở khuy làm áo khoác duster coat hiện đại, phối quần tây ống rộng.</p>
+                            </>
+                          )}
+                          {g.key === 'nhat_binh' && (
+                            <>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Nẹp cổ chữ nhật đối khâm hoa văn chạy dọc đối xứng, dải màu ngũ sắc ở viền tay tượng trưng ngũ hành.</p>
+                              <p><strong className="text-[#E6C88B]">Khả biến đương đại:</strong> Phối cùng chân váy xếp ly dài hiện đại hoặc layer áo quây / áo hai dây bên trong.</p>
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             </div>
 
             {/* 2. Dịp mặc & Phong cách */}
-            <div className="space-y-3 pt-1 border-t border-[#272D3A]/60">
+            <div className="space-y-3 pt-2 border-t border-[#3A2B25]/70">
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] block mb-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
                   2. Dịp mặc (Bối cảnh)
                 </label>
                 <select
                   value={context}
                   onChange={(e) => onChangeContext(e.target.value)}
-                  className="w-full text-sm font-medium bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
+                  className="w-full text-sm font-medium bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
                 >
                   {CONTEXT_OPTIONS.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -320,13 +451,13 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] block mb-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
                   3. Phong cách đương đại
                 </label>
                 <select
                   value={style}
                   onChange={(e) => onChangeStyle(e.target.value)}
-                  className="w-full text-sm font-medium bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
+                  className="w-full text-sm font-medium bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
                 >
                   {STYLE_OPTIONS.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -337,38 +468,48 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
             </div>
 
-            {/* 3. Mức độ Remix (Dial) */}
-            <div className="space-y-2.5 pt-1 border-t border-[#272D3A]/60">
+            {/* 3. Mức độ Remix (Dial) với vành trang trí vàng đồng */}
+            <div className="space-y-3 pt-2 border-t border-[#3A2B25]/70">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] flex items-center gap-1.5">
-                  <Sliders className="w-3.5 h-3.5 text-[#14B8A6]" />
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-[#C9A66B]" />
                   <span>4. Mức độ biến tấu ({dialLevel}/5)</span>
                 </label>
-                <span className="text-xs font-semibold text-[#2DD4BF] font-mono bg-[#0D9488]/15 border border-[#0D9488]/30 px-2 py-0.5 rounded">
+                <span className="text-xs font-semibold text-[#E6C88B] font-mono bg-[#C9A66B]/15 border border-[#C9A66B]/30 px-2 py-0.5 rounded">
                   {DIAL_LEVELS[dialLevel - 1].short}
                 </span>
               </div>
 
-              <input
-                type="range"
-                min="1"
-                max="5"
-                step="1"
-                value={dialLevel}
-                onChange={(e) => onChangeDialLevel(parseInt(e.target.value))}
-                className="w-full h-2 bg-[#262C38] rounded-lg appearance-none cursor-pointer accent-[#14B8A6]"
-              />
+              {/* Ornamental Circular Bronze Ring Display: Rotating Motif, Stationary Number */}
+              <div className="py-1">
+                <DongSonDialRing dialLevel={dialLevel} isRotating={true} />
+              </div>
 
-              <div className="grid grid-cols-5 gap-1 text-[11px] text-center font-mono">
+              {/* Slider track for touch, mouse, and keyboard */}
+              <div className="relative py-1">
+                <input
+                  type="range"
+                  min="1"
+                  max="5"
+                  step="1"
+                  value={dialLevel}
+                  onChange={(e) => onChangeDialLevel(parseInt(e.target.value))}
+                  aria-label="Thanh kéo chọn mức độ biến tấu"
+                  className="w-full h-2 bg-[#2C211D] rounded-lg appearance-none cursor-pointer accent-[#B8342B]"
+                />
+              </div>
+
+              {/* 5 discrete level buttons */}
+              <div className="grid grid-cols-5 gap-1.5 text-xs text-center font-mono">
                 {DIAL_LEVELS.map((d) => (
                   <button
                     key={d.level}
                     type="button"
                     onClick={() => onChangeDialLevel(d.level)}
-                    className={`py-1.5 rounded-lg border transition-all cursor-pointer min-h-[34px] ${
+                    className={`py-2 rounded-lg border transition-all cursor-pointer min-h-[38px] ${
                       dialLevel === d.level
-                        ? 'border-[#14B8A6] bg-[#0D9488]/25 text-[#2DD4BF] font-bold'
-                        : 'border-[#28303E] bg-[#161920] text-[#94A3B8] hover:border-[#384356]'
+                        ? 'border-[#C9A66B] bg-[#C9A66B]/25 text-[#E6C88B] font-bold shadow-xs ring-1 ring-[#C9A66B]/40'
+                        : 'border-[#3A2B25] bg-[#181311] text-[#8C7E6C] hover:border-[#4A3830] hover:text-[#B8AA96]'
                     }`}
                   >
                     {d.level}
@@ -376,18 +517,18 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 ))}
               </div>
 
-              <p className="text-xs text-[#94A3B8] bg-[#161920] p-3 rounded-xl border border-[#272D3A] leading-relaxed">
-                <span className="font-semibold text-[#E2E8F0]">Đặc trưng: </span>
+              <p className="text-xs text-[#B8AA96] bg-[#181311] p-3 rounded-xl border border-[#3A2B25] leading-relaxed">
+                <span className="font-semibold text-[#E6C88B]">{DIAL_LEVELS[dialLevel - 1].label}: </span>
                 {DIAL_LEVELS[dialLevel - 1].desc}
               </p>
             </div>
 
             {/* Ghi chú nâng cao (Collapsible) */}
-            <div className="pt-1 border-t border-[#272D3A]/60">
+            <div className="pt-1 border-t border-[#3A2B25]/70">
               <button
                 type="button"
                 onClick={() => setShowAdvancedNotes(!showAdvancedNotes)}
-                className="text-xs font-medium text-[#94A3B8] hover:text-[#E2E8F0] flex items-center justify-between w-full py-1.5 cursor-pointer"
+                className="text-xs font-medium text-[#B8AA96] hover:text-[#F2E9D8] flex items-center justify-between w-full py-1.5 cursor-pointer"
               >
                 <span>Ghi chú sáng tạo (tùy chọn)</span>
                 {showAdvancedNotes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -400,7 +541,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     value={customNotes}
                     onChange={(e) => onChangeCustomNotes(e.target.value)}
                     placeholder="VD: Phối tone xanh chàm, bốt da đen cao cổ..."
-                    className="w-full text-xs sm:text-sm bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] placeholder:text-[#64748B] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
+                    className="w-full text-xs sm:text-sm bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
                   />
                 </div>
               )}
@@ -417,7 +558,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             <button
               onClick={handleGenerateOutfits}
               disabled={loading}
-              className="w-full py-3 bg-[#0D9488] hover:bg-[#0F766E] disabled:bg-[#334155] text-white rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm min-h-[46px] cursor-pointer mt-2"
+              className="w-full py-3 bg-[#B8342B] hover:bg-[#A32D25] disabled:bg-[#3A2B25] text-[#F2E9D8] rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm min-h-[46px] cursor-pointer mt-2"
             >
               {loading ? (
                 <>
@@ -426,7 +567,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 </>
               ) : (
                 <>
-                  <Wand2 className="w-4 h-4 text-[#99F6E4]" />
+                  <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
                   <span>Tạo bản phối</span>
                 </>
               )}
@@ -434,11 +575,11 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Hero Outfit Presentation (8 cols - The Centerpiece) */}
+        {/* Right Column: Hero Lookbook Centerpiece Presentation (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
           {/* Plan Selector Buttons: Look A vs Look B */}
           {proposals.length > 0 && (
-            <div className="flex items-center gap-2 p-1.5 bg-[#181C24] border border-[#272D3A] rounded-2xl">
+            <div className="flex items-center gap-2 p-1.5 bg-[#1C1513] border border-[#3A2B25] rounded-2xl">
               {proposals.map((prop, idx) => {
                 const isActive = selectedPlanIndex === idx;
                 return (
@@ -447,11 +588,11 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     onClick={() => onSelectPlanIndex(idx)}
                     className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
                       isActive
-                        ? 'bg-[#222834] text-[#2DD4BF] border border-[#0D9488]/50 shadow-xs'
-                        : 'bg-[#161920] border border-[#262C38] text-[#94A3B8] hover:text-[#E2E8F0]'
+                        ? 'bg-[#2E201B] text-[#E6C88B] border border-[#C9A66B]/60 shadow-xs'
+                        : 'bg-[#181311] border border-[#3A2B25] text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#2DD4BF]' : 'bg-[#64748B]'}`} />
+                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#E6C88B]' : 'bg-[#6E5D53]'}`} />
                     <span className="truncate">
                       {idx === 0 ? 'Bản phối A: Bám sát di sản' : `Bản phối B: Phá cách (Mức ${prop.dial_level})`}
                     </span>
@@ -463,47 +604,47 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
           {/* Empty State when no proposals generated yet */}
           {!currentProposal && !loading && (
-            <div className="bg-[#181C24] border-2 border-dashed border-[#28303E] rounded-2xl p-8 sm:p-12 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#202530] flex items-center justify-center mx-auto text-[#14B8A6] border border-[#2A313E]">
+            <div className="bg-[#1C1513] border-2 border-dashed border-[#3A2B25] rounded-2xl p-8 sm:p-12 text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#261C19] flex items-center justify-center mx-auto text-[#C9A66B] border border-[#4A3830]">
                 <Shirt className="w-7 h-7" />
               </div>
               <div className="max-w-md mx-auto space-y-2">
-                <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F1F5F9]">
+                <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F2E9D8]">
                   Chưa có bản phối nào cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
                 </h3>
-                <p className="text-sm text-[#94A3B8] leading-relaxed">
-                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#2DD4BF]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm lời khuyên từ stylist và ghi chú tham chiếu văn hóa.
+                <p className="text-sm text-[#B8AA96] leading-relaxed">
+                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm lời khuyên từ stylist và ghi chú tham chiếu văn hóa.
                 </p>
               </div>
               <button
                 onClick={handleGenerateOutfits}
-                className="px-5 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] text-white text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
+                className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
               >
-                <Wand2 className="w-4 h-4 text-[#99F6E4]" />
+                <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
                 <span>Tạo bản phối ngay</span>
               </button>
             </div>
           )}
 
-          {/* Current Outfit Presentation Board */}
+          {/* Current Outfit Presentation Board (Lookbook Style) */}
           {currentProposal && (
-            <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
+            <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
               {/* Proposal Header Banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#272D3A] gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#3A2B25] gap-4">
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#14B8A6]">
+                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#C9A66B]">
                       {currentProposal.concept_tag}
                     </span>
                     {/* Safe source provenance badge */}
                     {renderSourceBadge()}
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] leading-snug">
+                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] leading-snug">
                     {currentProposal.title}
                   </h3>
 
-                  {/* 4. Quick Cultural Reference & Caution Summary Strip directly under Look Title */}
-                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#14171E] p-2.5 rounded-xl border border-[#232834]">
+                  {/* Cultural Reference & Caution Summary Strip directly under Look Title */}
+                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#181311] p-2.5 rounded-xl border border-[#3A2B25]">
                     <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                       {summaryStatus.badges.map((badge, idx) => {
                         if (badge.variant === 'caution') {
@@ -523,21 +664,21 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                           );
                         }
                         return (
-                          <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] flex items-center gap-1 shrink-0">
-                            <ShieldCheck className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                          <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] flex items-center gap-1 shrink-0">
+                            <ShieldCheck className="w-3.5 h-3.5 text-[#E6C88B]" />
                             {badge.label}
                           </span>
                         );
                       })}
 
-                      <span className="text-xs text-[#94A3B8] truncate" title={summaryStatus.summaryText}>
+                      <span className="text-xs text-[#B8AA96] truncate" title={summaryStatus.summaryText}>
                         {summaryStatus.summaryText}
                       </span>
                     </div>
 
                     <button
                       onClick={() => setDetailTab('audit')}
-                      className="text-xs font-semibold text-[#2DD4BF] hover:text-[#5EEAD4] flex items-center gap-1 shrink-0 cursor-pointer min-h-[32px] px-2 py-1 rounded-lg hover:bg-[#222834] transition-colors"
+                      className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] flex items-center gap-1 shrink-0 cursor-pointer min-h-[32px] px-2 py-1 rounded-lg hover:bg-[#261C19] transition-colors"
                     >
                       <span>Xem giải thích</span>
                       <ArrowRight className="w-3 h-3" />
@@ -550,7 +691,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   {/* Button to test modifications on this active look */}
                   <button
                     onClick={onNavigateToWhatIf}
-                    className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-xl flex items-center gap-2 transition-colors whitespace-nowrap min-h-[40px] shadow-xs cursor-pointer"
+                    className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-[#F2E9D8] bg-[#B8342B] hover:bg-[#A32D25] rounded-xl flex items-center gap-2 transition-colors whitespace-nowrap min-h-[40px] shadow-xs cursor-pointer"
                     title="Chuyển sang tab Thử thay đổi để khám phá các kịch bản What-If trên bản phối này"
                   >
                     <span>Thử thay đổi cho bản phối này</span>
@@ -559,36 +700,36 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
                   <button
                     onClick={() => onOpenLookbookCard(currentProposal)}
-                    className="px-3 py-2 text-xs sm:text-sm font-medium text-[#E2E8F0] bg-[#222834] border border-[#2E3646] hover:bg-[#2A3140] rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap min-h-[40px] cursor-pointer"
+                    className="px-3 py-2 text-xs sm:text-sm font-medium text-[#F2E9D8] bg-[#261C19] border border-[#4A3830] hover:bg-[#322521] rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap min-h-[40px] cursor-pointer"
                   >
-                    <Share2 className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                    <Share2 className="w-3.5 h-3.5 text-[#C9A66B]" />
                     <span>Thẻ Lookbook</span>
                   </button>
                 </div>
               </div>
 
               {/* Garment Visual Canvas Viewport */}
-              <div className="rounded-xl overflow-hidden border border-[#272D3A]">
+              <div className="rounded-xl overflow-hidden border border-[#3A2B25]">
                 <GarmentSchematic
                   garment={currentProposal.garment_type}
                   visualDetails={currentProposal.visual_details}
                   dialLevel={currentProposal.dial_level}
                   isOpenFront={currentProposal.garment_type === 'ao_tac' && currentProposal.dial_level >= 3}
                 />
-                <div className="bg-[#14171E] px-4 py-2 border-t border-[#272D3A] text-center text-xs text-[#94A3B8]">
-                  Khám phá cấu trúc trang phục · Sơ đồ hình họa tương tác (Minh họa quy thức, không phải bản rập may hoặc ảnh AI)
+                <div className="bg-[#181311] px-4 py-2 border-t border-[#3A2B25] text-center text-xs text-[#8C7E6C]">
+                  Khám phá cấu trúc trang phục · Sơ đồ hình họa tương tác (Minh họa quy thức, không phải bản rập may hoặc ảnh chụp)
                 </div>
               </div>
 
               {/* Detail Tabs Switcher: Styling vs Cultural Reference */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 border-b border-[#272D3A] pb-2">
+                <div className="flex items-center gap-2 border-b border-[#3A2B25] pb-2">
                   <button
                     onClick={() => setDetailTab('styling')}
                     className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] ${
                       detailTab === 'styling'
-                        ? 'bg-[#222834] text-[#2DD4BF] border border-[#0D9488]/40'
-                        : 'text-[#94A3B8] hover:text-[#E2E8F0]'
+                        ? 'bg-[#261C19] text-[#E6C88B] border border-[#C9A66B]/50'
+                        : 'text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
                     Chi tiết phối đồ & Stylist
@@ -598,17 +739,17 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     onClick={() => setDetailTab('audit')}
                     className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] flex items-center gap-1.5 ${
                       detailTab === 'audit'
-                        ? 'bg-[#222834] text-[#2DD4BF] border border-[#0D9488]/40'
-                        : 'text-[#94A3B8] hover:text-[#E2E8F0]'
+                        ? 'bg-[#261C19] text-[#E6C88B] border border-[#C9A66B]/50'
+                        : 'text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
                     <span>Tham chiếu văn hóa</span>
                     <span className={`w-2 h-2 rounded-full ${
-                      currentProposal.audit.status === 'Supported'
-                        ? 'bg-[#10B981]'
+                      currentProposal.audit.status === 'Supported' && !currentProposal.audit.uncertainty_flag
+                        ? 'bg-[#43B6A4]'
                         : currentProposal.audit.status === 'Supported with Caution'
                         ? 'bg-[#F59E0B]'
-                        : 'bg-[#F43F5E]'
+                        : 'bg-[#B8342B]'
                     }`} />
                   </button>
                 </div>
@@ -618,58 +759,57 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   <div className="space-y-4 animate-in fade-in duration-150">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left: Garment Pieces Specification */}
-                      <div className="bg-[#161920] p-4 rounded-xl border border-[#272D3A] space-y-3">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6] font-semibold block">
+                      <div className="bg-[#181311] p-4 rounded-xl border border-[#3A2B25] space-y-3">
+                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
                           Cấu trúc y phục chính
                         </span>
 
                         <div className="space-y-2 text-xs sm:text-sm">
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Cổ áo & Khuy cài</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.collar_style}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Cổ áo & Khuy cài</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.collar_style}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Quy thức vạt áo</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.lapel_side}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Quy thức vạt áo</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.lapel_side}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Dáng tay áo</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.sleeve_style}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Dáng tay áo</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.sleeve_style}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Chiều dài tà áo</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.cut_length}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Chiều dài tà áo</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.cut_length}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right: Modern Mix & Match Breakdown */}
-                      <div className="bg-[#161920] p-4 rounded-xl border border-[#272D3A] space-y-3">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6] font-semibold block">
+                      <div className="bg-[#181311] p-4 rounded-xl border border-[#3A2B25] space-y-3">
+                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
                           Phối cùng phụ kiện & giày
                         </span>
 
                         <div className="space-y-2 text-xs sm:text-sm">
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Trang phục dưới (Quần / Váy)</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.bottom_garment}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Trang phục dưới (Quần / Váy)</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.bottom_garment}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Giày dép đề xuất</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.footwear}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Giày dép đề xuất</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.footwear}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Lớp áo trong</span>
-                            <span className="font-medium text-[#F1F5F9]">{currentProposal.visual_details.layering_pieces?.join(', ') || 'Áo thun lót mộc'}</span>
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Lớp áo trong</span>
+                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.layering_pieces?.join(', ') || 'Áo thun lót mộc'}</span>
                           </div>
                           <div>
-                            <span className="text-[#64748B] block text-[11px] uppercase">Bảng màu chính</span>
-                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                              {currentProposal.visual_details.color_palette.map((color, i) => (
-                                <span key={i} className="text-xs px-2.5 py-1 rounded-lg bg-[#222834] text-[#CBD5E1] border border-[#2E3646]">
-                                  {color}
-                                </span>
-                              ))}
+                            <span className="text-[#8C7E6C] block text-[11px] uppercase mb-1">Bảng màu chính (Màu thực tế)</span>
+                            {/* Visual Color Swatches with Actual Colors & Labels */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {currentProposal.visual_details.color_palette.map((color, i) =>
+                                renderColorSwatch(color, i)
+                              )}
                             </div>
                           </div>
                         </div>
@@ -677,19 +817,19 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     </div>
 
                     {/* Stylist Notes Box */}
-                    <div className="bg-[#161920] p-4 sm:p-5 rounded-xl border border-[#272D3A] space-y-2.5">
+                    <div className="bg-[#181311] p-4 sm:p-5 rounded-xl border border-[#3A2B25] space-y-2.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6] font-semibold">
+                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold">
                           Lời khuyên từ Stylist đương đại
                         </span>
                       </div>
-                      <p className="text-sm sm:text-base text-[#CBD5E1] leading-relaxed font-serif italic">
+                      <p className="text-sm sm:text-base text-[#F2E9D8] leading-relaxed font-serif italic">
                         "{currentProposal.stylist_notes.philosophy}"
                       </p>
 
-                      <div className="pt-2 border-t border-[#272D3A] space-y-1">
-                        <span className="text-xs font-semibold text-[#94A3B8]">Mẹo mặc đẹp cho Gen Z:</span>
-                        <ul className="list-disc list-inside text-xs sm:text-sm text-[#94A3B8] space-y-1 pl-1">
+                      <div className="pt-2 border-t border-[#3A2B25] space-y-1">
+                        <span className="text-xs font-semibold text-[#B8AA96]">Mẹo mặc đẹp cho Gen Z:</span>
+                        <ul className="list-disc list-inside text-xs sm:text-sm text-[#B8AA96] space-y-1 pl-1">
                           {currentProposal.stylist_notes.gen_z_tips.map((tip, idx) => (
                             <li key={idx}>{tip}</li>
                           ))}
