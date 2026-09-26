@@ -10,6 +10,7 @@ import { buildCKBSystemGrounding } from './src/data/ckbRegistry.js';
 import {
   normalizeGeminiProposal,
   normalizeGeminiWhatIfEvaluation,
+  processGeminiProposalResponse,
 } from './src/utils/auditNormalization.js';
 
 dotenv.config();
@@ -168,19 +169,12 @@ Trả về kết quả chuẩn định dạng JSON.
     });
 
     const parsed = JSON.parse(response.text || '{}');
-    if (parsed.proposals && Array.isArray(parsed.proposals) && parsed.proposals.length > 0) {
-      const normalizedProposals = parsed.proposals.map((prop: any) =>
-        normalizeGeminiProposal(prop, (garment || 'ngu_than') as any)
-      );
-      return res.json({ success: true, proposals: normalizedProposals, source: 'gemini' });
-    }
-
-    // Fallback if parsing was empty
-    return res.json({
-      success: true,
-      proposals: generateDeterministicProposals(garment, context, style, dial_level),
-      source: 'deterministic_engine',
-    });
+    const processed = processGeminiProposalResponse(
+      parsed,
+      (garment || 'ngu_than') as any,
+      { context, style, dial_level }
+    );
+    return res.json(processed);
   } catch (err: any) {
     console.error('Error generating remix outfit:', err);
     // Graceful fallback to deterministic engine

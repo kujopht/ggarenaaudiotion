@@ -49,6 +49,121 @@ export interface LookSummaryResult {
   historicalConfidenceLabel: string;
 }
 
+export interface WhatIfSummaryResult {
+  prototypeLabel: string;
+  historicalLabel: string;
+  uncertaintyTitle: string;
+  uncertaintyText: string;
+  hasDesignCaution: boolean;
+  hasEvidenceUncertainty: boolean;
+  isPrototypeConflict: boolean;
+  showInsufficientEvidence: boolean;
+  systemWarnings: string[];
+}
+
+/**
+ * Evaluates semantic summary status for a What-If evaluation.
+ * Requirement 7 & 8:
+ * - Returns precise uncertainty titles and explanations based on actual evidence status.
+ * - Does not call all uncertainty "Chi tiết nằm ngoài CKB".
+ */
+export function getWhatIfSummaryStatus(evaluation?: WhatIfEvaluation | null): WhatIfSummaryResult {
+  if (!evaluation) {
+    return {
+      prototypeLabel: 'Chưa đối soát quy tắc prototype',
+      historicalLabel: 'Chưa đủ dữ liệu tham chiếu',
+      uncertaintyTitle: 'Chưa đủ dữ liệu tham chiếu',
+      uncertaintyText: 'Chi tiết này hiện nằm ngoài phạm vi các quy tắc đã được số hóa trong bản thử nghiệm.',
+      hasDesignCaution: false,
+      hasEvidenceUncertainty: true,
+      isPrototypeConflict: false,
+      showInsufficientEvidence: true,
+      systemWarnings: [],
+    };
+  }
+
+  const isPrototypeConflict = Boolean(
+    evaluation.prototype_compliance === 'conflict' ||
+    evaluation.violates_invariants ||
+    (evaluation.violated_evidence_ids && evaluation.violated_evidence_ids.length > 0)
+  );
+
+  const hasDesignCaution = Boolean(
+    isPrototypeConflict ||
+    evaluation.has_design_caution ||
+    (evaluation.cautions_and_redlines && evaluation.cautions_and_redlines.length > 0)
+  );
+
+  const showInsufficientEvidence = Boolean(
+    evaluation.status === 'Insufficient Evidence' ||
+    evaluation.prototype_compliance === 'unassessed' ||
+    ((!evaluation.applicable_evidence_ids || evaluation.applicable_evidence_ids.length === 0) &&
+      (!evaluation.violated_evidence_ids || evaluation.violated_evidence_ids.length === 0))
+  );
+
+  const hasEvidenceUncertainty = Boolean(
+    evaluation.uncertainty_flag ||
+    evaluation.has_evidence_uncertainty ||
+    showInsufficientEvidence ||
+    evaluation.historical_confidence === 'unverified' ||
+    evaluation.historical_confidence === 'needs_review' ||
+    evaluation.historical_confidence === 'partially_verified' ||
+    evaluation.historical_confidence === 'mixed'
+  );
+
+  const prototypeLabel = isPrototypeConflict
+    ? 'Có xung đột với quy tắc prototype'
+    : showInsufficientEvidence
+    ? 'Chưa đối soát quy tắc prototype'
+    : 'Phù hợp với quy tắc prototype';
+
+  const historicalLabel =
+    showInsufficientEvidence
+      ? 'Chưa đủ dữ liệu tham chiếu'
+      : evaluation.historical_confidence === 'verified'
+      ? 'Đã đối chiếu nguồn thư tịch'
+      : evaluation.historical_confidence === 'needs_review'
+      ? 'Nguồn lịch sử cần rà soát thêm'
+      : evaluation.historical_confidence === 'partially_verified'
+      ? 'Nguồn đối chiếu một phần'
+      : evaluation.historical_confidence === 'mixed'
+      ? 'Độ xác minh nguồn không đồng nhất'
+      : 'Nguồn lịch sử chưa xác minh độc lập';
+
+  // Semantic Uncertainty Title & Text (Requirement 7)
+  let uncertaintyTitle = 'Minh bạch về độ tin cậy của nguồn tham chiếu';
+  let uncertaintyText = 'Các quy tắc tham chiếu trong bản thử nghiệm hiện chưa được đối chiếu thư tịch độc lập.';
+
+  if (showInsufficientEvidence) {
+    uncertaintyTitle = 'Chưa đủ dữ liệu tham chiếu';
+    uncertaintyText = 'Chi tiết này hiện nằm ngoài phạm vi các quy tắc đã được số hóa trong bản thử nghiệm.';
+  } else if (evaluation.historical_confidence === 'unverified') {
+    uncertaintyTitle = 'Nguồn lịch sử chưa xác minh độc lập';
+    uncertaintyText = 'Quy tắc liên quan có trong CKB của prototype, nhưng nguồn lịch sử hiện chưa được đối chiếu độc lập.';
+  } else if (evaluation.historical_confidence === 'needs_review') {
+    uncertaintyTitle = 'Nguồn tham chiếu đang chờ đối soát';
+    uncertaintyText = 'Hệ thống đã có đầu mối nguồn cho quy tắc này, nhưng dự án chưa đối chiếu trực tiếp tài liệu gốc hoặc bản số hóa.';
+  } else if (evaluation.historical_confidence === 'partially_verified') {
+    uncertaintyTitle = 'Nguồn tham chiếu mới được đối chiếu một phần';
+    uncertaintyText = 'Một số quy tắc liên quan đã có nguồn đối chiếu, trong khi các quy tắc còn lại vẫn đang chờ xác minh thêm.';
+  } else if (evaluation.historical_confidence === 'mixed') {
+    uncertaintyTitle = 'Độ xác minh nguồn không đồng nhất';
+    uncertaintyText = 'Các quy tắc liên quan có mức độ xác minh tư liệu khác nhau trong bản thử nghiệm.';
+  }
+
+  return {
+    prototypeLabel,
+    historicalLabel,
+    uncertaintyTitle,
+    uncertaintyText,
+    hasDesignCaution,
+    hasEvidenceUncertainty,
+    isPrototypeConflict,
+    showInsufficientEvidence,
+    systemWarnings: evaluation.system_warnings || [],
+  };
+}
+
 /**
  * 2. Evaluates the cultural reference summary for a proposal.
  * Logic Hardening (Requirement 3 & 8):

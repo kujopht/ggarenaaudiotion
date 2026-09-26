@@ -186,7 +186,7 @@ export function evaluateWhatIfDeterministic(
         solution:
           'Vẫn giữ đúng 5 dải màu theo đúng trật tự ngũ hành, nhưng gia giảm độ bão hòa (desaturated) sang tông màu nhã nhặn hiện đại (muted tones) hoặc dệt chìm bằng sợi tơ mờ trên nền cổ tay áo.',
         heritage_safeguard:
-          'Bảo toàn nguyên tắc ngũ hành và thứ tự dải màu nhận diện bất biến của Nhật Bình theo quy ước prototype.',
+          'Bảo toàn trật tự dải màu nhận diện của Nhật Bình theo quy ước prototype.',
         contemporary_edge:
           'Hài hòa thị giác với các phong cách tối giản và pastel hiện đại.',
         materials_and_cuts: 'Chất liệu lụa tơ tằm dệt chìm hoặc chỉ thêu phối màu chuyển tiếp tinh tế.',
@@ -242,7 +242,7 @@ export function evaluateWhatIfDeterministic(
         solution:
           'Vẫn may cổ Lập Lĩnh chuẩn 4cm nhưng dùng chất liệu dựng cổ (interlining) mềm mại, hoặc thiết kế cúc cổ có thể mở ra khi dạo phố để lật ve nhẹ, nhưng khi cài lại lập tức trở về phom lập lĩnh đoan chính.',
         heritage_safeguard:
-          'Giữ trọn vẹn kết cấu nhận diện bất biến của cổ lập lĩnh thời Nguyễn theo quy ước prototype.',
+          'Giữ trọn vẹn kết cấu nhận diện cốt lõi của cổ lập lĩnh theo quy ước prototype.',
         contemporary_edge:
           'Tạo cảm giác thoải mái tối đa cho ngày hè nhiệt đới mà không phá vỡ cấu trúc.',
         materials_and_cuts: 'Chất liệu linen pha lụa tơ tằm với mex dựng cổ mềm.',
@@ -453,7 +453,7 @@ export function generateDeterministicProposals(
         dial_level: dial || 3,
         visual_details: {
           collar_style: 'Cổ Lập Lĩnh cao 4.2cm ôm khít cổ, đính khuy đồng thau đúc',
-          lapel_side: 'Hữu Nhậm (vạt trái đè vạt phải, khuy bên phải bất biến)',
+          lapel_side: 'Hữu Nhậm (vạt trái đè vạt phải, cài khuy bên phải theo quy ước prototype)',
           sleeve_style: 'Tay chẽn thon gọn với đường may đôi (twin needle stitch)',
           cut_length: 'Vạt cách tân lửng ngang hông (midi-cut) hiện đại',
           fabric_materials: ['Raw Selvedge Denim 11oz', 'Sợi cotton dệt chéo thoáng'],

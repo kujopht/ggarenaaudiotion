@@ -16,6 +16,7 @@ import {
   InvariantCheckResult,
   MutableUsage,
 } from '../types/vietphuc.js';
+import { generateDeterministicProposals } from './deterministicEngines.js';
 
 /**
  * Common regex patterns for overconfident or inflated historical certainty claims.
@@ -185,15 +186,112 @@ export function validateEvidenceId(
 }
 
 /**
+ * Contract validation for an individual proposal from Gemini.
+ * Requirement 1, 11 & 12:
+ * Proposal is strictly invalid if:
+ * - garment_type != expectedGarment (Authoritative garment enforcement)
+ * - missing or invalid audit object
+ * - missing or invalid visual_details (must have required strings and arrays)
+ * - missing or invalid stylist_notes
+ * - invalid plan_type
+ */
+export interface ProposalContractValidation {
+  valid: boolean;
+  error?: string;
+}
+
+export function validateGeminiProposalContract(
+  rawProposal: any,
+  expectedGarment: GarmentKey
+): ProposalContractValidation {
+  if (!rawProposal || typeof rawProposal !== 'object') {
+    return { valid: false, error: 'Proposal không phải là đối tượng hợp lệ' };
+  }
+
+  // 1. Authoritative Garment check
+  if (rawProposal.garment_type !== expectedGarment) {
+    return {
+      valid: false,
+      error: `Sai loại áo: Yêu cầu "${expectedGarment}" nhưng mô hình trả về "${rawProposal.garment_type}"`,
+    };
+  }
+
+  // 2. Plan type
+  if (
+    rawProposal.plan_type !== 'heritage_anchored' &&
+    rawProposal.plan_type !== 'contemporary_remix'
+  ) {
+    return { valid: false, error: `plan_type không hợp lệ: "${rawProposal.plan_type}"` };
+  }
+
+  // 3. Visual details check (Requirement 12)
+  const vd = rawProposal.visual_details;
+  if (!vd || typeof vd !== 'object') {
+    return { valid: false, error: 'Thiếu visual_details' };
+  }
+
+  const requiredStrings = [
+    'collar_style',
+    'lapel_side',
+    'sleeve_style',
+    'cut_length',
+    'bottom_garment',
+    'footwear',
+  ];
+  for (const field of requiredStrings) {
+    if (typeof vd[field] !== 'string' || vd[field].trim() === '') {
+      return { valid: false, error: `visual_details thiếu trường chuỗi hợp lệ: ${field}` };
+    }
+  }
+
+  if (!Array.isArray(vd.fabric_materials) || vd.fabric_materials.length === 0) {
+    return { valid: false, error: 'visual_details.fabric_materials phải là mảng không rỗng' };
+  }
+
+  if (!Array.isArray(vd.color_palette) || vd.color_palette.length === 0) {
+    return { valid: false, error: 'visual_details.color_palette phải là mảng không rỗng' };
+  }
+
+  if (vd.layering_pieces !== undefined && !Array.isArray(vd.layering_pieces)) {
+    return { valid: false, error: 'visual_details.layering_pieces phải là mảng nếu được cung cấp' };
+  }
+
+  if (vd.accessories !== undefined && !Array.isArray(vd.accessories)) {
+    return { valid: false, error: 'visual_details.accessories phải là mảng nếu được cung cấp' };
+  }
+
+  // 4. Audit object check (Requirement 11)
+  const audit = rawProposal.audit;
+  if (!audit || typeof audit !== 'object') {
+    return { valid: false, error: 'Thiếu audit object' };
+  }
+
+  // 5. Stylist notes check
+  const sn = rawProposal.stylist_notes;
+  if (
+    !sn ||
+    typeof sn !== 'object' ||
+    typeof sn.philosophy !== 'string' ||
+    sn.philosophy.trim() === ''
+  ) {
+    return { valid: false, error: 'Thiếu hoặc sai định dạng stylist_notes' };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Normalizes a proposal audit returned by Gemini or any external model.
  * Guarantees:
- * 1. Final historical confidence is strictly derived from CKB_REGISTRY, never blindly trusted from model.
- * 2. Unverified or needs_review evidence forces uncertainty_flag = true and prevents fully Supported status.
- * 3. Invariants violations force prototype_compliance = 'conflict'. Invariants outside garment scope are moved to system_warnings and do NOT trigger conflict.
- * 4. Invalid or out-of-scope mutables are moved to system_warnings and excluded from mutables_used.
- * 5. Technical warnings are segregated into system_warnings, keeping cautions_and_redlines clean for real design cautions.
- * 6. Explicitly separates has_design_caution from has_evidence_uncertainty.
- * 7. Enforces prose certainty sanitation on auditor_verdict and uncertainty_note.
+ * 1. Historical confidence & status are derived from the CANONICAL UNION of all valid evidence:
+ *    valid evidence_ids + valid invariants_checked + valid mutables_used. (Requirement 5)
+ * 2. audit.evidence_ids is canonicalized to contain all valid evidence actually used. (Requirement 6)
+ * 3. Unverified or needs_review evidence forces uncertainty_flag = true and prevents fully Supported status.
+ * 4. Invariants violations force prototype_compliance = 'conflict'. Invariants outside garment scope are moved to system_warnings.
+ * 5. Invalid or out-of-scope mutables are moved to system_warnings and excluded from mutables_used.
+ * 6. Technical warnings are segregated into system_warnings, keeping cautions_and_redlines clean.
+ * 7. Explicitly separates has_design_caution from has_evidence_uncertainty.
+ * 8. Enforces prose certainty sanitation on auditor_verdict and uncertainty_note.
  */
 export function normalizeGeminiProposalAudit(
   rawAudit: any,
@@ -226,14 +324,14 @@ export function normalizeGeminiProposalAudit(
     ? rawAudit.evidence_ids.map(String)
     : [];
 
-  const validEvidenceIds: string[] = [];
+  const validEvidenceIdsList: string[] = [];
   let hasUnknown = false;
   let hasInapplicable = false;
 
   for (const id of rawEvidenceIds) {
     const res = validateEvidenceId(id, garmentKey);
     if (res.valid) {
-      validEvidenceIds.push(res.entry!.id);
+      validEvidenceIdsList.push(res.entry!.id);
     } else {
       if (res.isUnknown) hasUnknown = true;
       if (res.isInapplicable) hasInapplicable = true;
@@ -242,8 +340,6 @@ export function normalizeGeminiProposalAudit(
   }
 
   // 2. Invariants parsing & validation (Requirement 3 & 5)
-  // Invariants must exist in CKB and apply to garmentKey. Inapplicable/unknown invariants
-  // are routed to system_warnings and CANNOT trigger prototype conflict.
   const rawInvariants: any[] = Array.isArray(rawAudit.invariants_checked)
     ? rawAudit.invariants_checked
     : [];
@@ -256,11 +352,12 @@ export function normalizeGeminiProposalAudit(
       if (validation.warning) {
         systemWarnings.push(validation.warning);
       } else {
-        systemWarnings.push(`[Lưu ý hệ thống] Quy tắc bất biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`);
+        systemWarnings.push(
+          `[Lưu ý hệ thống] Quy tắc bất biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`
+        );
       }
       if (validation.isUnknown) hasUnknown = true;
       if (validation.isInapplicable) hasInapplicable = true;
-      // Do not include in valid invariants list
       continue;
     }
 
@@ -274,7 +371,6 @@ export function normalizeGeminiProposalAudit(
   }
 
   // 3. Mutables parsing & validation (Requirement 4 & 5)
-  // Inapplicable/unknown mutables are routed to system_warnings and excluded from mutables_used.
   const rawMutables: any[] = Array.isArray(rawAudit.mutables_used)
     ? rawAudit.mutables_used
     : [];
@@ -287,7 +383,9 @@ export function normalizeGeminiProposalAudit(
       if (validation.warning) {
         systemWarnings.push(validation.warning);
       } else {
-        systemWarnings.push(`[Lưu ý hệ thống] Vùng khả biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`);
+        systemWarnings.push(
+          `[Lưu ý hệ thống] Vùng khả biến "${id}" không hợp lệ hoặc không áp dụng cho "${garmentKey}".`
+        );
       }
       if (validation.isUnknown) hasUnknown = true;
       if (validation.isInapplicable) hasInapplicable = true;
@@ -301,8 +399,17 @@ export function normalizeGeminiProposalAudit(
     });
   }
 
-  // 4. Derive prototype compliance (Requirement 3 & 7)
-  // Only valid invariants for this garment can cause a failed invariant
+  // 4. Form Canonical Evidence Union (Requirement 5 & 6)
+  // Include valid evidence_ids, invariants_checked evidence, and mutables_used evidence
+  const allValidEvidenceIds = Array.from(
+    new Set([
+      ...validEvidenceIdsList,
+      ...validInvariantsChecked.map((inv) => inv.evidence_id),
+      ...validMutablesUsed.map((mut) => mut.evidence_id),
+    ])
+  );
+
+  // 5. Derive prototype compliance (Requirement 3 & 7)
   const hasFailedInvariant = validInvariantsChecked.some((inv: InvariantCheckResult) => !inv.passed);
   const rawCautions: string[] = Array.isArray(rawAudit.cautions_and_redlines)
     ? rawAudit.cautions_and_redlines.map(String).filter((s: string) => s.trim().length > 0)
@@ -312,22 +419,20 @@ export function normalizeGeminiProposalAudit(
   if (hasFailedInvariant) {
     prototype_compliance = 'conflict';
   } else if (rawInvariants.length === 0 && rawAudit.prototype_compliance === 'conflict') {
-    // Model flagged conflict without invariant list
     prototype_compliance = 'conflict';
-  } else if (validEvidenceIds.length === 0) {
+  } else if (allValidEvidenceIds.length === 0) {
     prototype_compliance = 'unassessed';
   } else {
     prototype_compliance = 'compliant';
   }
 
-  // 5. Derive historical confidence from CKB_REGISTRY (Requirement 1)
+  // 6. Derive historical confidence from Canonical Evidence Union (Requirement 1 & 5)
   const isConflict = prototype_compliance === 'conflict';
-  const derivedConfidence = deriveAuditConfidence(validEvidenceIds, isConflict);
+  const derivedConfidence = deriveAuditConfidence(allValidEvidenceIds, isConflict);
 
   let historical_confidence: HistoricalConfidence = derivedConfidence.historical_confidence;
   let hasUnverified = derivedConfidence.hasUnverified;
 
-  // Unknown or out-of-scope evidence prevents fully verified historical confidence
   if (hasUnknown || hasInapplicable) {
     hasUnverified = true;
     if (historical_confidence === 'verified') {
@@ -335,11 +440,11 @@ export function normalizeGeminiProposalAudit(
     }
   }
 
-  // 6. Enforce Status & Uncertainty Flag (Requirement 2)
+  // 7. Enforce Status & Uncertainty Flag (Requirement 2 & 5)
   let status: CulturalAuditStatus;
   let uncertainty_flag = false;
 
-  if (prototype_compliance === 'unassessed' || validEvidenceIds.length === 0) {
+  if (prototype_compliance === 'unassessed' || allValidEvidenceIds.length === 0) {
     status = 'Insufficient Evidence';
     uncertainty_flag = true;
   } else if (hasUnverified) {
@@ -353,9 +458,7 @@ export function normalizeGeminiProposalAudit(
     uncertainty_flag = false;
   }
 
-  // 7. Explicitly separate design caution from evidence uncertainty (Requirement 3 & 5)
-  // Design caution is STRICTLY from actual rule conflict, invariant failures, or genuine design cautions.
-  // It does NOT include technical system_warnings!
+  // 8. Explicitly separate design caution from evidence uncertainty
   const has_design_caution =
     prototype_compliance === 'conflict' ||
     hasFailedInvariant ||
@@ -363,8 +466,7 @@ export function normalizeGeminiProposalAudit(
 
   const has_evidence_uncertainty = uncertainty_flag;
 
-  // 8. Prose Certainty Hardening (Requirement 1 & 2)
-  // Ensure auditor_verdict and uncertainty_note never claim 100% historical accuracy if unverified
+  // 9. Prose Certainty Hardening
   const auditor_verdict = sanitizeAuditorVerdict(
     String(rawAudit.auditor_verdict || ''),
     historical_confidence,
@@ -372,9 +474,12 @@ export function normalizeGeminiProposalAudit(
   );
 
   let uncertainty_note = rawAudit.uncertainty_note;
-  if (uncertainty_flag && (!uncertainty_note || uncertainty_note.trim() === '' || hasOverconfidentClaim(uncertainty_note))) {
+  if (
+    uncertainty_flag &&
+    (!uncertainty_note || uncertainty_note.trim() === '' || hasOverconfidentClaim(uncertainty_note))
+  ) {
     uncertainty_note =
-      prototype_compliance === 'unassessed' || validEvidenceIds.length === 0
+      prototype_compliance === 'unassessed' || allValidEvidenceIds.length === 0
         ? 'Bộ quy tắc hiện tại trong bản thử nghiệm chưa đủ dữ liệu tham chiếu để kết luận sâu hơn.'
         : historical_confidence === 'needs_review'
         ? 'Bản thiết kế phù hợp với quy ước của prototype, tuy nhiên các quy tắc tham chiếu hiện đang trong diện cần rà soát thêm thư tịch.'
@@ -385,7 +490,7 @@ export function normalizeGeminiProposalAudit(
     status,
     uncertainty_flag,
     uncertainty_note,
-    evidence_ids: validEvidenceIds,
+    evidence_ids: allValidEvidenceIds, // Canonicalized evidence union (Requirement 6)
     invariants_checked: validInvariantsChecked,
     mutables_used: validMutablesUsed,
     cautions_and_redlines: rawCautions,
@@ -400,30 +505,33 @@ export function normalizeGeminiProposalAudit(
 }
 
 /**
- * Normalizes an entire proposal from Gemini, ensuring audit is normalized.
+ * Normalizes an entire proposal from Gemini.
+ * Requirement 1 & 4:
+ * - GarmentKey is authoritative.
+ * - Uses deterministic proposal IDs (e.g. gemini-proposal-1, gemini-proposal-2) instead of Date.now().
  */
 export function normalizeGeminiProposal(
   rawProposal: any,
-  fallbackGarment: GarmentKey
+  authoritativeGarment: GarmentKey,
+  proposalIndex: number = 0
 ): OutfitProposal {
-  const garment_type: GarmentKey =
-    rawProposal.garment_type === 'ngu_than' ||
-    rawProposal.garment_type === 'ao_tac' ||
-    rawProposal.garment_type === 'nhat_binh'
-      ? rawProposal.garment_type
-      : fallbackGarment;
+  const fallbackId = `gemini-proposal-${proposalIndex + 1}`;
+  const id = typeof rawProposal?.id === 'string' && rawProposal.id.trim()
+    ? rawProposal.id.trim()
+    : fallbackId;
 
-  const audit = normalizeGeminiProposalAudit(rawProposal.audit, garment_type);
+  const garment_type: GarmentKey = authoritativeGarment;
+  const audit = normalizeGeminiProposalAudit(rawProposal?.audit, garment_type);
 
   return {
-    id: String(rawProposal.id || `prop-${Date.now()}`),
+    id,
     plan_type:
-      rawProposal.plan_type === 'heritage_anchored' ? 'heritage_anchored' : 'contemporary_remix',
-    title: String(rawProposal.title || 'Bản phối Việt Phục Đương Đại'),
-    concept_tag: String(rawProposal.concept_tag || 'Concept Đương Đại'),
+      rawProposal?.plan_type === 'heritage_anchored' ? 'heritage_anchored' : 'contemporary_remix',
+    title: String(rawProposal?.title || 'Bản phối Việt Phục Đương Đại'),
+    concept_tag: String(rawProposal?.concept_tag || 'Concept Đương Đại'),
     garment_type,
-    dial_level: typeof rawProposal.dial_level === 'number' ? rawProposal.dial_level : 3,
-    visual_details: rawProposal.visual_details || {
+    dial_level: typeof rawProposal?.dial_level === 'number' ? rawProposal.dial_level : 3,
+    visual_details: rawProposal?.visual_details || {
       collar_style: '',
       lapel_side: '',
       sleeve_style: '',
@@ -436,11 +544,87 @@ export function normalizeGeminiProposal(
       color_palette: [],
     },
     audit,
-    stylist_notes: rawProposal.stylist_notes || {
+    stylist_notes: rawProposal?.stylist_notes || {
       philosophy: '',
       gen_z_tips: [],
       occasions: [],
     },
+  };
+}
+
+/**
+ * Pure response processing helper for POST /api/remix/generate.
+ * Requirement 2, 3 & 13:
+ * - Validates contract for both proposals against authoritative garment.
+ * - Enforces exactly 2 valid proposals.
+ * - Falls back to deterministic proposals with source: 'deterministic_engine_fallback' if contract fails.
+ */
+export interface ProcessGeminiProposalResponseOptions {
+  context?: string;
+  style?: string;
+  dial_level?: number;
+}
+
+export interface ProcessedProposalResult {
+  success: boolean;
+  proposals: OutfitProposal[];
+  source: 'gemini' | 'deterministic_engine_fallback';
+  warning?: string;
+}
+
+export function processGeminiProposalResponse(
+  parsedJson: any,
+  expectedGarment: GarmentKey,
+  options?: ProcessGeminiProposalResponseOptions
+): ProcessedProposalResult {
+  const context = options?.context || 'streetwear';
+  const style = options?.style || 'modern_minimal';
+  const dial_level = typeof options?.dial_level === 'number' ? options.dial_level : 3;
+
+  const rawProposals = parsedJson?.proposals;
+
+  // Must have proposals array
+  if (!Array.isArray(rawProposals)) {
+    return {
+      success: true,
+      proposals: generateDeterministicProposals(expectedGarment, context, style, dial_level),
+      source: 'deterministic_engine_fallback',
+      warning: 'Mô hình không trả về mảng proposals hợp lệ.',
+    };
+  }
+
+  // Must have exactly 2 proposals (Requirement 2)
+  if (rawProposals.length !== 2) {
+    return {
+      success: true,
+      proposals: generateDeterministicProposals(expectedGarment, context, style, dial_level),
+      source: 'deterministic_engine_fallback',
+      warning: `Yêu cầu đúng 2 proposals nhưng mô hình trả về ${rawProposals.length} proposals.`,
+    };
+  }
+
+  // Validate contract for both proposals (Requirement 1, 11 & 12)
+  for (let i = 0; i < rawProposals.length; i++) {
+    const validation = validateGeminiProposalContract(rawProposals[i], expectedGarment);
+    if (!validation.valid) {
+      return {
+        success: true,
+        proposals: generateDeterministicProposals(expectedGarment, context, style, dial_level),
+        source: 'deterministic_engine_fallback',
+        warning: `Proposal ${i + 1} vi phạm contract: ${validation.error}`,
+      };
+    }
+  }
+
+  // Normalize both proposals with deterministic IDs (Requirement 4)
+  const normalizedProposals = rawProposals.map((prop: any, idx: number) =>
+    normalizeGeminiProposal(prop, expectedGarment, idx)
+  );
+
+  return {
+    success: true,
+    proposals: normalizedProposals,
+    source: 'gemini',
   };
 }
 
@@ -502,9 +686,7 @@ export function normalizeGeminiWhatIfEvaluation(
   }
 
   // 1. Prototype compliance (Requirement 3 & 7)
-  // An invariant is only violated if valid for this garment
   let violates_invariants = validViolatedIds.length > 0;
-  // If model flagged invariant violation without specific IDs, preserve only if no invalid IDs demoted
   if (!violates_invariants && rawEvaluation?.violates_invariants && rawViolated.length === 0) {
     violates_invariants = true;
   }
