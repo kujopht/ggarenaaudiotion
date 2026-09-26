@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CulturalAuditResult } from '../types/vietphuc';
-import { ShieldCheck, AlertTriangle, HelpCircle, CheckCircle2, AlertOctagon, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { CKB_REGISTRY, formatGarmentScopeLabel, formatVerificationStatusBadge } from '../data/ckbRegistry';
+import { ShieldCheck, AlertTriangle, HelpCircle, CheckCircle2, AlertOctagon, ChevronDown, ChevronUp, BookOpen, FileCheck, Layers, Sparkles, FileText, Info } from 'lucide-react';
 
 interface CulturalAuditPanelProps {
   audit: CulturalAuditResult;
@@ -9,6 +10,11 @@ interface CulturalAuditPanelProps {
 
 export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, onOpenCKB }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [expandedEvidenceId, setExpandedEvidenceId] = useState<string | null>(null);
+
+  const toggleEvidenceDetail = (evidenceId: string) => {
+    setExpandedEvidenceId((prev) => (prev === evidenceId ? null : evidenceId));
+  };
 
   const hasCaution = Boolean(
     audit.status === 'Supported with Caution' ||
@@ -26,10 +32,10 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#C9A66B]/20 gap-3">
         <div>
           <span className="text-xs font-mono text-[#C9A66B] font-semibold tracking-wide block mb-0.5">
-            GHI CHÚ THAM CHIẾU VĂN HÓA
+            GHI CHÚ THAM CHIẾU VĂN HÓA (SUBMISSION HARDENING)
           </span>
           <h4 className="text-base font-serif font-bold text-[#F2E9D8]">
-            Tóm tắt mức độ phù hợp với quy tắc tham chiếu
+            Đối soát quy tắc tham chiếu & nguồn sử liệu
           </h4>
         </div>
 
@@ -66,7 +72,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
             <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
           </div>
           <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
-            {audit.uncertainty_note || 'Chi tiết này chưa có căn cứ trong tài liệu tham chiếu hiện tại của bản thử nghiệm. Nên xem đây là nét sáng tạo tự do.'}
+            {audit.uncertainty_note || 'Chi tiết này chưa có căn cứ trong tài liệu tham chiếu hiện tại của bản thử nghiệm. Cần xem đây là nét sáng tạo tự do hoặc đối chiếu thêm tư liệu khảo cứu.'}
           </p>
         </div>
       )}
@@ -100,7 +106,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         >
           <span className="flex items-center gap-2">
             <BookOpen className="w-3.5 h-3.5 text-[#C9A66B]" />
-            <span>{showDetails ? 'Thu gọn chi tiết quy tắc' : 'Xem chi tiết các quy tắc cốt lõi & vùng sáng tạo'}</span>
+            <span>{showDetails ? 'Thu gọn chi tiết nguồn & quy tắc' : 'Xem chi tiết các quy tắc cốt lõi, vùng sáng tạo & nguồn tham chiếu'}</span>
           </span>
           {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </button>
@@ -111,66 +117,286 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
               {/* Left Column: Core Rules (Invariants) */}
               <div>
                 <div className="flex items-center justify-between text-xs font-semibold text-[#F2E9D8] mb-2">
-                  <span>Quy thức cốt lõi (Không nên đổi)</span>
+                  <span>Quy thức cốt lõi (Invariants)</span>
                   <span className="text-[11px] font-mono text-[#8C7E6C]">{audit.invariants_checked.length} hạng mục</span>
                 </div>
 
                 <div className="space-y-2">
-                  {audit.invariants_checked.map((inv, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 bg-[#211815]/60 border border-[#C9A66B]/15 rounded-lg text-xs backdrop-blur-xs"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-[#F2E9D8] flex items-center gap-1.5">
-                          {inv.passed ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-[#43B6A4]" />
+                  {audit.invariants_checked.map((inv, idx) => {
+                    const ckbEntry = CKB_REGISTRY.find((e) => e.id === inv.evidence_id);
+                    const isVerified = ckbEntry?.verification_status === 'verified';
+                    const isExpanded = expandedEvidenceId === inv.evidence_id;
+                    const verificationBadge = ckbEntry ? formatVerificationStatusBadge(ckbEntry.verification_status) : null;
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-2.5 bg-[#211815]/60 border rounded-lg text-xs backdrop-blur-xs space-y-2 transition-all ${
+                          isExpanded ? 'border-[#C9A66B]/50 bg-[#281E1A]' : 'border-[#C9A66B]/15'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1 flex-wrap">
+                          <span className="font-medium text-[#F2E9D8] flex items-center gap-1.5">
+                            {inv.passed ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-[#43B6A4] shrink-0" />
+                            ) : (
+                              <AlertOctagon className="w-3.5 h-3.5 text-[#B8342B] shrink-0" />
+                            )}
+                            <span>{inv.rule_name}</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => toggleEvidenceDetail(inv.evidence_id)}
+                            className={`text-[10px] font-mono font-medium hover:underline cursor-pointer flex items-center gap-1 px-1.5 py-0.5 rounded border transition-colors ${
+                              isExpanded
+                                ? 'bg-[#C9A66B]/20 text-[#E6C88B] border-[#C9A66B]'
+                                : 'bg-[#261C19] text-[#C9A66B] border-[#C9A66B]/30'
+                            }`}
+                            title="Bấm để mở hồ sơ nguồn tham chiếu"
+                          >
+                            <span>{inv.evidence_id}</span>
+                            {isVerified ? (
+                              <span className="text-[9px] text-emerald-400 font-sans">✓ Có nguồn</span>
+                            ) : (
+                              <span className="text-[9px] text-neutral-400 font-sans">? Chưa xác minh</span>
+                            )}
+                          </button>
+                        </div>
+
+                        <p className="text-[#B8AA96] leading-normal text-[11px]">{inv.detail}</p>
+
+                        {/* Inline Expandable Drawer: Requirement 6 */}
+                        {isExpanded && ckbEntry && (
+                          <div className="p-3 bg-[#181311] border border-[#C9A66B]/30 rounded-lg space-y-2.5 text-xs animate-in fade-in duration-150">
+                            <div>
+                              <div className="text-[10px] font-mono text-[#8C7E6C] uppercase">Tên quy tắc:</div>
+                              <div className="font-serif font-bold text-[#F2E9D8] text-sm">{ckbEntry.title}</div>
+                            </div>
+
+                            <div>
+                              <div className="text-[10px] font-mono text-[#8C7E6C] uppercase">Nội dung quy tắc:</div>
+                              <div className="text-[#D4C7B4] leading-relaxed text-[11px]">{ckbEntry.core_rule}</div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                              <span className="text-[#8C7E6C] font-mono">Phạm vi áp dụng:</span>
+                              <strong className="text-[#E6C88B] font-mono px-1.5 py-0.5 bg-[#261C19] rounded border border-[#C9A66B]/20">
+                                {formatGarmentScopeLabel(ckbEntry.garment_scope)}
+                              </strong>
+                              <span className="text-[#8C7E6C]">·</span>
+                              <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${verificationBadge?.badgeClass}`}>
+                                {verificationBadge?.label}
+                              </span>
+                            </div>
+
+                            {/* 3 Information Tiers (Requirement 3) */}
+                            <div className="space-y-1.5 pt-1 border-t border-[#C9A66B]/15 text-[11px]">
+                              <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                <span className="text-emerald-400 font-semibold block text-[10px] font-mono uppercase">
+                                  1. Căn cứ lịch sử:
+                                </span>
+                                <span className="text-[#B8AA96]">
+                                  {ckbEntry.information_tier?.historical_claim || ckbEntry.historical_context}
+                                </span>
+                              </div>
+                              <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                <span className="text-[#43B6A4] font-semibold block text-[10px] font-mono uppercase">
+                                  2. Quy ước nội bộ prototype:
+                                </span>
+                                <span className="text-[#D4C7B4]">
+                                  {ckbEntry.information_tier?.prototype_rule || ckbEntry.core_rule}
+                                </span>
+                              </div>
+                              <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                <span className="text-[#E6C88B] font-semibold block text-[10px] font-mono uppercase">
+                                  3. Gợi ý sáng tạo đương đại:
+                                </span>
+                                <span className="text-[#B8AA96]">
+                                  {ckbEntry.information_tier?.contemporary_suggestion || ckbEntry.creative_boundary}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Source reference citation */}
+                            <div className="pt-1.5 border-t border-[#C9A66B]/15">
+                              {ckbEntry.source_title ? (
+                                <div className="text-emerald-300 font-mono text-[11px] space-y-0.5">
+                                  <div>Nguồn tham chiếu: <strong>{ckbEntry.source_title}</strong></div>
+                                  {ckbEntry.source_author_or_org && (
+                                    <div className="text-[10px] text-emerald-400/80">Tác giả/Cơ quan: {ckbEntry.source_author_or_org}</div>
+                                  )}
+                                  {ckbEntry.source_page && (
+                                    <div className="text-[10px] text-emerald-400/80">Trang/Quyển: {ckbEntry.source_page}</div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-neutral-400 text-[11px] italic">
+                                  Chưa có nguồn xác minh trong bản thử nghiệm. {ckbEntry.notes}
+                                </div>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => onOpenCKB?.(inv.evidence_id)}
+                              className="w-full mt-2 py-1 px-2 rounded bg-[#2E201B] hover:bg-[#3E2C25] text-[#C9A66B] text-[11px] font-semibold text-center border border-[#C9A66B]/30 cursor-pointer"
+                            >
+                              Mở toàn màn hình trong CKB Explorer →
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Source reference citation inline */}
+                        <div className="text-[10px] pt-1 border-t border-[#C9A66B]/10 flex items-center justify-between text-[#8C7E6C]">
+                          {ckbEntry?.source_title ? (
+                            <span className="text-emerald-300/90 font-mono">
+                              Nguồn: {ckbEntry.source_title}
+                            </span>
                           ) : (
-                            <AlertOctagon className="w-3.5 h-3.5 text-[#B8342B]" />
+                            <span className="text-neutral-400 italic">
+                              Chưa có nguồn xác minh trong bản thử nghiệm
+                            </span>
                           )}
-                          {inv.rule_name}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => onOpenCKB?.(inv.evidence_id)}
-                          className="text-[10px] font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
-                        >
-                          {inv.evidence_id}
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleEvidenceDetail(inv.evidence_id)}
+                            className="text-[#C9A66B] hover:underline cursor-pointer text-[10px]"
+                          >
+                            {isExpanded ? 'Đóng hồ sơ ↑' : 'Xem hồ sơ →'}
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-[#B8AA96] leading-normal text-[11px]">{inv.detail}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Right Column: Creative Freedom (Mutables) */}
               <div>
                 <div className="flex items-center justify-between text-xs font-semibold text-[#F2E9D8] mb-2">
-                  <span>Vùng tự do sáng tạo (Được phép biến tấu)</span>
+                  <span>Vùng tự do sáng tạo (Mutables)</span>
                   <span className="text-[11px] font-mono text-[#8C7E6C]">{audit.mutables_used.length} ứng dụng</span>
                 </div>
 
                 {audit.mutables_used.length > 0 ? (
                   <div className="space-y-2">
-                    {audit.mutables_used.map((mut, idx) => (
-                      <div
-                        key={idx}
-                        className="p-2.5 bg-[#261C19]/60 border border-[#C9A66B]/25 rounded-lg text-xs backdrop-blur-xs"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium text-[#E6C88B]">{mut.element}</span>
-                          <button
-                            type="button"
-                            onClick={() => onOpenCKB?.(mut.evidence_id)}
-                            className="text-[10px] font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
-                          >
-                            {mut.evidence_id}
-                          </button>
+                    {audit.mutables_used.map((mut, idx) => {
+                      const ckbEntry = CKB_REGISTRY.find((e) => e.id === mut.evidence_id);
+                      const isVerified = ckbEntry?.verification_status === 'verified';
+                      const isExpanded = expandedEvidenceId === mut.evidence_id;
+                      const verificationBadge = ckbEntry ? formatVerificationStatusBadge(ckbEntry.verification_status) : null;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-2.5 bg-[#261C19]/60 border rounded-lg text-xs backdrop-blur-xs space-y-2 transition-all ${
+                            isExpanded ? 'border-[#C9A66B]/50 bg-[#281E1A]' : 'border-[#C9A66B]/25'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1 flex-wrap">
+                            <span className="font-medium text-[#E6C88B]">{mut.element}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleEvidenceDetail(mut.evidence_id)}
+                              className={`text-[10px] font-mono font-medium hover:underline cursor-pointer flex items-center gap-1 px-1.5 py-0.5 rounded border transition-colors ${
+                                isExpanded
+                                  ? 'bg-[#C9A66B]/20 text-[#E6C88B] border-[#C9A66B]'
+                                  : 'bg-[#181311] text-[#C9A66B] border-[#C9A66B]/30'
+                              }`}
+                              title="Bấm để mở hồ sơ nguồn tham chiếu"
+                            >
+                              <span>{mut.evidence_id}</span>
+                              {isVerified ? (
+                                <span className="text-[9px] text-emerald-400 font-sans">✓ Có nguồn</span>
+                              ) : (
+                                <span className="text-[9px] text-neutral-400 font-sans">? Chưa xác minh</span>
+                              )}
+                            </button>
+                          </div>
+                          <p className="text-[#F2E9D8]/80 leading-normal text-[11px]">{mut.application}</p>
+
+                          {/* Inline Expandable Drawer for Mutables: Requirement 6 */}
+                          {isExpanded && ckbEntry && (
+                            <div className="p-3 bg-[#181311] border border-[#C9A66B]/30 rounded-lg space-y-2.5 text-xs animate-in fade-in duration-150">
+                              <div>
+                                <div className="text-[10px] font-mono text-[#8C7E6C] uppercase">Tên quy tắc:</div>
+                                <div className="font-serif font-bold text-[#F2E9D8] text-sm">{ckbEntry.title}</div>
+                              </div>
+
+                              <div>
+                                <div className="text-[10px] font-mono text-[#8C7E6C] uppercase">Nội dung quy tắc:</div>
+                                <div className="text-[#D4C7B4] leading-relaxed text-[11px]">{ckbEntry.core_rule}</div>
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                                <span className="text-[#8C7E6C] font-mono">Phạm vi áp dụng:</span>
+                                <strong className="text-[#E6C88B] font-mono px-1.5 py-0.5 bg-[#261C19] rounded border border-[#C9A66B]/20">
+                                  {formatGarmentScopeLabel(ckbEntry.garment_scope)}
+                                </strong>
+                                <span className="text-[#8C7E6C]">·</span>
+                                <span className={`px-1.5 py-0.5 rounded border text-[10px] font-mono ${verificationBadge?.badgeClass}`}>
+                                  {verificationBadge?.label}
+                                </span>
+                              </div>
+
+                              {/* 3 Information Tiers (Requirement 3) */}
+                              <div className="space-y-1.5 pt-1 border-t border-[#C9A66B]/15 text-[11px]">
+                                <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                  <span className="text-emerald-400 font-semibold block text-[10px] font-mono uppercase">
+                                    1. Căn cứ lịch sử:
+                                  </span>
+                                  <span className="text-[#B8AA96]">
+                                    {ckbEntry.information_tier?.historical_claim || ckbEntry.historical_context}
+                                  </span>
+                                </div>
+                                <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                  <span className="text-[#43B6A4] font-semibold block text-[10px] font-mono uppercase">
+                                    2. Quy ước nội bộ prototype:
+                                  </span>
+                                  <span className="text-[#D4C7B4]">
+                                    {ckbEntry.information_tier?.prototype_rule || ckbEntry.core_rule}
+                                  </span>
+                                </div>
+                                <div className="p-1.5 bg-[#211815] rounded border border-[#C9A66B]/10">
+                                  <span className="text-[#E6C88B] font-semibold block text-[10px] font-mono uppercase">
+                                    3. Gợi ý sáng tạo đương đại:
+                                  </span>
+                                  <span className="text-[#B8AA96]">
+                                    {ckbEntry.information_tier?.contemporary_suggestion || ckbEntry.creative_boundary}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="pt-1.5 border-t border-[#C9A66B]/15 text-neutral-400 text-[11px] italic">
+                                Quy ước thử nghiệm nội bộ của lab. {ckbEntry.notes}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => onOpenCKB?.(mut.evidence_id)}
+                                className="w-full mt-2 py-1 px-2 rounded bg-[#2E201B] hover:bg-[#3E2C25] text-[#C9A66B] text-[11px] font-semibold text-center border border-[#C9A66B]/30 cursor-pointer"
+                              >
+                                Mở toàn màn hình trong CKB Explorer →
+                              </button>
+                            </div>
+                          )}
+
+                          <div className="text-[10px] pt-1 border-t border-[#C9A66B]/10 flex items-center justify-between text-[#8C7E6C]">
+                            <span className="text-neutral-400 italic">
+                              Quy ước thử nghiệm nội bộ của lab
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => toggleEvidenceDetail(mut.evidence_id)}
+                              className="text-[#C9A66B] hover:underline cursor-pointer text-[10px]"
+                            >
+                              {isExpanded ? 'Đóng hồ sơ ↑' : 'Xem hồ sơ →'}
+                            </button>
+                          </div>
                         </div>
-                        <p className="text-[#F2E9D8]/80 leading-normal text-[11px]">{mut.application}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="p-3 bg-[#211815] border border-[#3A2B25] rounded-lg text-xs text-[#8C7E6C] italic">
@@ -180,22 +406,39 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
               </div>
             </div>
 
-            {/* Evidence Footnote */}
-            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[#B8AA96]">
+            {/* Evidence Footnote with verification tags */}
+            <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#B8AA96] border-t border-[#C9A66B]/15">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span>Hồ sơ dẫn chứng:</span>
-                {audit.evidence_ids.map((id) => (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => onOpenCKB?.(id)}
-                    className="font-mono font-medium text-[#C9A66B] hover:underline cursor-pointer"
-                  >
-                    {id}
-                  </button>
-                ))}
+                <span className="font-semibold text-[#D4C7B4]">Hồ sơ quy tắc tham chiếu:</span>
+                {audit.evidence_ids.map((id) => {
+                  const entry = CKB_REGISTRY.find((e) => e.id === id);
+                  const isVerified = entry?.verification_status === 'verified';
+
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => onOpenCKB?.(id)}
+                      className={`font-mono text-[11px] px-2 py-0.5 rounded border transition-colors cursor-pointer flex items-center gap-1 ${
+                        isVerified
+                          ? 'border-emerald-500/40 bg-emerald-950/30 text-emerald-300 hover:border-emerald-400'
+                          : 'border-[#C9A66B]/25 bg-[#211815] text-[#C9A66B] hover:border-[#C9A66B]'
+                      }`}
+                      title={isVerified ? `Đã có nguồn: ${entry?.source_title}` : 'Chưa có nguồn xác minh trong bản thử nghiệm'}
+                    >
+                      <span>{id}</span>
+                      {isVerified ? (
+                        <span className="text-[9px] text-emerald-400">✓</span>
+                      ) : (
+                        <span className="text-[9px] text-neutral-400">?</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-[11px] text-[#8C7E6C]">Tham chiếu theo Cultural Knowledge Base (CKB) bản thử nghiệm</span>
+              <span className="text-[11px] text-[#8C7E6C]">
+                Phân tách minh bạch giữa quy tắc có nguồn khảo cứu và quy ước giả định thử nghiệm.
+              </span>
             </div>
           </div>
         )}

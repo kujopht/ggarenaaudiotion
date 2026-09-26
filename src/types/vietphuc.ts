@@ -2,15 +2,47 @@ export type CulturalAuditStatus = 'Supported' | 'Supported with Caution' | 'Insu
 
 export type GarmentKey = 'ngu_than' | 'ao_tac' | 'nhat_binh';
 
+export type VerificationStatus = 'verified' | 'unverified' | 'needs_review' | 'needs_research' | 'disputed';
+
+export type SourceType =
+  | 'primary_text'
+  | 'historical_text'
+  | 'research_study'
+  | 'museum_archive'
+  | 'community_consensus'
+  | 'internal_heuristic'
+  | 'contemporary_guideline';
+
+export type GarmentScope = 'all' | 'ngu_than' | 'ao_tac' | 'nhat_binh' | 'ngu_than_and_tac' | 'needs_verification';
+
+export interface InformationTier {
+  historical_claim: string;        // Thông tin lịch sử / có nguồn tham chiếu
+  prototype_rule: string;          // Quy tắc nội bộ của prototype
+  contemporary_suggestion: string; // Gợi ý sáng tạo đương đại
+}
+
 export interface CKBEntry {
   id: string; // e.g. KB-RULE-01
   title: string;
   category: 'invariant' | 'mutable' | 'sacred_rule';
-  garment_scope: 'all' | 'ngu_than' | 'ao_tac' | 'nhat_binh';
+  garment_scope: GarmentKey[] | GarmentScope;
   core_rule: string;
   historical_context: string;
   creative_boundary: string;
   redline_warning?: string;
+
+  // Source & Verification Metadata (Submission Hardening)
+  source_title?: string;
+  source_author_or_org?: string;
+  source_url?: string;
+  source_page?: string;
+  source_type?: SourceType;
+  confidence?: 'high' | 'medium' | 'low' | 'provisional';
+  verification_status: VerificationStatus;
+  notes?: string;
+
+  // Information Tier Separation (Requirement 3)
+  information_tier: InformationTier;
 }
 
 export interface InvariantCheckResult {

@@ -6,6 +6,7 @@ import {
   isResponseValid,
 } from '../src/utils/remixStateHelpers.js';
 import { evaluateWhatIfDeterministic } from '../src/utils/deterministicEngines.js';
+import { CKB_REGISTRY, isRuleApplicableToGarment, formatVerificationStatusBadge } from '../src/data/ckbRegistry.js';
 import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
 
 console.log('--- BẮT ĐẦU CHẠY BỘ KIỂM THỬ: REMIX STATE & FLOW VALIDATION ---\n');
@@ -423,6 +424,148 @@ runTest('9.1 Luồng tạo Look -> Chọn chuyển sang What-If: Dữ liệu k�
   assert.strictEqual(whatIfResult.violates_invariants, true);
   assert.ok(whatIfResult.violated_evidence_ids.includes('KB-RULE-01'));
   assert.ok(whatIfResult.impact_analysis.includes(selectedProposal.title), 'Kết quả What-If phải tham chiếu trang phục nền đang chọn');
+});
+
+// -------------------------------------------------------------
+// Test Case 10: Submission Hardening & CKB Truthfulness
+// -------------------------------------------------------------
+runTest('10.1 CKB Rule có nguồn xác minh (Verified): KB-RULE-03 chứa trích dẫn sử liệu sơ cấp chính thức', () => {
+  const rule = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-03');
+  assert.ok(rule, 'Phải tìm thấy rule KB-RULE-03');
+  assert.strictEqual(rule?.verification_status, 'verified', 'KB-RULE-03 phải có trạng thái verified');
+  assert.strictEqual(rule?.source_title, 'Khâm định Đại Nam hội điển sự lệ');
+  assert.strictEqual(rule?.source_type, 'primary_text');
+  assert.strictEqual(rule?.confidence, 'high');
+  assert.ok(rule?.source_page?.includes('Quyển 78'), 'Phải có số quyển/trang khảo cứu');
+  assert.ok(rule?.source_author_or_org?.includes('Nội các triều Nguyễn'), 'Phải ghi nhận cơ quan biên soạn');
+
+  const badge = formatVerificationStatusBadge(rule.verification_status);
+  assert.strictEqual(badge.isVerified, true, 'Badge phải xác nhận đã đối chiếu nguồn');
+  assert.strictEqual(badge.label, 'Đã đối chiếu nguồn thư tịch');
+});
+
+runTest('10.2 CKB Rule chưa có nguồn (Unverified): Không tự bịa nguồn, thể hiện minh bạch trạng thái unverified', () => {
+  const unverifiedIds = [
+    'KB-RULE-01',
+    'KB-RULE-02',
+    'KB-NGUTHAN-01',
+    'KB-NGUTHAN-02',
+    'KB-NGUTHAN-03',
+    'KB-TAC-01',
+    'KB-TAC-02',
+    'KB-TAC-03',
+    'KB-NHATBINH-01',
+    'KB-NHATBINH-02',
+    'KB-NHATBINH-03',
+  ];
+
+  for (const id of unverifiedIds) {
+    const rule = CKB_REGISTRY.find((r) => r.id === id);
+    assert.ok(rule, `Phải tìm thấy rule ${id}`);
+    assert.strictEqual(rule?.verification_status, 'unverified', `Rule ${id} chưa có thư tịch đối chiếu độc lập phải là unverified`);
+    assert.strictEqual(rule?.source_title, undefined, `Tuyệt đối không được bịa đặt tên sách/nguồn cho rule ${id}`);
+    assert.strictEqual(rule?.source_author_or_org, undefined, `Không được bịa tác giả cho rule ${id}`);
+    assert.ok(rule?.notes && rule.notes.length > 0, `Rule ${id} phải có notes ghi nhận nhu cầu nghiên cứu`);
+
+    const badge = formatVerificationStatusBadge(rule.verification_status);
+    assert.strictEqual(badge.isVerified, false);
+    assert.strictEqual(badge.label, 'Chưa có nguồn xác minh trong bản thử nghiệm');
+  }
+});
+
+runTest('10.3 Garment Scope: Rule sai garment scope không được áp dụng nhầm', () => {
+  const rule01 = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-01');
+  const rule02 = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-02');
+  const ruleNguThan01 = CKB_REGISTRY.find((r) => r.id === 'KB-NGUTHAN-01');
+  const ruleTac01 = CKB_REGISTRY.find((r) => r.id === 'KB-TAC-01');
+  const ruleNhatBinh01 = CKB_REGISTRY.find((r) => r.id === 'KB-NHATBINH-01');
+  assert.ok(rule01 && rule02 && ruleNguThan01 && ruleTac01 && ruleNhatBinh01);
+
+  // KB-RULE-01 (Hữu nhậm) áp dụng cho Ngũ Thân & Áo Tấc, KHÔNG áp dụng cho Nhật Bình (Đối khâm)
+  assert.strictEqual(isRuleApplicableToGarment(rule01, 'ngu_than'), true);
+  assert.strictEqual(isRuleApplicableToGarment(rule01, 'ao_tac'), true);
+  assert.strictEqual(isRuleApplicableToGarment(rule01, 'nhat_binh'), false, 'Hữu nhậm không áp dụng cho Áo Nhật Bình');
+
+  // KB-RULE-02 (Cấu trúc ngũ thân) KHÔNG áp dụng cho Nhật Bình
+  assert.strictEqual(isRuleApplicableToGarment(rule02, 'ngu_than'), true);
+  assert.strictEqual(isRuleApplicableToGarment(rule02, 'nhat_binh'), false, 'Ý nghĩa ngũ thân không áp dụng cho Áo Nhật Bình');
+
+  // KB-NGUTHAN-01 chỉ áp dụng cho Ngũ Thân
+  assert.strictEqual(isRuleApplicableToGarment(ruleNguThan01, 'ngu_than'), true);
+  assert.strictEqual(isRuleApplicableToGarment(ruleNguThan01, 'ao_tac'), false);
+  assert.strictEqual(isRuleApplicableToGarment(ruleNguThan01, 'nhat_binh'), false);
+
+  // KB-TAC-01 chỉ áp dụng cho Áo Tấc
+  assert.strictEqual(isRuleApplicableToGarment(ruleTac01, 'ao_tac'), true);
+  assert.strictEqual(isRuleApplicableToGarment(ruleTac01, 'ngu_than'), false);
+  assert.strictEqual(isRuleApplicableToGarment(ruleTac01, 'nhat_binh'), false);
+
+  // KB-NHATBINH-01 chỉ áp dụng cho Áo Nhật Bình
+  assert.strictEqual(isRuleApplicableToGarment(ruleNhatBinh01, 'nhat_binh'), true);
+  assert.strictEqual(isRuleApplicableToGarment(ruleNhatBinh01, 'ngu_than'), false);
+  assert.strictEqual(isRuleApplicableToGarment(ruleNhatBinh01, 'ao_tac'), false);
+
+  // Scope 'needs_verification' không được áp dụng nhầm cho bất kỳ trang phục nào
+  const mockUncertainRule = { ...rule01, garment_scope: 'needs_verification' as const };
+  assert.strictEqual(isRuleApplicableToGarment(mockUncertainRule, 'ngu_than'), false);
+  assert.strictEqual(isRuleApplicableToGarment(mockUncertainRule, 'ao_tac'), false);
+  assert.strictEqual(isRuleApplicableToGarment(mockUncertainRule, 'nhat_binh'), false);
+
+  // Thử nghiệm What-If câu hỏi về vạt với Áo Nhật Bình: Không được quy kết vi phạm Hữu nhậm
+  const resNhatBinhLapel = evaluateWhatIfDeterministic('nhat_binh', 'Áo Nhật Bình có vạt đè bên trái không?');
+  assert.strictEqual(resNhatBinhLapel.violates_invariants, false, 'Không áp đặt Hữu nhậm lên Áo Nhật Bình');
+  assert.ok(resNhatBinhLapel.impact_analysis.includes('Đối Khâm'), 'Phải giải thích Nhật Bình là Đối Khâm');
+});
+
+runTest('10.4 Fallback wording: Tuyệt đối không dùng cụm từ võ đoán "không có vi phạm văn hóa" khi thiếu dữ liệu', () => {
+  const testQueries = [
+    'Đeo túi xách vải bố bên trái',
+    'Không muốn đổi vạt áo',
+    'Thời tiết 15 độ C ở Sa Pa thì mặc thế nào?',
+    'Phối áo khoác da bomber bên ngoài áo ngũ thân',
+    'Có được đeo kính râm phi công không?',
+  ];
+
+  for (const q of testQueries) {
+    const res = evaluateWhatIfDeterministic('ngu_than', q);
+    assert.strictEqual(
+      res.impact_analysis.toLowerCase().includes('không có vi phạm văn hóa'),
+      false,
+      `Không được dùng "không có vi phạm văn hóa" trong câu trả lời cho query: "${q}"`
+    );
+    assert.strictEqual(
+      res.impact_analysis.toLowerCase().includes('không vi phạm văn hóa'),
+      false,
+      `Không được dùng "không vi phạm văn hóa" trong câu trả lời cho query: "${q}"`
+    );
+    assert.ok(
+      res.impact_analysis.includes('Không phát hiện xung đột với các quy tắc hiện có trong CKB'),
+      `Phải dùng wording trung thực "Không phát hiện xung đột..." cho query: "${q}"`
+    );
+  }
+});
+
+runTest('10.5 Evidence ID mở đúng metadata nguồn và phân tách 3 tầng thông tin', () => {
+  for (const entry of CKB_REGISTRY) {
+    assert.ok(entry.id, 'Entry phải có id');
+    assert.ok(entry.title, 'Entry phải có title');
+    assert.ok(entry.core_rule, 'Entry phải có core_rule');
+    assert.ok(entry.garment_scope, 'Entry phải có garment_scope');
+    assert.ok(entry.verification_status, 'Entry phải có verification_status');
+
+    assert.ok(entry.information_tier, `Rule ${entry.id} phải có 3 tầng thông tin`);
+    assert.ok(entry.information_tier.historical_claim, `Rule ${entry.id} phải có tầng căn cứ lịch sử`);
+    assert.ok(entry.information_tier.prototype_rule, `Rule ${entry.id} phải có tầng quy tắc nội bộ prototype`);
+    assert.ok(entry.information_tier.contemporary_suggestion, `Rule ${entry.id} phải có tầng gợi ý đương đại`);
+
+    if (entry.verification_status === 'verified') {
+      assert.ok(entry.source_title, `Rule đã verified ${entry.id} phải có source_title`);
+      assert.ok(entry.source_author_or_org, `Rule đã verified ${entry.id} phải có source_author_or_org`);
+    } else {
+      assert.strictEqual(entry.source_title, undefined, `Rule unverified ${entry.id} không được có source_title giả`);
+      assert.ok(entry.notes && entry.notes.includes('Chưa có nguồn xác minh'), `Rule unverified ${entry.id} phải ghi rõ chưa có nguồn`);
+    }
+  }
 });
 
 console.log('\n-------------------------------------------------------------');

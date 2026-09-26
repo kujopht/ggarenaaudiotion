@@ -35,7 +35,8 @@ export function evaluateWhatIfDeterministic(
 
   // --------------------------------------------------------------------------
   // Rule 1: Lapel side (Hữu Nhậm vs Tả Nhậm) - KB-RULE-01
-  // REDLINE: Only triggered if proposing to reverse the garment lapel / button to the left
+  // Scope: Only applies to overlapping lapel garments (ngu_than, ao_tac).
+  // Áo Nhật Bình is Đối Khâm (parallel front lapels), not Hữu Nhậm.
   // Must NOT trigger for accessories on the left (bags, watches, bows, etc.)
   // --------------------------------------------------------------------------
   const isAccessoryLeft =
@@ -49,6 +50,7 @@ export function evaluateWhatIfDeterministic(
     q.includes('khăn tay');
 
   const isLapelLeftProposal =
+    effectiveGarment !== 'nhat_binh' &&
     !isAccessoryLeft &&
     !hasNegation(q) &&
     (
@@ -69,19 +71,19 @@ export function evaluateWhatIfDeterministic(
       uncertainty_flag: false,
       impact_analysis:
         outfitNote +
-        'Đổi vạt sang cài bên trái là vi phạm nghiêm trọng cấu trúc bất biến (Invariant) theo KB-RULE-01. Trong văn hóa cổ truyền Việt Nam, tả nhậm là quy thức cài áo chỉ dùng cho y phục người đã khuất (tang ma), hoàn toàn cấm kỵ trên trang phục của người sống.',
+        'Đổi vạt sang cài bên trái là vi phạm quy ước cấu trúc cốt lõi theo KB-RULE-01 (áp dụng cho Áo Ngũ Thân và Áo Tấc). Trong tập quán y phục Á Đông và ghi nhận hiện vật thời Nguyễn, tả nhậm là quy thức cài áo thường liên quan y phục tang ma của người quá cố, khuyến cáo tránh dùng trên trang phục thường nhật.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-RULE-01'],
       applicable_evidence_ids: ['KB-RULE-01'],
       cautions_and_redlines: [
-        'REDLINE NGUY HIỂM [KB-RULE-01]: Quy thức Hữu nhậm (vạt trái đè vạt phải, khuy áo cài bên phải) là cấu trúc BẤT BIẾN. Tuyệt đối cấm cài vạt sang trái (Tả nhậm - quy thức y phục tang ma).',
+        'LƯU Ý QUY THỨC [KB-RULE-01]: Quy thức Hữu nhậm (vạt trái đè vạt phải, khuy cài bên phải) là quy ước cấu trúc cốt lõi của Áo Ngũ Thân và Áo Tấc trong bản thử nghiệm. Khuyến cáo tránh cài vạt sang trái (Tả nhậm).',
       ],
       stylist_counter_proposal: {
         title: 'Bảo lưu Hữu Nhậm với Cúc Bấm Kim Loại Hiện Đại Cho Người Thuận Tay Trái',
         solution:
           'Vẫn giữ đúng quy thức Hữu nhậm (vạt trái đè vạt phải, khuy bên phải), nhưng ứng dụng hệ thống khóa bấm kim loại từ tính (magnetic snap buttons) hoặc khóa kéo ẩn bên hông phải để người thuận tay trái thao tác đóng mở nhanh trong 1 giây.',
         heritage_safeguard:
-          'Bảo vệ nguyên vẹn cấu trúc Hữu nhậm thiêng liêng, triệt tiêu nguy cơ biến y phục thành tang phục.',
+          'Bảo vệ nguyên vẹn cấu trúc Hữu nhậm truyền thống, tránh nguy cơ đồng nhất với y phục tang lễ.',
         contemporary_edge:
           'Ứng dụng công nghệ phụ liệu may mặc công thái học hiện đại cho người thuận tay trái.',
         materials_and_cuts: 'Raw denim hoặc linen cao cấp đính khuy nam châm chìm bên phải.',
@@ -150,12 +152,12 @@ export function evaluateWhatIfDeterministic(
       uncertainty_flag: false,
       impact_analysis:
         outfitNote +
-        'Dải ngũ sắc viền cổ tay áo Nhật Bình tượng trưng cho Ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ) và Ngũ thường, là nhận diện cốt lõi BẤT BIẾN theo KB-NHATBINH-02. Tuyệt đối không được đảo lộn hoặc loại bỏ lung tung.',
+        'Dải ngũ sắc viền cổ tay áo Nhật Bình tượng trưng cho Ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ) và Ngũ thường, là nhận diện cốt lõi theo KB-NHATBINH-02 trong bản thử nghiệm. Bản thử nghiệm lưu ý không đảo lộn hoặc loại bỏ tùy tiện.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-NHATBINH-02'],
       applicable_evidence_ids: ['KB-NHATBINH-02'],
       cautions_and_redlines: [
-        'CẢNH BÁO BẤT BIẾN [KB-NHATBINH-02]: Dải màu ngũ hành/ngũ thường ở viền tay áo mang tính nhận diện biểu tượng. Bất biến, không đảo lộn lung tung.',
+        'LƯU Ý NHẬN DIỆN [KB-NHATBINH-02]: Dải màu ngũ hành/ngũ thường ở viền tay áo mang tính nhận diện biểu tượng theo quy ước của bản thử nghiệm. Tránh đảo lộn hoặc loại bỏ tùy tiện.',
       ],
       stylist_counter_proposal: {
         title: 'Giữ Thứ Tự Ngũ Sắc Nhưng Chuyển Sang Bảng Màu Muted Hoặc Pastel Tinh Tế',
@@ -202,12 +204,12 @@ export function evaluateWhatIfDeterministic(
       uncertainty_flag: false,
       impact_analysis:
         outfitNote +
-        'Cổ Lập Lĩnh cao 4-5cm ôm khít cổ với 1 cúc cổ cố định là đặc trưng cốt lõi BẤT BIẾN của Áo Ngũ Thân (KB-NGUTHAN-01). Nếu thay bằng cổ vest hoặc khoét cổ sẽ làm mất hoàn toàn nhận diện linh hồn của Áo Ngũ Thân.',
+        'Cổ Lập Lĩnh cao 4-5cm ôm khít cổ với 1 cúc cổ cố định là đặc trưng nhận diện cốt lõi của Áo Ngũ Thân trong bản thử nghiệm (KB-NGUTHAN-01). Nếu thay bằng cổ vest hoặc khoét cổ sâu sẽ làm mất nhận diện truyền thống của Áo Ngũ Thân.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-NGUTHAN-01'],
       applicable_evidence_ids: ['KB-NGUTHAN-01'],
       cautions_and_redlines: [
-        'CẢNH BÁO BẤT BIẾN [KB-NGUTHAN-01]: Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cài cổ cố định là đặc trưng cốt lõi bất biến của Áo Ngũ Thân tay chẽn.',
+        'LƯU Ý NHẬN DIỆN [KB-NGUTHAN-01]: Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cài cổ cố định là đặc trưng nhận diện cốt lõi của Áo Ngũ Thân tay chẽn trong bản thử nghiệm.',
       ],
       stylist_counter_proposal: {
         title: 'Giữ Cổ Lập Lĩnh Nhưng Mở Cúc Cổ Khi Dạo Phố Hoặc Hạ Cổ Xuống 4.0cm Thoáng Mát',
@@ -267,16 +269,20 @@ export function evaluateWhatIfDeterministic(
   // --------------------------------------------------------------------------
   let explanation =
     outfitNote +
-    'Yêu cầu thử nghiệm này chưa có đủ dữ liệu quy tắc đối sánh trong bộ suy luận dự phòng ngoại tuyến. Chế độ dự phòng chỉ thẩm định các Invariant/Mutable cốt lõi đã được số hóa cứng (Hữu nhậm, Cổ Lập Lĩnh, Cổ tay ngũ sắc, Rồng 5 móng, Áo Tấc duster coat). Không phát hiện dấu hiệu vi phạm cấm kỵ văn hóa, nhưng cần Gemini AI hoặc tài liệu khảo cứu để phân tích sâu hơn.';
+    'Yêu cầu thử nghiệm này chưa có đủ dữ liệu quy tắc đối sánh trong bộ suy luận dự phòng ngoại tuyến. Chế độ dự phòng chỉ thẩm định các Invariant/Mutable cốt lõi đã được số hóa cứng (Hữu nhậm, Cổ Lập Lĩnh, Cổ tay ngũ sắc, Rồng 5 móng, Áo Tấc duster coat). Không phát hiện xung đột với các quy tắc hiện có trong CKB. Bộ quy tắc hiện tại chưa có đủ dữ liệu để kết luận sâu hơn đối với các chi tiết nằm ngoài tập quy tắc đã số hóa.';
 
-  if (hasNegation(q)) {
+  if (effectiveGarment === 'nhat_binh' && (q.includes('vạt') || q.includes('hữu nhậm') || q.includes('tả nhậm'))) {
     explanation =
       outfitNote +
-      'Câu hỏi mang ý định giữ nguyên hiện trạng hoặc phủ định thay đổi ("không muốn đổi / không thay"). Chế độ dự phòng thẩm định dựa trên một đề xuất cải biên cụ thể. Với trang phục hiện tại, việc giữ nguyên các cấu trúc nguyên bản luôn được bảo toàn trọn vẹn.';
+      'Áo Nhật Bình có kết cấu nẹp cổ Đối Khâm (hai vạt song song mở giữa, buộc ngực), không sử dụng quy thức vạt đè Hữu nhậm như Áo Ngũ Thân/Áo Tấc. Không phát hiện xung đột với các quy tắc hiện có trong CKB.';
+  } else if (hasNegation(q)) {
+    explanation =
+      outfitNote +
+      'Câu hỏi mang ý định giữ nguyên hiện trạng hoặc phủ định thay đổi ("không muốn đổi / không thay"). Không phát hiện xung đột với các quy tắc hiện có trong CKB. Việc giữ nguyên các cấu trúc hiện có không làm thay đổi các quy tắc đã ghi nhận.';
   } else if (isAccessoryLeft) {
     explanation =
       outfitNote +
-      'Đề xuất sử dụng phụ kiện (như túi xách, balo, trang sức bên trái) là sự lựa chọn phong cách cá nhân tự do, hoàn toàn không can thiệp vào quy thức Hữu nhậm hay cấu trúc bất biến của y phục di sản. Không có vi phạm văn hóa.';
+      'Đề xuất sử dụng phụ kiện (như túi xách, balo, trang sức bên trái) là sự lựa chọn phong cách cá nhân tự do, không can thiệp vào quy thức nẹp vạt hay cấu trúc cốt lõi đã số hóa. Không phát hiện xung đột với các quy tắc hiện có trong CKB. Bộ quy tắc hiện tại chưa có đủ dữ liệu để kết luận sâu hơn đối với các phụ kiện ngoài trang phục.';
   }
 
   return {
