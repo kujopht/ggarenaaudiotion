@@ -262,17 +262,59 @@ export function formatGarmentScopeLabel(scope: CKBEntry['garment_scope']): strin
 }
 
 /**
- * Format human-readable verification status badge label
+ * Unified statistics interface for Cultural Knowledge Base
+ */
+export interface CKBStats {
+  total: number;
+  verified: number;
+  needs_review: number;
+  unverified: number;
+  disputed: number;
+  invariant: number;
+  mutable: number;
+  sacred_rule: number;
+}
+
+/**
+ * Retrieve unified dynamic statistics for CKB
+ * Used across CKBRegistryView and CKBExplorerModal to guarantee consistency.
+ */
+export function getCKBStats(): CKBStats {
+  return {
+    total: CKB_REGISTRY.length,
+    verified: CKB_REGISTRY.filter((r) => r.verification_status === 'verified').length,
+    needs_review: CKB_REGISTRY.filter(
+      (r) => r.verification_status === 'needs_review' || r.verification_status === 'needs_research'
+    ).length,
+    unverified: CKB_REGISTRY.filter((r) => r.verification_status === 'unverified').length,
+    disputed: CKB_REGISTRY.filter((r) => r.verification_status === 'disputed').length,
+    invariant: CKB_REGISTRY.filter((r) => r.category === 'invariant').length,
+    mutable: CKB_REGISTRY.filter((r) => r.category === 'mutable').length,
+    sacred_rule: CKB_REGISTRY.filter((r) => r.category === 'sacred_rule').length,
+  };
+}
+
+/**
+ * Format human-readable verification status badge label and visual classes
+ * Enforces Requirement 9 & 10:
+ * - verified: emerald green
+ * - needs_review / needs_research: amber / yellow ("Nguồn tham chiếu đang chờ đối soát")
+ * - unverified: neutral
+ * - disputed: orange
  */
 export function formatVerificationStatusBadge(status: CKBEntry['verification_status']): {
   label: string;
   badgeClass: string;
+  cardClass: string;
+  sourceLeadLabel: string;
   isVerified: boolean;
 } {
   if (status === 'verified') {
     return {
       label: 'Đã đối chiếu nguồn thư tịch',
       badgeClass: 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10',
+      cardClass: 'bg-emerald-950/20 border-emerald-600/30 text-emerald-200',
+      sourceLeadLabel: 'Nguồn khảo cứu thư tịch đã đối chiếu:',
       isVerified: true,
     };
   }
@@ -280,6 +322,8 @@ export function formatVerificationStatusBadge(status: CKBEntry['verification_sta
     return {
       label: 'Cần rà soát thêm nguồn',
       badgeClass: 'border-amber-500/40 text-amber-300 bg-amber-500/10',
+      cardClass: 'bg-amber-950/20 border-amber-600/30 text-amber-200',
+      sourceLeadLabel: 'Nguồn tham chiếu đang chờ đối soát:',
       isVerified: false,
     };
   }
@@ -287,12 +331,16 @@ export function formatVerificationStatusBadge(status: CKBEntry['verification_sta
     return {
       label: 'Có quan điểm học thuật khác nhau',
       badgeClass: 'border-orange-500/40 text-orange-300 bg-orange-500/10',
+      cardClass: 'bg-orange-950/20 border-orange-600/30 text-orange-200',
+      sourceLeadLabel: 'Nguồn tham chiếu đang có tranh luận:',
       isVerified: false,
     };
   }
   return {
     label: 'Chưa có nguồn xác minh trong bản thử nghiệm',
     badgeClass: 'border-neutral-500/40 text-neutral-300 bg-neutral-500/10',
+    cardClass: 'bg-[#211815]/50 border-neutral-700/50 text-neutral-300',
+    sourceLeadLabel: 'Chưa có nguồn xác minh trong bản thử nghiệm:',
     isVerified: false,
   };
 }

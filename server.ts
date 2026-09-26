@@ -7,6 +7,10 @@ import {
   generateDeterministicProposals,
 } from './src/utils/deterministicEngines.js';
 import { buildCKBSystemGrounding } from './src/data/ckbRegistry.js';
+import {
+  normalizeGeminiProposal,
+  normalizeGeminiWhatIfEvaluation,
+} from './src/utils/auditNormalization.js';
 
 dotenv.config();
 
@@ -164,8 +168,11 @@ Trả về kết quả chuẩn định dạng JSON.
     });
 
     const parsed = JSON.parse(response.text || '{}');
-    if (parsed.proposals && parsed.proposals.length > 0) {
-      return res.json({ success: true, proposals: parsed.proposals, source: 'gemini' });
+    if (parsed.proposals && Array.isArray(parsed.proposals) && parsed.proposals.length > 0) {
+      const normalizedProposals = parsed.proposals.map((prop: any) =>
+        normalizeGeminiProposal(prop, (garment || 'ngu_than') as any)
+      );
+      return res.json({ success: true, proposals: normalizedProposals, source: 'gemini' });
     }
 
     // Fallback if parsing was empty
@@ -268,7 +275,8 @@ Trả về kết quả chuẩn định dạng JSON.
 
     const parsed = JSON.parse(response.text || '{}');
     if (parsed.evaluation) {
-      return res.json({ success: true, evaluation: parsed.evaluation, source: 'gemini' });
+      const normalizedEvaluation = normalizeGeminiWhatIfEvaluation(parsed.evaluation, effectiveGarment);
+      return res.json({ success: true, evaluation: normalizedEvaluation, source: 'gemini' });
     }
 
     return res.json({

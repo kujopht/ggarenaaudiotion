@@ -247,13 +247,32 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                             {/* Source reference citation */}
                             <div className="pt-1.5 border-t border-[#C9A66B]/15">
                               {ckbEntry.source_title ? (
-                                <div className="text-emerald-300 font-mono text-[11px] space-y-0.5">
-                                  <div>Nguồn tham chiếu: <strong>{ckbEntry.source_title}</strong></div>
+                                <div
+                                  className={`font-mono text-[11px] space-y-0.5 ${
+                                    isVerified
+                                      ? 'text-emerald-300'
+                                      : ckbEntry.verification_status === 'needs_review'
+                                      ? 'text-amber-300'
+                                      : 'text-neutral-300'
+                                  }`}
+                                >
+                                  <div>
+                                    {isVerified
+                                      ? 'Nguồn đã đối chiếu: '
+                                      : ckbEntry.verification_status === 'needs_review'
+                                      ? 'Nguồn tham chiếu đang chờ đối soát: '
+                                      : 'Nguồn tham chiếu chưa xác minh: '}
+                                    <strong>{ckbEntry.source_title}</strong>
+                                  </div>
                                   {ckbEntry.source_author_or_org && (
-                                    <div className="text-[10px] text-emerald-400/80">Tác giả/Cơ quan: {ckbEntry.source_author_or_org}</div>
+                                    <div className="text-[10px] opacity-80">
+                                      Tác giả/Cơ quan: {ckbEntry.source_author_or_org}
+                                    </div>
                                   )}
                                   {ckbEntry.source_page && (
-                                    <div className="text-[10px] text-emerald-400/80">Trang/Quyển: {ckbEntry.source_page}</div>
+                                    <div className="text-[10px] opacity-80">
+                                      Trang/Quyển: {ckbEntry.source_page}
+                                    </div>
                                   )}
                                 </div>
                               ) : (
@@ -276,8 +295,21 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                         {/* Source reference citation inline */}
                         <div className="text-[10px] pt-1 border-t border-[#C9A66B]/10 flex items-center justify-between text-[#8C7E6C]">
                           {ckbEntry?.source_title ? (
-                            <span className="text-emerald-300/90 font-mono">
-                              Nguồn: {ckbEntry.source_title}
+                            <span
+                              className={`font-mono ${
+                                isVerified
+                                  ? 'text-emerald-300/90'
+                                  : ckbEntry.verification_status === 'needs_review'
+                                  ? 'text-amber-300/90'
+                                  : 'text-neutral-400'
+                              }`}
+                            >
+                              {isVerified
+                                ? 'Nguồn đã đối chiếu: '
+                                : ckbEntry.verification_status === 'needs_review'
+                                ? 'Nguồn chờ đối soát: '
+                                : 'Nguồn tham khảo: '}
+                              {ckbEntry.source_title}
                             </span>
                           ) : (
                             <span className="text-neutral-400 italic">

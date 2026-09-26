@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CKB_REGISTRY, formatGarmentScopeLabel, formatVerificationStatusBadge } from '../data/ckbRegistry';
+import {
+  CKB_REGISTRY,
+  formatGarmentScopeLabel,
+  formatVerificationStatusBadge,
+  getCKBStats,
+} from '../data/ckbRegistry';
 import { X, Search, BookOpen, ShieldCheck, AlertCircle, FileText, Layers, Sparkles } from 'lucide-react';
 
 interface CKBExplorerModalProps {
@@ -17,9 +22,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
   const [filterCategory, setFilterCategory] = useState<'all' | 'invariant' | 'mutable' | 'sacred_rule'>('all');
   const [filterVerification, setFilterVerification] = useState<'all' | 'verified' | 'needs_review' | 'unverified'>('all');
 
-  const verifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'verified').length;
-  const needsReviewCount = CKB_REGISTRY.filter((r) => r.verification_status === 'needs_review' || r.verification_status === 'needs_research').length;
-  const unverifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'unverified').length;
+  const stats = getCKBStats();
 
   useEffect(() => {
     if (isOpen && highlightId) {
@@ -106,9 +109,9 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Tất cả ({CKB_REGISTRY.length})
+                Tất cả ({stats.total})
               </button>
-              {verifiedCount > 0 && (
+              {stats.verified > 0 && (
                 <button
                   type="button"
                   onClick={() => setFilterVerification('verified')}
@@ -118,7 +121,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                       : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                   }`}
                 >
-                  Đã có nguồn ({verifiedCount})
+                  Đã có nguồn ({stats.verified})
                 </button>
               )}
               <button
@@ -130,7 +133,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Cần rà soát ({needsReviewCount})
+                Cần rà soát ({stats.needs_review})
               </button>
               <button
                 type="button"
@@ -141,7 +144,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Chưa xác minh ({unverifiedCount})
+                Chưa xác minh ({stats.unverified})
               </button>
             </div>
           </div>
@@ -156,7 +159,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                   : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#140F0E]/70 border border-[#C9A66B]/20'
               }`}
             >
-              Tất cả thể loại
+              Tất cả thể loại ({stats.total})
             </button>
             <button
               onClick={() => setFilterCategory('invariant')}
@@ -166,7 +169,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                   : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#140F0E]/70 border border-[#C9A66B]/20'
               }`}
             >
-              Bất biến (Invariants)
+              Bất biến ({stats.invariant})
             </button>
             <button
               onClick={() => setFilterCategory('mutable')}
@@ -176,7 +179,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                   : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#140F0E]/70 border border-[#C9A66B]/20'
               }`}
             >
-              Khả biến (Mutables)
+              Khả biến ({stats.mutable})
             </button>
             <button
               onClick={() => setFilterCategory('sacred_rule')}
@@ -186,7 +189,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                   : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#140F0E]/70 border border-[#C9A66B]/20'
               }`}
             >
-              Cấm kỵ (Redlines)
+              Cấm kỵ ({stats.sacred_rule})
             </button>
           </div>
         </div>
@@ -321,13 +324,13 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                 {/* Requirement 1 & 6: Source Reference Metadata Section */}
                 <div className="pt-2 text-xs border-t border-[#C9A66B]/15">
                   {entry.source_title ? (
-                    <div className="p-3 rounded-lg bg-emerald-950/20 border border-emerald-600/30 text-emerald-200 text-xs space-y-1">
-                      <div className="font-semibold flex items-center gap-1.5 text-emerald-300">
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Nguồn khảo cứu thư tịch:</span>
+                    <div className={`p-3 rounded-lg border text-xs space-y-1 ${verificationBadge.cardClass}`}>
+                      <div className="font-semibold flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 shrink-0" />
+                        <span>{verificationBadge.sourceLeadLabel}</span>
                         <span className="font-serif font-bold text-[#F2E9D8]">{entry.source_title}</span>
                       </div>
-                      <div className="text-[11px] text-emerald-200/80 flex flex-wrap gap-x-4 gap-y-1">
+                      <div className="text-[11px] opacity-85 flex flex-wrap gap-x-4 gap-y-1">
                         {entry.source_author_or_org && (
                           <span>Cơ quan / Tác giả: <strong>{entry.source_author_or_org}</strong></span>
                         )}
@@ -339,7 +342,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                         )}
                       </div>
                       {entry.notes && (
-                        <p className="text-[11px] text-emerald-300/80 italic pt-0.5">{entry.notes}</p>
+                        <p className="text-[11px] opacity-80 italic pt-0.5">{entry.notes}</p>
                       )}
                     </div>
                   ) : (

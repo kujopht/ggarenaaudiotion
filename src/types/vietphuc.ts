@@ -76,6 +76,10 @@ export interface CulturalAuditResult {
   prototype_compliance?: PrototypeCompliance;
   historical_confidence?: HistoricalConfidence;
   verification_summary?: string;
+
+  // Logic Hardening: separation of design caution vs evidence uncertainty (Requirement 3 & 4)
+  has_design_caution?: boolean;
+  has_evidence_uncertainty?: boolean;
 }
 
 export interface VisualDetails {
@@ -134,4 +138,8 @@ export interface WhatIfEvaluation {
   prototype_compliance?: PrototypeCompliance;
   historical_confidence?: HistoricalConfidence;
   verification_summary?: string;
+
+  // Logic Hardening: separation of design caution vs evidence uncertainty (Requirement 3 & 4)
+  has_design_caution?: boolean;
+  has_evidence_uncertainty?: boolean;
 }

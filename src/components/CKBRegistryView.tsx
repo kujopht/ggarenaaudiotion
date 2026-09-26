@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
-import { CKB_REGISTRY, formatGarmentScopeLabel, formatVerificationStatusBadge } from '../data/ckbRegistry';
+import {
+  CKB_REGISTRY,
+  formatGarmentScopeLabel,
+  formatVerificationStatusBadge,
+  getCKBStats,
+} from '../data/ckbRegistry';
 import { Search, ShieldCheck, BookOpen, Layers, Sparkles, AlertCircle, FileText } from 'lucide-react';
 
 interface CKBRegistryViewProps {
@@ -11,9 +16,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
   const [filterCategory, setFilterCategory] = useState<'all' | 'invariant' | 'mutable' | 'sacred_rule'>('all');
   const [filterVerification, setFilterVerification] = useState<'all' | 'verified' | 'needs_review' | 'unverified'>('all');
 
-  const verifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'verified').length;
-  const needsReviewCount = CKB_REGISTRY.filter((r) => r.verification_status === 'needs_review' || r.verification_status === 'needs_research').length;
-  const unverifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'unverified').length;
+  const stats = getCKBStats();
 
   const filteredEntries = CKB_REGISTRY.filter((entry) => {
     const matchesCategory = filterCategory === 'all' || entry.category === filterCategory;
@@ -43,7 +46,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
               QUY TẮC THAM CHIẾU VĂN HÓA & MINH BẠCH NGUỒN SỬ LIỆU
             </span>
             <span className="text-[#8C7E6C]">·</span>
-            <span className="text-xs text-[#B8AA96]">12 Điều khoản thẩm định</span>
+            <span className="text-xs text-[#B8AA96]">{stats.total} Điều khoản thẩm định</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] tracking-tight">
             Cultural Knowledge Base (CKB) & Hồ Sơ Nguồn Khảo Cứu
@@ -79,9 +82,9 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                   : 'border-[#C9A66B]/15 text-[#8C7E6C] hover:text-[#B8AA96]'
               }`}
             >
-              Tất cả nguồn ({CKB_REGISTRY.length})
+              Tất cả nguồn ({stats.total})
             </button>
-            {verifiedCount > 0 && (
+            {stats.verified > 0 && (
               <button
                 onClick={() => setFilterVerification('verified')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
@@ -90,7 +93,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                     : 'border-[#C9A66B]/15 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Đã đối chiếu nguồn ({verifiedCount})
+                Đã đối chiếu nguồn ({stats.verified})
               </button>
             )}
             <button
@@ -101,7 +104,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                   : 'border-[#C9A66B]/15 text-[#8C7E6C] hover:text-[#B8AA96]'
               }`}
             >
-              Cần rà soát thêm ({needsReviewCount})
+              Cần rà soát thêm ({stats.needs_review})
             </button>
             <button
               onClick={() => setFilterVerification('unverified')}
@@ -111,7 +114,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                   : 'border-[#C9A66B]/15 text-[#8C7E6C] hover:text-[#B8AA96]'
               }`}
             >
-              Chưa xác minh ({unverifiedCount})
+              Chưa xác minh ({stats.unverified})
             </button>
           </div>
         </div>
@@ -126,7 +129,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                 : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
-            Tất cả thể loại (12)
+            Tất cả thể loại ({stats.total})
           </button>
           <button
             onClick={() => setFilterCategory('invariant')}
@@ -136,7 +139,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                 : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
-            Bất biến (Invariants)
+            Bất biến ({stats.invariant})
           </button>
           <button
             onClick={() => setFilterCategory('mutable')}
@@ -146,7 +149,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                 : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
-            Khả biến (Mutables)
+            Khả biến ({stats.mutable})
           </button>
           <button
             onClick={() => setFilterCategory('sacred_rule')}
@@ -156,7 +159,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                 : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
-            Cấm kỵ (Redlines)
+            Cấm kỵ ({stats.sacred_rule})
           </button>
         </div>
       </div>
@@ -285,18 +288,24 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
               {/* Source Footnote or Unverified Disclaimer */}
               <div className="pt-3 border-t border-[#C9A66B]/15 text-xs space-y-1.5">
                 {entry.source_title ? (
-                  <div className="p-2 rounded-lg bg-emerald-950/25 border border-emerald-600/30 text-emerald-200 text-[11px]">
-                    <div className="font-semibold flex items-center gap-1 text-emerald-300">
-                      <FileText className="w-3 h-3" />
-                      <span>Nguồn: {entry.source_title}</span>
+                  <div className={`p-2.5 rounded-lg border text-[11px] space-y-1 ${verificationBadge.cardClass}`}>
+                    <div className="font-semibold flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                      <span>{verificationBadge.sourceLeadLabel}</span>
+                      <strong className="text-[#F2E9D8]">{entry.source_title}</strong>
                     </div>
-                    {entry.source_author_or_org && (
-                      <div className="text-[10px] text-emerald-300/80">{entry.source_author_or_org}</div>
+                    <div className="text-[10px] opacity-85 flex flex-wrap gap-x-3 gap-y-0.5">
+                      {entry.source_author_or_org && <span>Tác giả/Cơ quan: {entry.source_author_or_org}</span>}
+                      {entry.source_page && <span>{entry.source_page}</span>}
+                      {entry.confidence && <span className="font-mono uppercase">Độ tin cậy: {entry.confidence}</span>}
+                    </div>
+                    {entry.notes && (
+                      <div className="text-[10px] opacity-80 italic pt-0.5">{entry.notes}</div>
                     )}
                   </div>
                 ) : (
-                  <div className="p-2 rounded-lg bg-[#211815]/50 border border-neutral-700/50 text-neutral-300 text-[10px] flex items-center gap-1.5">
-                    <AlertCircle className="w-3 h-3 text-amber-400 shrink-0" />
+                  <div className="p-2.5 rounded-lg bg-[#211815]/50 border border-neutral-700/50 text-neutral-300 text-[10px] flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                     <span>Chưa có nguồn xác minh trong bản thử nghiệm.</span>
                   </div>
                 )}

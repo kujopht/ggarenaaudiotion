@@ -40,24 +40,30 @@ export interface SummaryBadge {
 export interface LookSummaryResult {
   badges: SummaryBadge[];
   summaryText: string;
-  hasCaution: boolean;
-  hasUncertainty: boolean;
+  hasDesignCaution: boolean;
+  hasEvidenceUncertainty: boolean;
+  hasCaution: boolean; // backward compatibility
+  hasUncertainty: boolean; // backward compatibility
   isFullySupported: boolean;
-  prototypeComplianceLabel?: string;
-  historicalConfidenceLabel?: string;
+  prototypeComplianceLabel: string;
+  historicalConfidenceLabel: string;
 }
 
 /**
  * 2. Evaluates the cultural reference summary for a proposal.
- * Handles both cautions and uncertainty flags:
- * - If uncertainty_flag is true, NEVER shows green supported badge.
- * - If proposal has BOTH cautions and missing data, shows BOTH badges and messages.
+ * Logic Hardening (Requirement 3 & 8):
+ * - Explicitly separates design caution from evidence uncertainty.
+ * - If design is compliant with prototype and has no redlines, do NOT show "Có điểm cần lưu ý"
+ *   even if historical evidence is unverified.
+ * - Shows clear two-layer semantics: Prototype Compliance and Historical Confidence.
  */
 export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSummaryResult {
   if (!audit) {
     return {
       badges: [{ label: 'Chưa đủ dữ liệu tham chiếu', variant: 'uncertainty' }],
       summaryText: 'Chưa có thông tin tham chiếu.',
+      hasDesignCaution: false,
+      hasEvidenceUncertainty: true,
       hasCaution: false,
       hasUncertainty: true,
       isFullySupported: false,
@@ -66,34 +72,66 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
     };
   }
 
-  const hasCaution = Boolean(
-    audit.status === 'Supported with Caution' ||
+  // Design caution: prototype conflict, failed invariants, or cautions/redlines
+  const hasDesignCaution = Boolean(
+    audit.prototype_compliance === 'conflict' ||
+    audit.has_design_caution ||
+    (audit.invariants_checked && audit.invariants_checked.some((inv) => !inv.passed)) ||
     (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0)
   );
 
-  const hasUncertainty = Boolean(
+  // Evidence uncertainty: unverified or needs_review sources, or missing evidence
+  const hasEvidenceUncertainty = Boolean(
     audit.uncertainty_flag ||
-    audit.status === 'Insufficient Evidence'
+    audit.has_evidence_uncertainty ||
+    audit.status === 'Insufficient Evidence' ||
+    audit.historical_confidence === 'unverified' ||
+    audit.historical_confidence === 'needs_review' ||
+    audit.historical_confidence === 'partially_verified' ||
+    audit.historical_confidence === 'mixed'
   );
+
+  const prototypeComplianceLabel =
+    hasDesignCaution || audit.prototype_compliance === 'conflict'
+      ? 'Có xung đột với quy tắc prototype'
+      : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence'
+      ? 'Chưa đối soát quy tắc prototype'
+      : 'Phù hợp với quy tắc prototype';
+
+  const historicalConfidenceLabel =
+    audit.historical_confidence === 'verified'
+      ? 'Đã đối chiếu nguồn'
+      : audit.historical_confidence === 'needs_review'
+      ? 'Nguồn lịch sử cần rà soát thêm'
+      : audit.historical_confidence === 'partially_verified'
+      ? 'Nguồn đối chiếu một phần'
+      : audit.historical_confidence === 'mixed'
+      ? 'Nguồn tham chiếu hỗn hợp'
+      : audit.status === 'Insufficient Evidence'
+      ? 'Chưa đủ dữ liệu tham chiếu'
+      : 'Nguồn lịch sử chưa xác minh độc lập';
 
   const badges: SummaryBadge[] = [];
 
-  if (hasCaution) {
+  // 1. Only add caution badge if there is an ACTUAL design caution
+  if (hasDesignCaution) {
     badges.push({
-      label: 'Có điểm cần lưu ý',
+      label: audit.prototype_compliance === 'conflict' ? 'Có xung đột với quy tắc prototype' : 'Có điểm cần lưu ý',
       variant: 'caution',
     });
   }
 
-  if (hasUncertainty) {
+  // 2. Add uncertainty badge if evidence has uncertainty
+  if (hasEvidenceUncertainty) {
     badges.push({
-      label: 'Chưa đủ dữ liệu tham chiếu',
+      label: audit.status === 'Insufficient Evidence' ? 'Chưa đủ dữ liệu tham chiếu' : historicalConfidenceLabel,
       variant: 'uncertainty',
     });
   }
 
-  // Only show supported if NO caution and NO uncertainty
-  if (!hasCaution && !hasUncertainty && audit.status === 'Supported') {
+  // 3. Only show green supported if NO design caution and NO evidence uncertainty
+  const isFullySupported = !hasDesignCaution && !hasEvidenceUncertainty && audit.status === 'Supported';
+  if (isFullySupported) {
     badges.push({
       label: 'Phù hợp quy tắc tham chiếu',
       variant: 'supported',
@@ -103,40 +141,29 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
   // Compose summary message
   let summaryText = '';
   const cautionSnippet = audit.cautions_and_redlines?.[0] || 'Cần lưu ý một số điểm biến tấu.';
-  const uncertaintySnippet = audit.uncertainty_note || 'Chi tiết này chưa có trong dữ liệu tham chiếu của bản thử nghiệm.';
+  const uncertaintySnippet =
+    audit.uncertainty_note ||
+    audit.verification_summary ||
+    'Chi tiết này chưa có trong dữ liệu tham chiếu của bản thử nghiệm.';
 
-  if (hasCaution && hasUncertainty) {
+  if (hasDesignCaution && hasEvidenceUncertainty) {
     summaryText = `[Lưu ý] ${cautionSnippet} · [Dữ liệu] ${uncertaintySnippet}`;
-  } else if (hasCaution) {
+  } else if (hasDesignCaution) {
     summaryText = cautionSnippet;
-  } else if (hasUncertainty) {
+  } else if (hasEvidenceUncertainty) {
     summaryText = uncertaintySnippet;
   } else {
     summaryText = audit.auditor_verdict || 'Tuân thủ các quy tắc cốt lõi của bản thử nghiệm.';
   }
 
-  const prototypeComplianceLabel =
-    audit.prototype_compliance === 'conflict' || (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0)
-      ? 'Có xung đột với quy tắc prototype'
-      : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence'
-      ? 'Chưa đối soát quy tắc prototype'
-      : 'Phù hợp với quy tắc prototype';
-
-  const historicalConfidenceLabel =
-    audit.historical_confidence === 'verified'
-      ? 'Đã đối chiếu nguồn thư tịch'
-      : audit.historical_confidence === 'needs_review'
-      ? 'Nguồn lịch sử cần rà soát thêm'
-      : audit.historical_confidence === 'partially_verified'
-      ? 'Nguồn đối chiếu một phần'
-      : 'Nguồn lịch sử chưa xác minh độc lập';
-
   return {
     badges,
     summaryText,
-    hasCaution,
-    hasUncertainty,
-    isFullySupported: !hasCaution && !hasUncertainty && audit.status === 'Supported',
+    hasDesignCaution,
+    hasEvidenceUncertainty,
+    hasCaution: hasDesignCaution,
+    hasUncertainty: hasEvidenceUncertainty,
+    isFullySupported,
     prototypeComplianceLabel,
     historicalConfidenceLabel,
   };

@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, AlertTriangle, AlertOctagon, HelpCircle, CheckCircle2 } from 'lucide-react';
+import { CKB_REGISTRY } from '../data/ckbRegistry';
 
 interface ManifestoSectionProps {
   onOpenCKB: () => void;
@@ -100,7 +101,7 @@ export const ManifestoSection: React.FC<ManifestoSectionProps> = ({ onOpenCKB })
             </div>
 
             <div className="p-3.5 bg-stone-100 rounded-lg text-xs flex items-center justify-between">
-              <span className="text-stone-700 font-medium">Toàn văn 12 điều khoản CKB:</span>
+              <span className="text-stone-700 font-medium">Toàn văn {CKB_REGISTRY.length} điều khoản CKB:</span>
               <button
                 onClick={onOpenCKB}
                 className="text-stone-950 font-bold hover:underline underline-offset-2"
