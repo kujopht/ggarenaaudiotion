@@ -13,7 +13,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="lacquer-panel rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
@@ -32,12 +32,12 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
       </div>
 
       {/* Garment Selector Tabs */}
-      <div className="flex items-center gap-2 p-1.5 bg-[#1C1513] border border-[#3A2B25] rounded-xl max-w-xl">
+      <div className="flex items-center gap-2 p-1.5 lacquer-panel-subtle rounded-xl max-w-xl">
         <button
           onClick={() => setActiveTab('ngu_than')}
           className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[40px] cursor-pointer ${
             activeTab === 'ngu_than'
-              ? 'bg-[#2E201B] text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
+              ? 'bg-[#2E201B]/90 text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
               : 'text-[#B8AA96] hover:text-[#F2E9D8]'
           }`}
         >
@@ -47,7 +47,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
           onClick={() => setActiveTab('ao_tac')}
           className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[40px] cursor-pointer ${
             activeTab === 'ao_tac'
-              ? 'bg-[#2E201B] text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
+              ? 'bg-[#2E201B]/90 text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
               : 'text-[#B8AA96] hover:text-[#F2E9D8]'
           }`}
         >
@@ -57,7 +57,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
           onClick={() => setActiveTab('nhat_binh')}
           className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-lg transition-all min-h-[40px] cursor-pointer ${
             activeTab === 'nhat_binh'
-              ? 'bg-[#2E201B] text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
+              ? 'bg-[#2E201B]/90 text-[#C9A66B] border border-[#C9A66B]/50 shadow-xs'
               : 'text-[#B8AA96] hover:text-[#F2E9D8]'
           }`}
         >
@@ -66,10 +66,10 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
       </div>
 
       {/* Anatomy Content Showcase */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center lacquer-card-elevated rounded-2xl p-5 sm:p-6">
         {/* Left: Interactive SVG Schematic Viewport */}
         <div className="lg:col-span-6">
-          <div className="border border-[#3A2B25] rounded-xl overflow-hidden">
+          <div className="border border-[#C9A66B]/25 rounded-xl overflow-hidden shadow-inner">
             <GarmentSchematic garment={activeTab} dialLevel={2} />
           </div>
         </div>

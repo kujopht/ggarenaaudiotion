@@ -7,10 +7,10 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
   return (
-    <footer className="w-full bg-[#181311] text-[#B8AA96] py-8 px-6 border-t border-[#3A2B25] mt-12">
+    <footer className="w-full bg-[#181311]/70 backdrop-blur-md text-[#B8AA96] py-8 px-6 border-t border-[#C9A66B]/20 mt-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#B8342B]/20 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-sm shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
             VP
           </div>
           <div>
@@ -39,7 +39,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-[#2C211D] flex flex-col sm:flex-row items-center justify-between text-xs text-[#8C7E6C] gap-2">
+      <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-[#C9A66B]/15 flex flex-col sm:flex-row items-center justify-between text-xs text-[#8C7E6C] gap-2">
         <div>
           © {new Date().getFullYear()} Việt Phục Remix Lab. Nền tảng thời trang di sản đương đại.
         </div>

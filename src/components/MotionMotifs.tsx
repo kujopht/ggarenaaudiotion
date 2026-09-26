@@ -512,36 +512,51 @@ export const GlidingPhoenixController: React.FC<{
 /**
  * Ornamental Bronze Circular Motif Ring for Remix Dial
  * Decorative rotating circular ring inspired by Dong Son drum motifs,
+ * with micro-interaction when the user changes dial level,
  * while the center text and level number remain 100% stationary for readability.
  */
 export const DongSonDialRing: React.FC<{
   dialLevel: number;
   isRotating?: boolean;
 }> = ({ dialLevel, isRotating = true }) => {
+  const [isShifting, setIsShifting] = useState(false);
+  const prevLevelRef = React.useRef(dialLevel);
+
+  useEffect(() => {
+    if (prevLevelRef.current !== dialLevel) {
+      prevLevelRef.current = dialLevel;
+      setIsShifting(true);
+      const timer = setTimeout(() => setIsShifting(false), 600);
+      return () => clearTimeout(timer);
+    }
+  }, [dialLevel]);
+
   return (
     <div className="relative w-28 h-28 sm:w-32 sm:h-32 mx-auto flex items-center justify-center select-none pointer-events-none">
-      {/* Rotating Outer Ring Motif */}
+      {/* Outer Ring Motif with micro-interaction on level change & slow background spin */}
       <svg
         width="100%"
         height="100%"
         viewBox="0 0 120 120"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className={`absolute inset-0 ${isRotating ? 'animate-drum-spin' : ''}`}
+        className={`absolute inset-0 transition-transform duration-500 ${
+          isShifting ? 'animate-dial-shift' : isRotating ? 'animate-drum-spin-slow' : ''
+        }`}
         style={{ transformOrigin: '60px 60px' }}
         aria-hidden="true"
       >
         <defs>
           <linearGradient id="dialBronze" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#E6C88B" />
+            <stop offset="0%" stopColor="#F5DCA3" />
             <stop offset="50%" stopColor="#C9A66B" />
             <stop offset="100%" stopColor="#8C6838" />
           </linearGradient>
         </defs>
 
-        {/* Outer Ring */}
-        <circle cx="60" cy="60" r="56" stroke="url(#dialBronze)" strokeWidth="1" strokeOpacity="0.45" />
-        <circle cx="60" cy="60" r="51" stroke="#C9A66B" strokeWidth="0.75" strokeOpacity="0.3" strokeDasharray="3 3" />
+        {/* Ambient Ring Glow */}
+        <circle cx="60" cy="60" r="56" stroke="url(#dialBronze)" strokeWidth="1" strokeOpacity={isShifting ? "0.8" : "0.45"} />
+        <circle cx="60" cy="60" r="51" stroke="#C9A66B" strokeWidth="0.75" strokeOpacity={isShifting ? "0.6" : "0.3"} strokeDasharray="3 3" />
 
         {/* 16 Radial Tick Marks */}
         {Array.from({ length: 16 }).map((_, i) => {
@@ -558,9 +573,9 @@ export const DongSonDialRing: React.FC<{
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke="#E6C88B"
-              strokeWidth="1"
-              strokeOpacity="0.6"
+              stroke={isShifting ? "#F5DCA3" : "#E6C88B"}
+              strokeWidth={isShifting ? "1.5" : "1"}
+              strokeOpacity="0.7"
             />
           );
         })}
@@ -575,7 +590,7 @@ export const DongSonDialRing: React.FC<{
               key={`tooth-${i}`}
               points="60,43 58,47 62,47"
               fill="#C9A66B"
-              fillOpacity="0.5"
+              fillOpacity={isShifting ? "0.8" : "0.5"}
               transform={`rotate(${rot} 60 60)`}
             />
           );
@@ -587,7 +602,7 @@ export const DongSonDialRing: React.FC<{
         <span className="text-[10px] font-mono uppercase text-[#C9A66B] tracking-wider leading-none">
           MỨC
         </span>
-        <span className="text-2xl sm:text-3xl font-serif font-bold text-[#F2E9D8] leading-tight text-shadow">
+        <span className={`text-2xl sm:text-3xl font-serif font-bold text-[#F2E9D8] leading-tight transition-transform duration-300 ${isShifting ? 'scale-110 text-[#F5DCA3]' : ''}`}>
           {dialLevel}
         </span>
         <span className="text-[10px] font-mono text-[#E6C88B] leading-none">

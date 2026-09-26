@@ -1,6 +1,6 @@
 import React from 'react';
-import { ArrowDown, BookOpen, Sparkles, Wind } from 'lucide-react';
-import { DongSonBronzeDrum, VietnamesePhoenix, GlidingPhoenixController } from './MotionMotifs';
+import { ArrowDown, BookOpen, Wind } from 'lucide-react';
+import { VietnamesePhoenix } from './MotionMotifs';
 
 interface HeroSectionProps {
   onStartCoDesign: () => void;
@@ -9,6 +9,11 @@ interface HeroSectionProps {
   onToggleMotion: () => void;
 }
 
+/**
+ * Editorial Hero Section ("Sơn Mài Đương Đại")
+ * Open, breathable layout that blends seamlessly into the global heritage background.
+ * The grand rotating Dong Son bronze drum shines through from the background behind the right side.
+ */
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onStartCoDesign,
   onOpenCKB,
@@ -16,14 +21,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onToggleMotion,
 }) => {
   return (
-    <section className="relative w-full rounded-2xl bg-[#1C1513] border border-[#3A2B25] overflow-hidden mb-6 shadow-xl">
-      {/* Gliding Phoenix Animation Layer (active only when motion is enabled) */}
-      <GlidingPhoenixController enabled={motionEnabled} />
-
-      {/* Main Content Layout: Asymmetric 2-column */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 items-center min-h-[320px] md:min-h-[360px] p-6 sm:p-8 lg:p-10 gap-6">
-        {/* Left Column: Editorial Headline & Actions (7 cols) */}
-        <div className="lg:col-span-7 space-y-4 max-w-xl">
+    <section className="relative w-full mb-6 min-h-[300px] sm:min-h-[340px] md:min-h-[360px] flex items-center">
+      {/* 2-Column Asymmetric Flow */}
+      <div className="w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-6 py-4">
+        {/* Left Column: Editorial Headline & Actions (7 cols) with soft legibility backdrop */}
+        <div className="lg:col-span-7 space-y-4 max-w-xl p-5 sm:p-7 rounded-2xl bg-gradient-to-r from-[#181311]/85 via-[#181311]/60 to-[#181311]/20 border border-[#C9A66B]/20 backdrop-blur-[10px] shadow-sm">
           {/* Subtle Category Kicker */}
           <div className="flex items-center gap-2 text-xs font-mono tracking-wider text-[#C9A66B]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8342B]" />
@@ -53,7 +55,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             <button
               onClick={onOpenCKB}
-              className="px-4 py-2.5 bg-[#261C19] hover:bg-[#322521] border border-[#4A3830] text-[#E6C88B] rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer min-h-[44px]"
+              className="px-4 py-2.5 bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 text-[#E6C88B] rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer min-h-[44px] backdrop-blur-sm"
             >
               <BookOpen className="w-4 h-4 text-[#C9A66B]" />
               <span>Xem quy tắc tham chiếu</span>
@@ -66,33 +68,36 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </p>
         </div>
 
-        {/* Right Column: Visual Artwork (Bronze Drum + Phoenix Composition) (5 cols) */}
-        <div className="lg:col-span-5 relative h-[220px] sm:h-[280px] lg:h-[320px] flex items-center justify-center lg:justify-end overflow-hidden">
-          {/* Bronze Drum Artwork: Positioned with subtle crop on the right edge */}
-          <div className="relative w-[280px] sm:w-[320px] lg:w-[380px] h-[280px] sm:h-[320px] lg:h-[380px] flex items-center justify-center translate-x-4 lg:translate-x-12 opacity-90 pointer-events-none select-none">
-            <DongSonBronzeDrum
-              size={360}
-              isRotating={motionEnabled}
-              className="max-w-none transition-transform duration-700"
-            />
+        {/* Right Column: Open Atmospheric Stage (5 cols) */}
+        {/* Allows the background drum to emerge with subtle foreground watermark accent */}
+        <div className="lg:col-span-5 relative h-[180px] sm:h-[220px] lg:h-[280px] flex items-center justify-center lg:justify-end pointer-events-none select-none">
+          <div className="relative flex flex-col items-center lg:items-end justify-center pr-2 lg:pr-8 text-right space-y-2">
+            {/* Resting Phoenix motif glowing softly in foreground */}
+            <div className="w-24 h-24 sm:w-28 sm:h-28 opacity-80 drop-shadow-md">
+              <VietnamesePhoenix size={110} />
+            </div>
 
-            {/* Resting Stylized Phoenix in Center-Right foreground */}
-            <div className="absolute top-[28%] left-[22%] transform -translate-x-4">
-              <VietnamesePhoenix size={140} className="opacity-95 drop-shadow-md" />
+            <div className="hidden sm:block">
+              <span className="text-[10px] font-mono tracking-widest uppercase text-[#C9A66B]/70 block">
+                Không Gian Di Sản
+              </span>
+              <span className="text-xs font-serif italic text-[#B8AA96]/80 block">
+                Nét chạm đồng & sắc đỏ chu sa
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Motion Controls Bar (Bottom right pill for easy discovery) */}
-      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20">
+      {/* Motion Controls Toggle (Floating lacquer glass pill) */}
+      <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-20">
         <button
           onClick={onToggleMotion}
-          className="text-xs font-mono font-medium px-3 py-1.5 rounded-lg bg-[#261C19]/90 hover:bg-[#322521] border border-[#4A3830] text-[#C9A66B] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm backdrop-blur-sm"
-          title={motionEnabled ? 'Tắt chuyển động trống & phượng' : 'Bật chuyển động trống & phượng'}
+          className="text-xs font-mono font-medium px-3 py-1.5 rounded-lg bg-[#211815]/75 hover:bg-[#2C211D] border border-[#C9A66B]/30 text-[#C9A66B] flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs backdrop-blur-md"
+          title={motionEnabled ? 'Tắt chuyển động nền di sản' : 'Bật chuyển động nền di sản'}
         >
           <Wind className={`w-3.5 h-3.5 ${motionEnabled ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />
-          <span>Hiệu ứng: {motionEnabled ? 'Bật' : 'Tắt'}</span>
+          <span>Chuyển động: {motionEnabled ? 'Bật' : 'Tắt'}</span>
         </button>
       </div>
     </section>

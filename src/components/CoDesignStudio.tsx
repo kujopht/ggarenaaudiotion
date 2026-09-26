@@ -301,7 +301,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   return (
     <div id="studio-workspace" className="space-y-6">
       {/* Studio Header Bar */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="lacquer-panel rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
@@ -319,7 +319,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
           <button
             onClick={() => onOpenCKB()}
-            className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19] hover:bg-[#322521] border border-[#4A3830] px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5"
+            className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5 backdrop-blur-xs"
           >
             <span>Xem quy tắc tham chiếu</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -331,8 +331,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Compact Design Controls (4 cols) */}
         <div className="lg:col-span-4 space-y-4">
-          <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-5 shadow-sm space-y-5">
-            <h3 className="text-base font-serif font-bold text-[#F2E9D8] pb-3 border-b border-[#3A2B25] flex items-center justify-between">
+          <div className="lacquer-panel rounded-2xl p-4 sm:p-5 space-y-5">
+            <h3 className="text-base font-serif font-bold text-[#F2E9D8] pb-3 border-b border-[#C9A66B]/20 flex items-center justify-between">
               <span>Tùy chỉnh bản phối</span>
               <span className="text-xs font-mono font-normal text-[#B8AA96]">4 bước tạo kiểu</span>
             </h3>
@@ -357,8 +357,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                       key={g.key}
                       className={`rounded-xl border transition-all overflow-hidden ${
                         isSelected
-                          ? 'border-[#C9A66B] bg-[#261C19] shadow-xs ring-1 ring-[#C9A66B]/50'
-                          : 'border-[#3A2B25] bg-[#181311] hover:bg-[#211815]'
+                          ? 'border-[#C9A66B] bg-[#2E201B]/85 shadow-md ring-1 ring-[#C9A66B]/50'
+                          : 'border-[#C9A66B]/15 bg-[#181311]/50 hover:bg-[#211815]/70 hover:border-[#C9A66B]/30'
                       }`}
                     >
                       <button
@@ -385,7 +385,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                       </button>
 
                       {/* Expandable deeper info toggle */}
-                      <div className="px-3 pb-2.5 pt-0 flex items-center justify-between border-t border-[#3A2B25]/50">
+                      <div className="px-3 pb-2.5 pt-0 flex items-center justify-between border-t border-[#C9A66B]/15">
                         <span className="text-[11px] text-[#8C7E6C] italic">
                           {g.dynasty}
                         </span>
@@ -404,7 +404,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
                       {/* Deep Info Drawer */}
                       {isExpanded && (
-                        <div className="px-3 py-2.5 bg-[#140F0E] border-t border-[#3A2B25] text-xs text-[#B8AA96] space-y-1.5 animate-in fade-in duration-150">
+                        <div className="px-3 py-2.5 bg-[#140F0E]/75 border-t border-[#C9A66B]/15 text-xs text-[#B8AA96] space-y-1.5 animate-in fade-in duration-150">
                           {g.key === 'ngu_than' && (
                             <>
                               <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> 5 thân vải (2 thân trước, 2 thân sau, 1 thân con bên trong), 5 khuy cài tượng trưng ngũ thường (Nhân, Lễ, Nghĩa, Trí, Tín).</p>
@@ -432,7 +432,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             </div>
 
             {/* 2. Dịp mặc & Phong cách */}
-            <div className="space-y-3 pt-2 border-t border-[#3A2B25]/70">
+            <div className="space-y-3 pt-2 border-t border-[#C9A66B]/15">
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
                   2. Dịp mặc (Bối cảnh)
@@ -440,7 +440,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 <select
                   value={context}
                   onChange={(e) => onChangeContext(e.target.value)}
-                  className="w-full text-sm font-medium bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
+                  className="w-full text-sm font-medium bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs"
                 >
                   {CONTEXT_OPTIONS.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -457,7 +457,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 <select
                   value={style}
                   onChange={(e) => onChangeStyle(e.target.value)}
-                  className="w-full text-sm font-medium bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
+                  className="w-full text-sm font-medium bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs"
                 >
                   {STYLE_OPTIONS.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -469,7 +469,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
             </div>
 
             {/* 3. Mức độ Remix (Dial) với vành trang trí vàng đồng */}
-            <div className="space-y-3 pt-2 border-t border-[#3A2B25]/70">
+            <div className="space-y-3 pt-2 border-t border-[#C9A66B]/15">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-[#C9A66B]" />
@@ -509,7 +509,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     className={`py-2 rounded-lg border transition-all cursor-pointer min-h-[38px] ${
                       dialLevel === d.level
                         ? 'border-[#C9A66B] bg-[#C9A66B]/25 text-[#E6C88B] font-bold shadow-xs ring-1 ring-[#C9A66B]/40'
-                        : 'border-[#3A2B25] bg-[#181311] text-[#8C7E6C] hover:border-[#4A3830] hover:text-[#B8AA96]'
+                        : 'border-[#C9A66B]/15 bg-[#181311]/50 text-[#8C7E6C] hover:border-[#C9A66B]/30 hover:text-[#B8AA96]'
                     }`}
                   >
                     {d.level}
@@ -517,14 +517,14 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 ))}
               </div>
 
-              <p className="text-xs text-[#B8AA96] bg-[#181311] p-3 rounded-xl border border-[#3A2B25] leading-relaxed">
+              <p className="text-xs text-[#B8AA96] bg-[#181311]/60 p-3 rounded-xl border border-[#C9A66B]/15 leading-relaxed backdrop-blur-xs">
                 <span className="font-semibold text-[#E6C88B]">{DIAL_LEVELS[dialLevel - 1].label}: </span>
                 {DIAL_LEVELS[dialLevel - 1].desc}
               </p>
             </div>
 
             {/* Ghi chú nâng cao (Collapsible) */}
-            <div className="pt-1 border-t border-[#3A2B25]/70">
+            <div className="pt-1 border-t border-[#C9A66B]/15">
               <button
                 type="button"
                 onClick={() => setShowAdvancedNotes(!showAdvancedNotes)}
@@ -541,7 +541,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     value={customNotes}
                     onChange={(e) => onChangeCustomNotes(e.target.value)}
                     placeholder="VD: Phối tone xanh chàm, bốt da đen cao cổ..."
-                    className="w-full text-xs sm:text-sm bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
+                    className="w-full text-xs sm:text-sm bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl px-3 py-2.5 text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs"
                   />
                 </div>
               )}
@@ -579,7 +579,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         <div className="lg:col-span-8 space-y-4">
           {/* Plan Selector Buttons: Look A vs Look B */}
           {proposals.length > 0 && (
-            <div className="flex items-center gap-2 p-1.5 bg-[#1C1513] border border-[#3A2B25] rounded-2xl">
+            <div className="flex items-center gap-2 p-1.5 lacquer-panel-subtle rounded-2xl">
               {proposals.map((prop, idx) => {
                 const isActive = selectedPlanIndex === idx;
                 return (
@@ -588,8 +588,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     onClick={() => onSelectPlanIndex(idx)}
                     className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
                       isActive
-                        ? 'bg-[#2E201B] text-[#E6C88B] border border-[#C9A66B]/60 shadow-xs'
-                        : 'bg-[#181311] border border-[#3A2B25] text-[#B8AA96] hover:text-[#F2E9D8]'
+                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/60 shadow-xs'
+                        : 'bg-[#181311]/50 border border-[#C9A66B]/15 text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
                     <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#E6C88B]' : 'bg-[#6E5D53]'}`} />
@@ -604,8 +604,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
           {/* Empty State when no proposals generated yet */}
           {!currentProposal && !loading && (
-            <div className="bg-[#1C1513] border-2 border-dashed border-[#3A2B25] rounded-2xl p-8 sm:p-12 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#261C19] flex items-center justify-center mx-auto text-[#C9A66B] border border-[#4A3830]">
+            <div className="lacquer-panel border-2 border-dashed border-[#C9A66B]/30 rounded-2xl p-8 sm:p-12 text-center space-y-4">
+              <div className="w-14 h-14 rounded-2xl bg-[#261C19]/80 flex items-center justify-center mx-auto text-[#C9A66B] border border-[#C9A66B]/30 shadow-xs">
                 <Shirt className="w-7 h-7" />
               </div>
               <div className="max-w-md mx-auto space-y-2">
@@ -628,9 +628,9 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
           {/* Current Outfit Presentation Board (Lookbook Style) */}
           {currentProposal && (
-            <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
+            <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
               {/* Proposal Header Banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#3A2B25] gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#C9A66B]/20 gap-4">
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#C9A66B]">
@@ -644,7 +644,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   </h3>
 
                   {/* Cultural Reference & Caution Summary Strip directly under Look Title */}
-                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#181311] p-2.5 rounded-xl border border-[#3A2B25]">
+                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#181311]/60 p-2.5 rounded-xl border border-[#C9A66B]/20 backdrop-blur-xs">
                     <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
                       {summaryStatus.badges.map((badge, idx) => {
                         if (badge.variant === 'caution') {
@@ -700,7 +700,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
                   <button
                     onClick={() => onOpenLookbookCard(currentProposal)}
-                    className="px-3 py-2 text-xs sm:text-sm font-medium text-[#F2E9D8] bg-[#261C19] border border-[#4A3830] hover:bg-[#322521] rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap min-h-[40px] cursor-pointer"
+                    className="px-3 py-2 text-xs sm:text-sm font-medium text-[#F2E9D8] bg-[#261C19]/80 border border-[#C9A66B]/30 hover:bg-[#322521] rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap min-h-[40px] cursor-pointer backdrop-blur-xs"
                   >
                     <Share2 className="w-3.5 h-3.5 text-[#C9A66B]" />
                     <span>Thẻ Lookbook</span>
@@ -709,26 +709,26 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
 
               {/* Garment Visual Canvas Viewport */}
-              <div className="rounded-xl overflow-hidden border border-[#3A2B25]">
+              <div className="rounded-xl overflow-hidden border border-[#C9A66B]/25">
                 <GarmentSchematic
                   garment={currentProposal.garment_type}
                   visualDetails={currentProposal.visual_details}
                   dialLevel={currentProposal.dial_level}
                   isOpenFront={currentProposal.garment_type === 'ao_tac' && currentProposal.dial_level >= 3}
                 />
-                <div className="bg-[#181311] px-4 py-2 border-t border-[#3A2B25] text-center text-xs text-[#8C7E6C]">
+                <div className="bg-[#181311]/70 px-4 py-2 border-t border-[#C9A66B]/15 text-center text-xs text-[#8C7E6C] backdrop-blur-xs">
                   Khám phá cấu trúc trang phục · Sơ đồ hình họa tương tác (Minh họa quy thức, không phải bản rập may hoặc ảnh chụp)
                 </div>
               </div>
 
               {/* Detail Tabs Switcher: Styling vs Cultural Reference */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 border-b border-[#3A2B25] pb-2">
+                <div className="flex items-center gap-2 border-b border-[#C9A66B]/20 pb-2">
                   <button
                     onClick={() => setDetailTab('styling')}
                     className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] ${
                       detailTab === 'styling'
-                        ? 'bg-[#261C19] text-[#E6C88B] border border-[#C9A66B]/50'
+                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/50'
                         : 'text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
@@ -739,7 +739,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     onClick={() => setDetailTab('audit')}
                     className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] flex items-center gap-1.5 ${
                       detailTab === 'audit'
-                        ? 'bg-[#261C19] text-[#E6C88B] border border-[#C9A66B]/50'
+                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/50'
                         : 'text-[#B8AA96] hover:text-[#F2E9D8]'
                     }`}
                   >
@@ -759,7 +759,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   <div className="space-y-4 animate-in fade-in duration-150">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Left: Garment Pieces Specification */}
-                      <div className="bg-[#181311] p-4 rounded-xl border border-[#3A2B25] space-y-3">
+                      <div className="bg-[#181311]/60 p-4 rounded-xl border border-[#C9A66B]/20 space-y-3 backdrop-blur-xs">
                         <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
                           Cấu trúc y phục chính
                         </span>
@@ -785,7 +785,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                       </div>
 
                       {/* Right: Modern Mix & Match Breakdown */}
-                      <div className="bg-[#181311] p-4 rounded-xl border border-[#3A2B25] space-y-3">
+                      <div className="bg-[#181311]/60 p-4 rounded-xl border border-[#C9A66B]/20 space-y-3 backdrop-blur-xs">
                         <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
                           Phối cùng phụ kiện & giày
                         </span>
@@ -817,7 +817,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     </div>
 
                     {/* Stylist Notes Box */}
-                    <div className="bg-[#181311] p-4 sm:p-5 rounded-xl border border-[#3A2B25] space-y-2.5">
+                    <div className="bg-[#181311]/60 p-4 sm:p-5 rounded-xl border border-[#C9A66B]/20 space-y-2.5 backdrop-blur-xs">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold">
                           Lời khuyên từ Stylist đương đại
@@ -827,7 +827,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                         "{currentProposal.stylist_notes.philosophy}"
                       </p>
 
-                      <div className="pt-2 border-t border-[#3A2B25] space-y-1">
+                      <div className="pt-2 border-t border-[#C9A66B]/15 space-y-1">
                         <span className="text-xs font-semibold text-[#B8AA96]">Mẹo mặc đẹp cho Gen Z:</span>
                         <ul className="list-disc list-inside text-xs sm:text-sm text-[#B8AA96] space-y-1 pl-1">
                           {currentProposal.stylist_notes.gen_z_tips.map((tip, idx) => (

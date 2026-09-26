@@ -23,7 +23,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="lacquer-panel rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
@@ -42,7 +42,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="lacquer-panel rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-[#8C7E6C] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -50,7 +50,7 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Tìm theo mã điều khoản, tên quy thức..."
-            className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 bg-[#181311] border border-[#3A2B25] rounded-xl text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
+            className="w-full text-xs sm:text-sm pl-9 pr-3 py-2.5 bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs"
           />
         </div>
 
@@ -59,8 +59,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('all')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'all'
-                ? 'bg-[#2E201B] text-[#C9A66B] border border-[#C9A66B]/50'
-                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
+                ? 'bg-[#2E201B]/90 text-[#C9A66B] border border-[#C9A66B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
             Tất cả (12)
@@ -69,8 +69,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('invariant')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'invariant'
-                ? 'bg-[#2E201B] text-[#43B6A4] border border-[#43B6A4]/50'
-                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
+                ? 'bg-[#2E201B]/90 text-[#43B6A4] border border-[#43B6A4]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
             Bất biến (Invariants)
@@ -79,8 +79,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('mutable')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'mutable'
-                ? 'bg-[#2E201B] text-[#E6C88B] border border-[#C9A66B]/50'
-                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
+                ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
             Khả biến (Mutables)
@@ -89,8 +89,8 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
             onClick={() => setFilterCategory('sacred_rule')}
             className={`px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors min-h-[38px] cursor-pointer ${
               filterCategory === 'sacred_rule'
-                ? 'bg-[#2E201B] text-[#F5A39D] border border-[#B8342B]/50'
-                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311] border border-[#3A2B25]'
+                ? 'bg-[#2E201B]/90 text-[#F5A39D] border border-[#B8342B]/50'
+                : 'text-[#B8AA96] hover:text-[#F2E9D8] bg-[#181311]/50 border border-[#C9A66B]/15'
             }`}
           >
             Cấm kỵ (Redlines)
@@ -108,12 +108,12 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
           return (
             <div
               key={entry.id}
-              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 bg-[#1C1513] ${
+              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 lacquer-card-elevated ${
                 isInvariant
-                  ? 'border-[#3A2B25] hover:border-[#43B6A4]/60'
+                  ? 'border-[#C9A66B]/20 hover:border-[#43B6A4]/60'
                   : isMutable
-                  ? 'border-[#3A2B25] hover:border-[#C9A66B]/60'
-                  : 'border-[#3A2B25] hover:border-[#B8342B]/60'
+                  ? 'border-[#C9A66B]/20 hover:border-[#C9A66B]/60'
+                  : 'border-[#C9A66B]/20 hover:border-[#B8342B]/60'
               }`}
             >
               <div className="space-y-2">
@@ -141,13 +141,13 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-[#3A2B25] text-xs space-y-1.5">
+              <div className="pt-3 border-t border-[#C9A66B]/15 text-xs space-y-1.5">
                 <div className="text-[#8C7E6C] leading-relaxed">
                   <span className="font-semibold text-[#D4C7B4]">Bối cảnh sử liệu: </span>
                   {entry.historical_context}
                 </div>
                 {entry.redline_warning && (
-                  <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs">
+                  <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-800 text-rose-300 text-xs backdrop-blur-xs">
                     {entry.redline_warning}
                   </div>
                 )}

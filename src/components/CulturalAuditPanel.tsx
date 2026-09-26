@@ -21,9 +21,9 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
   const isPurelySupported = !hasCaution && !hasUncertainty && audit.status === 'Supported';
 
   return (
-    <div className="border border-[#3A2B25] bg-[#181311] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
+    <div className="lacquer-panel rounded-xl p-4 sm:p-5 space-y-4">
       {/* Header & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#3A2B25] gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#C9A66B]/20 gap-3">
         <div>
           <span className="text-xs font-mono text-[#C9A66B] font-semibold tracking-wide block mb-0.5">
             GHI CHÚ THAM CHIẾU VĂN HÓA
@@ -36,21 +36,21 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         {/* Status Badges */}
         <div className="flex items-center gap-2 flex-wrap">
           {isPurelySupported && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
               <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
               <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
             </div>
           )}
 
           {hasCaution && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
               <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
             </div>
           )}
 
           {hasUncertainty && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
               <HelpCircle className="w-4 h-4 text-rose-400" />
               <span>Chưa đủ dữ liệu tham chiếu</span>
             </div>
@@ -60,7 +60,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
 
       {/* Uncertainty Flag Banner (Always visible if present) */}
       {audit.uncertainty_flag && (
-        <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 text-rose-200 rounded-lg text-sm">
+        <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 text-rose-200 rounded-lg text-sm backdrop-blur-xs">
           <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
             <AlertOctagon className="w-4 h-4 text-rose-400" />
             <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
@@ -73,7 +73,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
 
       {/* Redlines & Important Warnings (Always visible if present) */}
       {audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0 && (
-        <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-lg text-sm text-amber-200">
+        <div className="p-3.5 bg-amber-950/40 border border-amber-800/60 rounded-lg text-sm text-amber-200 backdrop-blur-xs">
           <div className="font-semibold flex items-center gap-1.5 text-amber-300 mb-1.5">
             <AlertTriangle className="w-4 h-4 text-amber-400" />
             <span>Điểm cần lưu ý theo quy tắc tham chiếu:</span>
@@ -96,7 +96,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
-          className="w-full py-2 px-3 rounded-lg bg-[#261C19] hover:bg-[#322521] text-xs font-semibold text-[#B8AA96] hover:text-[#F2E9D8] border border-[#3A2B25] flex items-center justify-between transition-colors cursor-pointer min-h-[40px]"
+          className="w-full py-2 px-3 rounded-lg bg-[#261C19]/70 hover:bg-[#322521] text-xs font-semibold text-[#B8AA96] hover:text-[#F2E9D8] border border-[#C9A66B]/25 flex items-center justify-between transition-colors cursor-pointer min-h-[40px] backdrop-blur-xs"
         >
           <span className="flex items-center gap-2">
             <BookOpen className="w-3.5 h-3.5 text-[#C9A66B]" />
@@ -106,7 +106,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
         </button>
 
         {showDetails && (
-          <div className="mt-3 pt-3 border-t border-[#3A2B25] space-y-4 animate-in fade-in duration-200">
+          <div className="mt-3 pt-3 border-t border-[#C9A66B]/15 space-y-4 animate-in fade-in duration-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left Column: Core Rules (Invariants) */}
               <div>
@@ -119,7 +119,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                   {audit.invariants_checked.map((inv, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-[#211815] border border-[#3A2B25] rounded-lg text-xs"
+                      className="p-2.5 bg-[#211815]/60 border border-[#C9A66B]/15 rounded-lg text-xs backdrop-blur-xs"
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-medium text-[#F2E9D8] flex items-center gap-1.5">
@@ -156,7 +156,7 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                     {audit.mutables_used.map((mut, idx) => (
                       <div
                         key={idx}
-                        className="p-2.5 bg-[#261C19] border border-[#C9A66B]/30 rounded-lg text-xs"
+                        className="p-2.5 bg-[#261C19]/60 border border-[#C9A66B]/25 rounded-lg text-xs backdrop-blur-xs"
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium text-[#E6C88B]">{mut.element}</span>

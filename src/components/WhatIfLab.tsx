@@ -283,7 +283,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="lacquer-panel rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
@@ -301,7 +301,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
       {/* Connection Indicator: Linked to Studio Look vs Standalone */}
       {effectiveActiveProposal ? (
-        <div className="bg-[#261C19] border-2 border-[#C9A66B]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div className="lacquer-card-elevated border-2 border-[#C9A66B]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono font-bold uppercase text-[#E6C88B] tracking-wider">
@@ -322,7 +322,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleDetachToStandalone}
-              className="text-xs sm:text-sm font-medium text-[#B8AA96] hover:text-[#F5A39D] bg-[#181311] border border-[#3A2B25] hover:border-[#B8342B]/60 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer min-h-[42px]"
+              className="text-xs sm:text-sm font-medium text-[#B8AA96] hover:text-[#F5A39D] bg-[#181311]/70 border border-[#C9A66B]/20 hover:border-[#B8342B]/60 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer min-h-[42px] backdrop-blur-xs"
             >
               <X className="w-3.5 h-3.5" />
               <span>Bỏ chọn (Chuyển sang thử tự do)</span>
@@ -330,9 +330,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           </div>
         </div>
       ) : (
-        <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-[#B8AA96]">
+        <div className="lacquer-panel-subtle rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-[#B8AA96]">
           <div className="flex items-center gap-2.5">
-            <span className="font-mono text-xs font-bold px-2 py-1 rounded-md bg-[#261C19] text-[#E6C88B] border border-[#3A2B25]">
+            <span className="font-mono text-xs font-bold px-2 py-1 rounded-md bg-[#261C19]/80 text-[#E6C88B] border border-[#C9A66B]/30 backdrop-blur-xs">
               CHẾ ĐỘ TỰ DO
             </span>
             <span>Bạn đang thử nghiệm độc lập. Bạn có thể chọn bất kỳ loại áo nào bên dưới.</span>
@@ -342,7 +342,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           {activeProposal && isDetached && (
             <button
               onClick={handleReattachStudioProposal}
-              className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] bg-[#C9A66B]/15 hover:bg-[#C9A66B]/25 border border-[#C9A66B]/40 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[40px]"
+              className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] bg-[#C9A66B]/15 hover:bg-[#C9A66B]/25 border border-[#C9A66B]/40 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[40px] backdrop-blur-xs"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Dùng lại bản phối từ Xưởng ({activeProposal.title})</span>
@@ -352,7 +352,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       )}
 
       {/* Preset Fast-Test Scenarios */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div className="lacquer-panel rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#F2E9D8] flex items-center gap-2">
             <Compass className="w-4 h-4 text-[#C9A66B]" />
@@ -382,10 +382,10 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                 }}
                 className={`text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
                   isConflict
-                    ? 'opacity-40 cursor-not-allowed bg-[#181311] border-[#2C211D]'
+                    ? 'opacity-40 cursor-not-allowed bg-[#181311]/40 border-[#C9A66B]/10'
                     : loading
-                    ? 'opacity-60 cursor-wait bg-[#181311] border-[#3A2B25]'
-                    : 'bg-[#181311] border-[#3A2B25] hover:border-[#C9A66B] hover:bg-[#261C19] cursor-pointer group'
+                    ? 'opacity-60 cursor-wait bg-[#181311]/50 border-[#C9A66B]/20'
+                    : 'bg-[#181311]/50 border-[#C9A66B]/15 hover:border-[#C9A66B]/50 hover:bg-[#211815]/75 cursor-pointer group backdrop-blur-xs'
                 }`}
               >
                 <div>
@@ -412,7 +412,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                   </p>
                 </div>
 
-                <div className="mt-2.5 pt-2 border-t border-[#3A2B25] flex items-center justify-between text-xs">
+                <div className="mt-2.5 pt-2 border-t border-[#C9A66B]/15 flex items-center justify-between text-xs">
                   {isConflict ? (
                     <span className="text-[#6E5D53] italic text-[11px]">
                       Dành cho {item.garmentLabel} (khác loại áo đang chọn)
@@ -433,7 +433,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       </div>
 
       {/* Query Bar */}
-      <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div className="lacquer-panel rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
           <div className="sm:w-56 shrink-0">
             <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
@@ -443,7 +443,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               value={selectedGarment}
               onChange={(e) => handleSelectGarmentInStandalone(e.target.value as GarmentKey)}
               disabled={!!effectiveActiveProposal || loading}
-              className={`w-full text-sm font-medium bg-[#181311] border border-[#3A2B25] rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px] ${
+              className={`w-full text-sm font-medium bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl px-3 py-2.5 text-[#F2E9D8] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs ${
                 effectiveActiveProposal ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
@@ -471,7 +471,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                   }
                 }
               }}
-              className="w-full text-sm bg-[#181311] border border-[#3A2B25] rounded-xl px-3.5 py-2.5 text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px]"
+              className="w-full text-sm bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl px-3.5 py-2.5 text-[#F2E9D8] placeholder:text-[#6E5D53] focus:outline-none focus:border-[#C9A66B] min-h-[44px] backdrop-blur-xs"
             />
           </div>
 
@@ -503,9 +503,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
       {/* Results Viewport */}
       {evaluation && (
-        <div className="bg-[#1C1513] border border-[#3A2B25] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
+        <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
           {/* Top Status Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#3A2B25] gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#C9A66B]/20 gap-3">
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
                 <span className="text-xs font-mono uppercase tracking-wider text-[#B8AA96]">
@@ -523,13 +523,13 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               {(evaluation.status === 'Supported with Caution' ||
                 evaluation.violates_invariants ||
                 (evaluation.cautions_and_redlines && evaluation.cautions_and_redlines.length > 0)) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
                   <AlertTriangle className="w-4 h-4 text-amber-400" />
                   <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
                 </div>
               )}
               {(evaluation.status === 'Insufficient Evidence' || evaluation.uncertainty_flag) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
                   <HelpCircle className="w-4 h-4 text-rose-400" />
                   <span>Chưa đủ dữ liệu tham chiếu</span>
                 </div>
@@ -538,7 +538,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
                 !evaluation.uncertainty_flag &&
                 !evaluation.violates_invariants &&
                 (!evaluation.cautions_and_redlines || evaluation.cautions_and_redlines.length === 0) && (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
                   <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
                   <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
                 </div>
@@ -548,7 +548,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
           {/* Uncertainty Flag Banner */}
           {evaluation.uncertainty_flag && (
-            <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs sm:text-sm text-rose-200">
+            <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs sm:text-sm text-rose-200 backdrop-blur-xs">
               <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
                 <AlertOctagon className="w-4 h-4 text-rose-400" />
                 <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
@@ -561,12 +561,12 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
           {/* Redlines & Warnings */}
           {evaluation.cautions_and_redlines.length > 0 && (
-            <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs sm:text-sm text-amber-200 space-y-1.5">
+            <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs sm:text-sm text-amber-200 space-y-1.5 backdrop-blur-xs">
               <div className="font-semibold flex items-center gap-1.5 text-amber-300">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
                 <span>Điểm cần lưu ý theo quy tắc tham chiếu:</span>
               </div>
-              <ul className="list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm pl-1 leading-relaxed">
+              <ul className="space-y-1 list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm pl-1 leading-relaxed">
                 {evaluation.cautions_and_redlines.map((c, i) => (
                   <li key={i}>{c}</li>
                 ))}
@@ -575,7 +575,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           )}
 
           {/* Cultural Impact Analysis */}
-          <div className="p-4 bg-[#181311] border border-[#3A2B25] rounded-xl space-y-1.5">
+          <div className="p-4 bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl space-y-1.5 backdrop-blur-xs">
             <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
               Phân tích tham chiếu văn hóa
             </span>
@@ -591,7 +591,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#B8342B]/20 text-[#F5A39D] border border-[#B8342B]/50 rounded-lg hover:bg-[#B8342B]/30 cursor-pointer"
+                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#B8342B]/20 text-[#F5A39D] border border-[#B8342B]/50 rounded-lg hover:bg-[#B8342B]/30 cursor-pointer backdrop-blur-xs"
               >
                 Cần lưu ý: {id}
               </button>
@@ -600,7 +600,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#261C19] text-[#E6C88B] border border-[#3A2B25] rounded-lg hover:bg-[#322521] cursor-pointer"
+                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#261C19]/80 text-[#E6C88B] border border-[#C9A66B]/30 rounded-lg hover:bg-[#322521] cursor-pointer backdrop-blur-xs"
               >
                 Căn cứ: {id}
               </button>
@@ -608,7 +608,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           </div>
 
           {/* Stylist Counter-Proposal (Smart Alternative) */}
-          <div className="p-5 sm:p-6 bg-[#261C19] border-2 border-[#C9A66B]/50 rounded-xl shadow-xs space-y-4">
+          <div className="p-5 sm:p-6 lacquer-card-elevated border-2 border-[#C9A66B]/50 rounded-xl space-y-4">
             <div className="flex items-center gap-2.5">
               <Lightbulb className="w-5 h-5 text-[#E6C88B]" />
               <div>
@@ -621,7 +621,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#3A2B25] text-xs sm:text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#C9A66B]/20 text-xs sm:text-sm">
               <div className="space-y-1.5">
                 <span className="font-semibold text-[#F2E9D8] flex items-center gap-1.5">
                   <ArrowRight className="w-3.5 h-3.5 text-[#C9A66B]" />

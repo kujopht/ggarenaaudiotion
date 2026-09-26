@@ -18,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleMotion,
 }) => {
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#181311]/95 backdrop-blur-md border-b border-[#3A2B25]">
+    <header className="sticky top-0 z-40 w-full bg-[#181311]/65 backdrop-blur-lg border-b border-[#C9A66B]/20 shadow-sm transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Brand Lockup: Vietnamese Contemporary Fashion Studio */}
         <div className="flex items-center gap-3">
@@ -31,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-2.5 group"
           >
             {/* Lacquer Cinnabar & Gold Emblem */}
-            <div className="w-8 h-8 rounded-lg bg-[#B8342B]/20 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-sm tracking-tight group-hover:border-[#C9A66B] group-hover:bg-[#B8342B]/30 transition-all shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-sm tracking-tight group-hover:border-[#C9A66B] group-hover:bg-[#B8342B]/35 transition-all shadow-xs">
               VP
             </div>
             <div className="flex flex-col">
@@ -47,13 +47,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Tab Navigation & Utilities */}
         <div className="flex items-center gap-2">
-          <nav className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#211815] rounded-xl border border-[#3A2B25] overflow-x-auto max-w-full">
+          <nav className="flex items-center gap-1 sm:gap-1.5 p-1 bg-[#211815]/55 backdrop-blur-md rounded-xl border border-[#C9A66B]/15 overflow-x-auto max-w-full">
             <button
               onClick={() => onSelectTab('studio')}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] cursor-pointer ${
                 activeTab === 'studio'
-                  ? 'bg-[#2E201B] text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
-                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]'
+                  ? 'bg-[#2E201B]/90 text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
+                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]/60'
               }`}
             >
               <Sparkles className={`w-3.5 h-3.5 ${activeTab === 'studio' ? 'text-[#C9A66B]' : 'text-[#8C7E6C]'}`} />
@@ -64,8 +64,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onSelectTab('what-if')}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] cursor-pointer ${
                 activeTab === 'what-if'
-                  ? 'bg-[#2E201B] text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
-                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]'
+                  ? 'bg-[#2E201B]/90 text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
+                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]/60'
               }`}
             >
               <HelpCircle className={`w-3.5 h-3.5 ${activeTab === 'what-if' ? 'text-[#C9A66B]' : 'text-[#8C7E6C]'}`} />
@@ -76,8 +76,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onSelectTab('anatomy')}
               className={`hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] cursor-pointer ${
                 activeTab === 'anatomy'
-                  ? 'bg-[#2E201B] text-[#43B6A4] shadow-xs border border-[#43B6A4]/50 font-bold'
-                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]'
+                  ? 'bg-[#2E201B]/90 text-[#43B6A4] shadow-xs border border-[#43B6A4]/50 font-bold'
+                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]/60'
               }`}
             >
               <Layers className={`w-3.5 h-3.5 ${activeTab === 'anatomy' ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />
@@ -88,8 +88,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => onSelectTab('ckb')}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all whitespace-nowrap min-h-[38px] cursor-pointer ${
                 activeTab === 'ckb'
-                  ? 'bg-[#2E201B] text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
-                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]'
+                  ? 'bg-[#2E201B]/90 text-[#C9A66B] shadow-xs border border-[#C9A66B]/50 font-bold'
+                  : 'text-[#B8AA96] hover:text-[#F2E9D8] hover:bg-[#2A1E1A]/60'
               }`}
             >
               <BookOpen className={`w-3.5 h-3.5 ${activeTab === 'ckb' ? 'text-[#C9A66B]' : 'text-[#8C7E6C]'}`} />
@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {onToggleMotion && (
             <button
               onClick={onToggleMotion}
-              className="hidden lg:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-mono font-medium border border-[#3A2B25] bg-[#211815] hover:bg-[#2C211D] text-[#B8AA96] hover:text-[#C9A66B] transition-colors cursor-pointer min-h-[38px]"
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-mono font-medium border border-[#C9A66B]/25 bg-[#211815]/60 hover:bg-[#2C211D]/80 backdrop-blur-md text-[#B8AA96] hover:text-[#C9A66B] transition-colors cursor-pointer min-h-[38px]"
               title={motionEnabled ? 'Tắt hiệu ứng chuyển động' : 'Bật hiệu ứng chuyển động'}
             >
               <Wind className={`w-3.5 h-3.5 ${motionEnabled ? 'text-[#43B6A4]' : 'text-[#8C7E6C]'}`} />

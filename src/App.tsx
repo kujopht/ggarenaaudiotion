@@ -9,7 +9,7 @@ import { Footer } from './components/Footer';
 import { CKBExplorerModal } from './components/CKBExplorerModal';
 import { LookbookCardModal } from './components/LookbookCardModal';
 import { OutfitProposal, GarmentKey } from './types/vietphuc';
-import { SubtleLacquerMotif } from './components/MotionMotifs';
+import { HeritageBackground } from './components/HeritageBackground';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('studio');
@@ -97,8 +97,11 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#120E0D] text-[#F2E9D8] flex flex-col font-sans selection:bg-[#B8342B]/30 selection:text-[#F2E9D8]">
-      {/* Top Bar with Workspace Tab Switcher */}
+    <div className="relative min-h-screen bg-[#120E0D] text-[#F2E9D8] flex flex-col font-sans selection:bg-[#B8342B]/30 selection:text-[#F2E9D8] overflow-x-hidden">
+      {/* 1. Global Heritage Background: fixed z-0 behind everything, pointer-events none */}
+      <HeritageBackground motionEnabled={motionEnabled} />
+
+      {/* 2. Top Bar with Workspace Tab Switcher (relative z-40) */}
       <Navbar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -107,11 +110,11 @@ export default function App() {
         onToggleMotion={handleToggleMotion}
       />
 
-      {/* Main Workspace (Direct Tab View) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
+      {/* 3. Main Workspace (relative z-10 floating above background) */}
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {activeTab === 'studio' && (
           <>
-            {/* Lacquer Editorial Hero Section (Asymmetric: Drum & Phoenix Artwork) */}
+            {/* Lacquer Editorial Hero Section (Integrated into heritage space) */}
             <HeroSection
               onStartCoDesign={handleStartCoDesign}
               onOpenCKB={() => handleOpenCKB()}
@@ -159,23 +162,21 @@ export default function App() {
         )}
       </main>
 
-      {/* Institutional Footer */}
-      <Footer
-        onOpenCKB={() => handleOpenCKB()}
-        onScrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      />
+      {/* 4. Institutional Footer (relative z-10) */}
+      <div className="relative z-10">
+        <Footer
+          onOpenCKB={() => handleOpenCKB()}
+          onScrollToTop={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        />
+      </div>
 
-      {/* Subtle Lacquer Corner Motif (Stationary, non-blocking) */}
-      <SubtleLacquerMotif className="fixed bottom-0 right-0 z-0 opacity-15" />
-
-      {/* CKB Explorer Modal */}
+      {/* 5. Modals (highest z-50 overlay) */}
       <CKBExplorerModal
         isOpen={ckbModalOpen}
         onClose={() => setCkbModalOpen(false)}
         highlightId={highlightedCKBId}
       />
 
-      {/* Lookbook Export Card Modal */}
       <LookbookCardModal
         isOpen={lookbookModalOpen}
         onClose={() => setLookbookModalOpen(false)}
