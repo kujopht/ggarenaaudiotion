@@ -1,0 +1,7 @@
+{
+  "name": "Việt Phục Remix Lab",
+  "description": "Hệ thống đồng sáng tạo thời trang đương đại và thẩm định di sản văn hóa Việt phục chuẩn mực.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
