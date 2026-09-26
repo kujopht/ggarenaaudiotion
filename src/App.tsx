@@ -7,10 +7,13 @@ import { CKBRegistryView } from './components/CKBRegistryView';
 import { Footer } from './components/Footer';
 import { CKBExplorerModal } from './components/CKBExplorerModal';
 import { LookbookCardModal } from './components/LookbookCardModal';
-import { OutfitProposal } from './types/vietphuc';
+import { OutfitProposal, GarmentKey } from './types/vietphuc';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('studio');
+  const [selectedGarment, setSelectedGarment] = useState<GarmentKey>('ngu_than');
+  const [selectedProposal, setSelectedProposal] = useState<OutfitProposal | null>(null);
+
   const [ckbModalOpen, setCkbModalOpen] = useState(false);
   const [highlightedCKBId, setHighlightedCKBId] = useState<string | null>(null);
   const [lookbookModalOpen, setLookbookModalOpen] = useState(false);
@@ -30,6 +33,19 @@ export default function App() {
     setLookbookModalOpen(true);
   };
 
+  const handleSelectProposal = (proposal: OutfitProposal) => {
+    setSelectedProposal(proposal);
+    setSelectedGarment(proposal.garment_type);
+  };
+
+  const handleChangeGarment = (g: GarmentKey) => {
+    setSelectedGarment(g);
+    // If the active proposal belongs to another garment, clear it to avoid mismatch
+    if (selectedProposal && selectedProposal.garment_type !== g) {
+      setSelectedProposal(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F6F3EC] text-[#221F1C] flex flex-col font-sans">
       {/* Top Bar with Workspace Tab Switcher */}
@@ -39,18 +55,25 @@ export default function App() {
         onOpenCKBModal={() => handleOpenCKB()}
       />
 
-      {/* Main Workspace (Direct Tab View - No endless vertical scroll!) */}
+      {/* Main Workspace (Direct Tab View) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {activeTab === 'studio' && (
           <CoDesignStudio
+            activeProposal={selectedProposal}
+            onSelectProposal={handleSelectProposal}
+            selectedGarment={selectedGarment}
+            onChangeGarment={handleChangeGarment}
             onOpenCKB={handleOpenCKB}
             onOpenLookbookCard={handleOpenLookbook}
+            onNavigateToWhatIf={() => setActiveTab('what-if')}
           />
         )}
 
         {activeTab === 'what-if' && (
           <WhatIfLab
-            currentGarment="ngu_than"
+            currentGarment={selectedGarment}
+            activeProposal={selectedProposal}
+            onClearActiveProposal={() => setSelectedProposal(null)}
             onOpenCKB={handleOpenCKB}
           />
         )}

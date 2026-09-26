@@ -213,20 +213,21 @@ Trả về kết quả chuẩn định dạng JSON.
 app.post('/api/remix/what-if', async (req: Request, res: Response) => {
   try {
     const { garment, query, current_outfit } = req.body;
+    const effectiveGarment = current_outfit?.garment_type || garment || 'ngu_than';
 
     if (!ai) {
       return res.json({
         success: true,
-        evaluation: evaluateWhatIfDeterministic(garment, query),
+        evaluation: evaluateWhatIfDeterministic(effectiveGarment, query, current_outfit),
         source: 'deterministic_engine',
       });
     }
 
     const prompt = `
 Người dùng hỏi câu hỏi thử nghiệm "What if...?" về trang phục Việt Phục:
-- Garment: ${garment}
+- Garment: ${effectiveGarment}
 - Câu hỏi What-If: "${query}"
-${current_outfit ? `- Trang phục nền hiện tại: ${JSON.stringify(current_outfit)}` : ''}
+${current_outfit ? `- Trang phục nền đang chọn chỉnh sửa: "${current_outfit.title}" (Garment: ${current_outfit.garment_type}, Dial: ${current_outfit.dial_level}, Chi tiết hiện tại: ${JSON.stringify(current_outfit.visual_details)})` : '- Chế độ độc lập (Standalone mode, chưa chọn trang phục nền)'}
 
 Nhiệm vụ:
 Kích hoạt trường what_if_evaluation:
@@ -295,14 +296,16 @@ Trả về kết quả chuẩn định dạng JSON.
 
     return res.json({
       success: true,
-      evaluation: evaluateWhatIfDeterministic(garment, query),
+      evaluation: evaluateWhatIfDeterministic(effectiveGarment, query, current_outfit),
       source: 'deterministic_engine',
     });
   } catch (err: any) {
     console.error('Error evaluating What-If:', err);
+    const { garment, query, current_outfit } = req.body;
+    const effectiveGarment = current_outfit?.garment_type || garment || 'ngu_than';
     return res.json({
       success: true,
-      evaluation: evaluateWhatIfDeterministic(req.body.garment || 'ngu_than', req.body.query || ''),
+      evaluation: evaluateWhatIfDeterministic(effectiveGarment, query || '', current_outfit),
       source: 'deterministic_engine_fallback',
       warning: err.message,
     });
@@ -578,8 +581,9 @@ function generateDeterministicProposals(garment: string, context: string, style:
   }
 }
 
-function evaluateWhatIfDeterministic(garment: string, query: string) {
+function evaluateWhatIfDeterministic(garment: string, query: string, current_outfit?: any) {
   const q = query.toLowerCase();
+  const outfitNote = current_outfit ? `[Đang thử nghiệm trên "${current_outfit.title}" (Nấc Dial ${current_outfit.dial_level})]: ` : '';
 
   // Test KB-RULE-01: Tả nhậm
   if (q.includes('trái') || q.includes('tả nhậm') || q.includes('cài sang trái') || q.includes('lật vạt sang trái')) {
@@ -587,9 +591,9 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
       query,
       target_garment: garment,
       proposed_change: 'Đổi vạt áo và cài khuy sang bên trái (Tả nhậm)',
-      status: 'Supported with Caution', // Wait, REDLINE! According to rules: "XỬ LÝ VI PHẠM (REDLINE): Nếu vi phạm KB-RULE-01 (Tả nhậm) hoặc KB-RULE-03 (Rồng 5 móng) -> Ghi nhận cảnh báo nghiêm trọng trong cautions_and_redlines." Status is typically restricted or Caution with serious redlines.
+      status: 'Supported with Caution',
       uncertainty_flag: false,
-      impact_analysis: 'Đổi vạt sang cài bên trái là vi phạm nghiêm trọng cấu trúc bất biến (Invariant) theo KB-RULE-01. Trong văn hóa cổ truyền Việt Nam, tả nhậm là quy thức cài áo chỉ dùng cho y phục người đã khuất (tang ma), hoàn toàn cấm kỵ trên trang phục của người sống.',
+      impact_analysis: outfitNote + 'Đổi vạt sang cài bên trái là vi phạm nghiêm trọng cấu trúc bất biến (Invariant) theo KB-RULE-01. Trong văn hóa cổ truyền Việt Nam, tả nhậm là quy thức cài áo chỉ dùng cho y phục người đã khuất (tang ma), hoàn toàn cấm kỵ trên trang phục của người sống.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-RULE-01'],
       applicable_evidence_ids: ['KB-RULE-01'],
@@ -614,7 +618,7 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
       proposed_change: 'Thêu họa tiết Rồng 5 móng lên y phục dân dụng',
       status: 'Supported with Caution',
       uncertainty_flag: false,
-      impact_analysis: 'Họa tiết Rồng 5 móng (ngũ trảo long) là biểu tượng tối thượng của Hoàng quyền thời Nguyễn, chỉ dành độc quyền cho Hoàng đế (Long bào). Việc đưa họa tiết này vào trang phục dạo phố, casual, tiệc cưới dân sự vi phạm trực tiếp KB-RULE-03.',
+      impact_analysis: outfitNote + 'Họa tiết Rồng 5 móng (ngũ trảo long) là biểu tượng tối thượng của Hoàng quyền thời Nguyễn, chỉ dành độc quyền cho Hoàng đế (Long bào). Việc đưa họa tiết này vào trang phục dạo phố, casual, tiệc cưới dân sự vi phạm trực tiếp KB-RULE-03.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-RULE-03'],
       applicable_evidence_ids: ['KB-RULE-03'],
@@ -639,7 +643,7 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
       proposed_change: 'Thay đổi cổ áo Lập Lĩnh thành cổ bẻ / cổ vest / cổ khoét sâu',
       status: 'Supported with Caution',
       uncertainty_flag: false,
-      impact_analysis: 'Cổ Lập Lĩnh cao 4-5cm ôm khít cổ với 1 cúc cổ cố định là đặc trưng cốt lõi BẤT BIẾN của Áo Ngũ Thân (KB-NGUTHAN-01). Nếu thay bằng cổ vest hoặc khoét cổ sẽ làm mất hoàn toàn nhận diện linh hồn của Áo Ngũ Thân.',
+      impact_analysis: outfitNote + 'Cổ Lập Lĩnh cao 4-5cm ôm khít cổ với 1 cúc cổ cố định là đặc trưng cốt lõi BẤT BIẾN của Áo Ngũ Thân (KB-NGUTHAN-01). Nếu thay bằng cổ vest hoặc khoét cổ sẽ làm mất hoàn toàn nhận diện linh hồn của Áo Ngũ Thân.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-NGUTHAN-01'],
       applicable_evidence_ids: ['KB-NGUTHAN-01'],
@@ -664,7 +668,7 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
       proposed_change: 'Mở khuy áo Tấc mặc làm áo khoác dáng dài (duster coat) hiện đại',
       status: 'Supported',
       uncertainty_flag: false,
-      impact_analysis: 'Hoàn toàn hợp lệ! Theo KB-TAC-03, Áo Tấc cho phép cởi mở khuy áo phía trước để tạo layer dạng áo khoác dáng dài (duster coat) hiện đại, phối với quần và giày hiện đại, miễn là ống tay thụng chữ nhật vẫn được bảo toàn (KB-TAC-01).',
+      impact_analysis: outfitNote + 'Hoàn toàn hợp lệ! Theo KB-TAC-03, Áo Tấc cho phép cởi mở khuy áo phía trước để tạo layer dạng áo khoác dáng dài (duster coat) hiện đại, phối với quần và giày hiện đại, miễn là ống tay thụng chữ nhật vẫn được bảo toàn (KB-TAC-01).',
       violates_invariants: false,
       violated_evidence_ids: [],
       applicable_evidence_ids: ['KB-TAC-01', 'KB-TAC-03'],
@@ -687,7 +691,7 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
       proposed_change: 'Bỏ hoặc thay đổi màu dải ngũ sắc ở cổ tay Áo Nhật Bình',
       status: 'Supported with Caution',
       uncertainty_flag: false,
-      impact_analysis: 'Dải ngũ sắc viền tay áo Nhật Bình tượng trưng cho Ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ) và Ngũ thường, là nhận diện cốt lõi BẤT BIẾN theo KB-NHATBINH-02. Tuyệt đối không được đảo lộn hoặc loại bỏ lung tung.',
+      impact_analysis: outfitNote + 'Dải ngũ sắc viền tay áo Nhật Bình tượng trưng cho Ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ) và Ngũ thường, là nhận diện cốt lõi BẤT BIẾN theo KB-NHATBINH-02. Tuyệt đối không được đảo lộn hoặc loại bỏ lung tung.',
       violates_invariants: true,
       violated_evidence_ids: ['KB-NHATBINH-02'],
       applicable_evidence_ids: ['KB-NHATBINH-02'],
@@ -711,7 +715,7 @@ function evaluateWhatIfDeterministic(garment: string, query: string) {
     proposed_change: 'Đề xuất thử nghiệm thiết kế đương đại',
     status: 'Insufficient Evidence',
     uncertainty_flag: true,
-    impact_analysis: 'Chi tiết hoặc họa tiết được đề cập không có dữ liệu đối chiếu trong Cultural Knowledge Base (CKB) được cấp. Theo quy tắc Cultural Audit Governance, hệ thống phải bật cờ uncertainty_flag: true và nêu rõ thiếu tài liệu lịch sử chứng thực.',
+    impact_analysis: outfitNote + 'Chi tiết hoặc họa tiết được đề cập không có dữ liệu đối chiếu trong Cultural Knowledge Base (CKB) được cấp. Theo quy tắc Cultural Audit Governance, hệ thống phải bật cờ uncertainty_flag: true và nêu rõ thiếu tài liệu lịch sử chứng thực.',
     violates_invariants: false,
     violated_evidence_ids: [],
     applicable_evidence_ids: [],

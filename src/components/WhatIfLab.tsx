@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { WhatIfEvaluation, GarmentKey } from '../types/vietphuc';
-import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
+import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, Check } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
+  activeProposal: OutfitProposal | null;
+  onClearActiveProposal?: () => void;
   onOpenCKB?: (evidenceId?: string) => void;
 }
 
@@ -58,15 +60,35 @@ const PRESET_QUERIES = [
   },
 ];
 
-export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB }) => {
-  const [selectedGarment, setSelectedGarment] = useState<GarmentKey>(currentGarment);
+export const WhatIfLab: React.FC<WhatIfLabProps> = ({
+  currentGarment,
+  activeProposal,
+  onClearActiveProposal,
+  onOpenCKB,
+}) => {
+  // Sync selectedGarment with activeProposal if present, otherwise currentGarment
+  const [selectedGarment, setSelectedGarment] = useState<GarmentKey>(
+    activeProposal ? activeProposal.garment_type : currentGarment
+  );
   const [queryInput, setQueryInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [evaluation, setEvaluation] = useState<WhatIfEvaluation | null>(null);
+  const [evaluationSource, setEvaluationSource] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // When activeProposal changes, sync the target garment
+  useEffect(() => {
+    if (activeProposal) {
+      setSelectedGarment(activeProposal.garment_type);
+    } else {
+      setSelectedGarment(currentGarment);
+    }
+  }, [activeProposal, currentGarment]);
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
     if (!queryText.trim()) return;
     setLoading(true);
+    setErrorMsg(null);
     setQueryInput(queryText);
 
     try {
@@ -76,15 +98,25 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
         body: JSON.stringify({
           garment: targetGarment,
           query: queryText,
+          // CRITICAL: send current_outfit when user has an active look!
+          current_outfit: activeProposal || undefined,
         }),
       });
+
+      if (!res.ok) {
+        throw new Error(`Máy chủ trả về mã lỗi ${res.status}`);
+      }
 
       const data = await res.json();
       if (data.evaluation) {
         setEvaluation(data.evaluation);
+        setEvaluationSource(data.source || 'gemini');
+      } else {
+        throw new Error('Không nhận được dữ liệu đánh giá từ máy chủ.');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to run What-If evaluation:', err);
+      setErrorMsg(err.message || 'Lỗi kết nối khi gửi yêu cầu What-If.');
     } finally {
       setLoading(false);
     }
@@ -117,6 +149,54 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
         </p>
       </div>
 
+      {/* Active Proposal Connection Indicator */}
+      {activeProposal ? (
+        <div className="bg-[#FAF7F0] border-2 border-[#991B1B] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#991B1B] text-white flex items-center justify-center font-serif font-bold text-xs shrink-0 shadow-xs">
+              LOOK
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono uppercase text-[#991B1B] font-bold tracking-wider">
+                  ĐANG THỬ NGHIỆM TRÊN LOOK ĐÃ CHỌN:
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#991B1B]/10 text-[#991B1B] rounded">
+                  Nấc Dial {activeProposal.dial_level}/5
+                </span>
+              </div>
+              <h3 className="text-sm font-serif font-bold text-[#1C1917]">
+                {activeProposal.title}
+              </h3>
+              <p className="text-[11px] text-[#57534E]">
+                Cổ phục: {activeProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân tay chẽn' : activeProposal.garment_type === 'ao_tac' ? 'Áo Tấc lễ phục' : 'Áo Nhật Bình'} · {activeProposal.concept_tag}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {onClearActiveProposal && (
+              <button
+                onClick={onClearActiveProposal}
+                className="text-[11px] font-medium text-[#78716C] hover:text-[#991B1B] bg-white border border-[#D6CEBE] hover:border-[#991B1B] px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs"
+              >
+                <X className="w-3 h-3" />
+                <span>Bỏ chọn (Về chế độ tự do)</span>
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#57534E]">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#ECE5D8] text-[#44403C]">
+              STANDALONE MODE
+            </span>
+            <span>Chế độ tự do: Chưa chọn look cụ thể từ Xưởng Phối Đồ. Bạn có thể chọn loại áo bất kỳ bên dưới để thử nghiệm độc lập.</span>
+          </div>
+        </div>
+      )}
+
       {/* Preset Fast-Test Scenarios */}
       <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
@@ -132,8 +212,11 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
             <button
               key={idx}
               onClick={() => {
-                setSelectedGarment(item.garment);
-                handleRunWhatIf(item.query, item.garment);
+                // If user didn't lock a proposal, allow switching garment with preset
+                if (!activeProposal) {
+                  setSelectedGarment(item.garment);
+                }
+                handleRunWhatIf(item.query, activeProposal ? activeProposal.garment_type : item.garment);
               }}
               className="text-left p-3 rounded-lg border border-[#E2DBD0] bg-white hover:border-[#991B1B] hover:shadow-xs transition-all flex flex-col justify-between group"
             >
@@ -173,16 +256,19 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
       </div>
 
       {/* Query Bar */}
-      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm">
+      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-          <div className="sm:w-52 shrink-0">
+          <div className="sm:w-56 shrink-0">
             <label className="text-[11px] font-mono text-[#78716C] block mb-1">
-              CHỌN CỔ PHỤC THỬ NGHIỆM
+              {activeProposal ? 'CỔ PHỤC ĐANG THỬ NGHIỆM' : 'CHỌN CỔ PHỤC THỬ NGHIỆM'}
             </label>
             <select
               value={selectedGarment}
               onChange={(e) => setSelectedGarment(e.target.value as GarmentKey)}
-              className="w-full text-xs font-semibold bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] focus:outline-none focus:ring-1 focus:ring-[#991B1B]"
+              disabled={!!activeProposal}
+              className={`w-full text-xs font-semibold bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] focus:outline-none focus:ring-1 focus:ring-[#991B1B] ${
+                activeProposal ? 'bg-[#F2ECE0]/60 cursor-not-allowed text-[#78716C]' : ''
+              }`}
             >
               <option value="ngu_than">Áo Ngũ Thân tay chẽn</option>
               <option value="ao_tac">Áo Tấc lễ phục</option>
@@ -192,7 +278,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
 
           <div className="flex-1">
             <label className="text-[11px] font-mono text-[#78716C] block mb-1">
-              NHẬP CÂU HỎI THỬ NGHIỆM CỦA BẠN
+              NHẬP CÂU HỎI THỬ NGHIỆM CỦA BẠN (WHAT IF...?)
             </label>
             <input
               type="text"
@@ -209,7 +295,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
           <button
             onClick={() => handleRunWhatIf(queryInput)}
             disabled={loading || !queryInput.trim()}
-            className="px-5 py-2 bg-[#1C1917] hover:bg-[#991B1B] disabled:bg-[#A8A29E] text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm h-[36px]"
+            className="px-5 py-2 bg-[#1C1917] hover:bg-[#991B1B] disabled:bg-[#A8A29E] text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm h-[36px] cursor-pointer"
           >
             {loading ? (
               <>
@@ -224,6 +310,12 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
             )}
           </button>
         </div>
+
+        {errorMsg && (
+          <div className="p-2.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg">
+            {errorMsg}
+          </div>
+        )}
       </div>
 
       {/* Results Viewport */}
@@ -232,8 +324,23 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({ currentGarment, onOpenCKB 
           {/* Top Status Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E2DBD0] gap-3">
             <div>
-              <div className="text-[11px] font-mono uppercase tracking-wider text-[#78716C] mb-0.5">
-                KẾT QUẢ PHẢN BIỆN DI SẢN (WHAT-IF EVALUATION)
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-[#78716C]">
+                  KẾT QUẢ PHẢN BIỆN DI SẢN (WHAT-IF EVALUATION)
+                </span>
+
+                {/* Source Badge: Live Gemini vs Demo Fallback */}
+                {evaluationSource === 'gemini' && (
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-emerald-600" />
+                    Gemini · Live
+                  </span>
+                )}
+                {evaluationSource && evaluationSource !== 'gemini' && (
+                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300">
+                    Demo fallback
+                  </span>
+                )}
               </div>
               <h3 className="text-lg sm:text-xl font-serif font-bold text-[#1C1917]">
                 "{evaluation.query}"
