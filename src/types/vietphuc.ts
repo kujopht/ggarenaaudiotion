@@ -4,6 +4,10 @@ export type GarmentKey = 'ngu_than' | 'ao_tac' | 'nhat_binh';
 
 export type VerificationStatus = 'verified' | 'unverified' | 'needs_review' | 'needs_research' | 'disputed';
 
+export type PrototypeCompliance = 'compliant' | 'conflict' | 'unassessed';
+
+export type HistoricalConfidence = 'verified' | 'partially_verified' | 'needs_review' | 'unverified' | 'mixed';
+
 export type SourceType =
   | 'primary_text'
   | 'historical_text'
@@ -67,6 +71,11 @@ export interface CulturalAuditResult {
   mutables_used: MutableUsage[];
   cautions_and_redlines: string[];
   auditor_verdict: string;
+
+  // Separation of prototype compliance & historical confidence (Requirement 4)
+  prototype_compliance?: PrototypeCompliance;
+  historical_confidence?: HistoricalConfidence;
+  verification_summary?: string;
 }
 
 export interface VisualDetails {
@@ -120,4 +129,9 @@ export interface WhatIfEvaluation {
   applicable_evidence_ids: string[];
   cautions_and_redlines: string[];
   stylist_counter_proposal: StylistCounterProposal;
+
+  // Separation of prototype compliance & historical confidence (Requirement 4)
+  prototype_compliance?: PrototypeCompliance;
+  historical_confidence?: HistoricalConfidence;
+  verification_summary?: string;
 }

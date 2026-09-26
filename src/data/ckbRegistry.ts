@@ -1,4 +1,10 @@
-import { CKBEntry, GarmentKey } from '../types/vietphuc';
+import {
+  CKBEntry,
+  GarmentKey,
+  PrototypeCompliance,
+  HistoricalConfidence,
+  VerificationStatus,
+} from '../types/vietphuc';
 
 export const CKB_REGISTRY: CKBEntry[] = [
   {
@@ -49,12 +55,12 @@ export const CKB_REGISTRY: CKBEntry[] = [
     source_author_or_org: 'Nội các triều Nguyễn (Bản dịch Viện Sử học)',
     source_page: 'Quyển 78 - Lễ bộ, phần Điển lễ phẩm phục',
     source_type: 'primary_text',
-    confidence: 'high',
-    verification_status: 'verified',
-    notes: 'Quy định chính thức của điển chế triều Nguyễn về sắc phục và hoa văn rồng của hoàng đế. Nguồn sử liệu sơ cấp đã được đối chiếu trực tiếp.',
+    confidence: 'medium',
+    verification_status: 'needs_review',
+    notes: 'Có dẫn liệu thư tịch (Khâm định Đại Nam hội điển sự lệ, Quyển 78), nhưng bản sao vật lý/số hóa chưa được đối soát trực tiếp trong dự án. Trạng thái chuyển sang needs_review để đối chiếu thực tế trước khi xác nhận chính thức.',
     information_tier: {
-      historical_claim: 'Khâm định Đại Nam hội điển sự lệ quy định rồng 5 móng độc quyền cho Hoàng đế; quan và thứ dân dùng rồng 4 móng hoặc hoa văn khác.',
-      prototype_rule: 'Phần mềm kích hoạt cờ cảnh báo Redline nghiêm ngặt nếu phát hiện đề xuất thêu rồng 5 móng trên trang phục dân sự.',
+      historical_claim: 'Khâm định Đại Nam hội điển sự lệ ghi nhận rồng 5 móng độc quyền cho Hoàng đế; thứ dân không được dùng (chờ đối soát văn bản gốc trực tiếp trong dự án).',
+      prototype_rule: 'Phần mềm kích hoạt cờ cảnh báo Redline lưu ý nếu phát hiện đề xuất thêu rồng 5 móng trên trang phục dân sự.',
       contemporary_suggestion: 'Ứng dụng đồ án rồng 4 móng cách điệu hình học (line-art) hoặc mây sấm đương đại.',
     },
   },
@@ -272,7 +278,7 @@ export function formatVerificationStatusBadge(status: CKBEntry['verification_sta
   }
   if (status === 'needs_review' || status === 'needs_research') {
     return {
-      label: 'Cần nghiên cứu thêm nguồn',
+      label: 'Cần rà soát thêm nguồn',
       badgeClass: 'border-amber-500/40 text-amber-300 bg-amber-500/10',
       isVerified: false,
     };
@@ -289,4 +295,193 @@ export function formatVerificationStatusBadge(status: CKBEntry['verification_sta
     badgeClass: 'border-neutral-500/40 text-neutral-300 bg-neutral-500/10',
     isVerified: false,
   };
+}
+
+/**
+ * Retrieve a CKB entry by ID
+ */
+export function getCKBEntry(id: string): CKBEntry | undefined {
+  return CKB_REGISTRY.find((entry) => entry.id === id);
+}
+
+/**
+ * Retrieve multiple CKB entries by IDs
+ */
+export function getCKBEntries(ids: string[]): CKBEntry[] {
+  return ids
+    .map((id) => getCKBEntry(id))
+    .filter((entry): entry is CKBEntry => entry !== undefined);
+}
+
+/**
+ * Extract certainty metadata from an entry
+ */
+export function getRuleCertainty(entry: CKBEntry): {
+  isVerified: boolean;
+  confidence: string;
+  status: VerificationStatus;
+  label: string;
+} {
+  const badge = formatVerificationStatusBadge(entry.verification_status);
+  return {
+    isVerified: badge.isVerified,
+    confidence: entry.confidence || 'medium',
+    status: entry.verification_status,
+    label: badge.label,
+  };
+}
+
+/**
+ * Extract evidence metadata for display and audit
+ */
+export function getRuleEvidenceMetadata(entry: CKBEntry) {
+  const badge = formatVerificationStatusBadge(entry.verification_status);
+  return {
+    id: entry.id,
+    title: entry.title,
+    scope: formatGarmentScopeLabel(entry.garment_scope),
+    coreRule: entry.core_rule,
+    historicalClaim: entry.information_tier.historical_claim,
+    prototypeRule: entry.information_tier.prototype_rule,
+    contemporarySuggestion: entry.information_tier.contemporary_suggestion,
+    sourceTitle: entry.source_title,
+    sourceDetails: entry.source_page
+      ? `${entry.source_title || ''} (${entry.source_page})`
+      : entry.source_title,
+    status: entry.verification_status,
+    statusLabel: badge.label,
+    isVerified: badge.isVerified,
+    notes: entry.notes,
+  };
+}
+
+/**
+ * Derive two-layer audit confidence based on evidence IDs and rule statuses:
+ * Layer 1: Prototype Compliance ('compliant' | 'conflict' | 'unassessed')
+ * Layer 2: Historical Confidence ('verified' | 'partially_verified' | 'needs_review' | 'unverified' | 'mixed')
+ */
+export function deriveAuditConfidence(
+  evidenceIds: string[],
+  hasConflict: boolean = false
+): {
+  prototype_compliance: PrototypeCompliance;
+  historical_confidence: HistoricalConfidence;
+  verification_summary: string;
+  hasUnverified: boolean;
+} {
+  if (hasConflict) {
+    const entries = getCKBEntries(evidenceIds);
+    const allVerified = entries.length > 0 && entries.every((e) => e.verification_status === 'verified');
+    const anyVerified = entries.some((e) => e.verification_status === 'verified');
+    const anyNeedsReview = entries.some(
+      (e) => e.verification_status === 'needs_review' || e.verification_status === 'needs_research'
+    );
+    const historical_confidence: HistoricalConfidence = allVerified
+      ? 'verified'
+      : anyVerified
+      ? 'partially_verified'
+      : anyNeedsReview
+      ? 'needs_review'
+      : 'unverified';
+    return {
+      prototype_compliance: 'conflict',
+      historical_confidence,
+      verification_summary:
+        historical_confidence === 'verified'
+          ? 'Xung đột với quy tắc prototype; nguồn thư tịch đã được đối chiếu'
+          : historical_confidence === 'needs_review'
+          ? 'Xung đột với quy tắc prototype; nguồn tham chiếu hiện cần rà soát thêm'
+          : historical_confidence === 'partially_verified'
+          ? 'Xung đột với quy tắc prototype; nguồn tham chiếu một phần đã đối chiếu'
+          : 'Xung đột với quy tắc prototype; nguồn tham chiếu hiện chưa được xác minh độc lập',
+      hasUnverified: !allVerified,
+    };
+  }
+
+  const entries = getCKBEntries(evidenceIds);
+  if (entries.length === 0) {
+    return {
+      prototype_compliance: 'unassessed',
+      historical_confidence: 'unverified',
+      verification_summary: 'Chưa có điều khoản CKB tham chiếu',
+      hasUnverified: true,
+    };
+  }
+
+  const allVerified = entries.every((e) => e.verification_status === 'verified');
+  const anyNeedsReview = entries.some(
+    (e) => e.verification_status === 'needs_review' || e.verification_status === 'needs_research'
+  );
+  const anyVerified = entries.some((e) => e.verification_status === 'verified');
+
+  let historical_confidence: HistoricalConfidence;
+  let verification_summary: string;
+
+  if (allVerified) {
+    historical_confidence = 'verified';
+    verification_summary = 'Đã đối chiếu nguồn thư tịch lịch sử cho toàn bộ quy tắc';
+  } else if (anyVerified) {
+    historical_confidence = 'partially_verified';
+    verification_summary = 'Nguồn tham chiếu hỗn hợp: một số quy tắc đã đối chiếu, một số cần rà soát thêm';
+  } else if (anyNeedsReview) {
+    historical_confidence = 'needs_review';
+    verification_summary = 'Có quy tắc tham chiếu cần rà soát thêm nguồn thư tịch';
+  } else {
+    historical_confidence = 'unverified';
+    verification_summary = 'Các quy tắc tham chiếu hiện chưa được đối chiếu thư tịch độc lập trong bản thử nghiệm';
+  }
+
+  return {
+    prototype_compliance: 'compliant',
+    historical_confidence,
+    verification_summary,
+    hasUnverified: !allVerified,
+  };
+}
+
+/**
+ * Builds Gemini System Grounding dynamically from CKB_REGISTRY.
+ * This guarantees CKB_REGISTRY is the single source of truth for the entire application.
+ */
+export function buildCKBSystemGrounding(): string {
+  const rulesList = CKB_REGISTRY.map((entry) => {
+    const scopeLabel = formatGarmentScopeLabel(entry.garment_scope);
+    const sourceInfo = entry.source_title
+      ? `Nguồn: ${entry.source_title}${entry.source_page ? ` (${entry.source_page})` : ''} - Trạng thái nguồn: ${entry.verification_status}`
+      : `Trạng thái nguồn: Chưa xác minh thư tịch độc lập trong bản thử nghiệm (${entry.verification_status})`;
+
+    return `- ${entry.id}: [${entry.title}] (Phạm vi: ${scopeLabel})
+  * Quy tắc cốt lõi: ${entry.core_rule}
+  * Tầng 1 (Căn cứ lịch sử): ${entry.information_tier.historical_claim}
+  * Tầng 2 (Quy ước nội bộ prototype): ${entry.information_tier.prototype_rule}
+  * Tầng 3 (Gợi ý sáng tạo đương đại): ${entry.information_tier.contemporary_suggestion}
+  * ${sourceInfo}${entry.redline_warning ? `\n  * Cảnh báo: ${entry.redline_warning}` : ''}`;
+  }).join('\n');
+
+  return `BẠN LÀ HỆ THỐNG "VIỆTPHỤC REMIX LAB" - ĐỒNG THỜI GIỮ 2 VAI TRÒ:
+1. Contemporary Fashion Co-Designer: Chuyên gia sáng tạo thời trang đương đại, giúp Gen Z phối Việt phục với các phong cách mới.
+2. Cultural Auditor: Chuyên gia thẩm định di sản minh bạch, chỉ đưa ra kết luận dựa DUY NHẤT trên Cultural Knowledge Base (CKB) được cấp dưới đây. Tuyệt đối không võ đoán hay khẳng định chắc chắn khi quy tắc chưa có nguồn đối chiếu.
+
+==================================================
+CULTURAL KNOWLEDGE BASE (CKB) & TẬP QUY TẮC BẤT BIẾN:
+==================================================
+${rulesList}
+
+==================================================
+QUY TẮC THẨM ĐỊNH (CULTURAL AUDIT GOVERNANCE):
+==================================================
+1. PHÂN TÁCH RẠCH RÒI 2 LỚP ĐÁNH GIÁ (REQUIREMENT 4):
+   - Lớp 1 (prototype_compliance): 'compliant' (phù hợp rule), 'conflict' (xung đột rule), hoặc 'unassessed' (chưa đối soát).
+   - Lớp 2 (historical_confidence): 'verified', 'partially_verified', 'needs_review', 'unverified', hoặc 'mixed'.
+2. ĐÁNH GIÁ CHỈ ĐƯỢC DÙNG 3 TRẠNG THÁI (KHÔNG DÙNG ĐIỂM SỐ 0-100):
+   - "Supported": CHỈ DÙNG KHI các claim lịch sử quan trọng làm cơ sở cho kết luận ĐÃ CÓ NGUỒN VERIFIED phù hợp.
+   - "Supported with Caution": Dùng khi rule prototype áp dụng rõ ràng nhưng nguồn lịch sử chưa đầy đủ (unverified/needs_review), hoặc khi thiết kế có can thiệp táo bạo. BẮT BUỘC bật cờ uncertainty hoặc ghi rõ lưu ý nguồn.
+   - "Insufficient Evidence": Bất kỳ tuyên bố, họa tiết, hoặc chi tiết nào KHÔNG CÓ trong CKB ở trên. Phải bật uncertainty_flag: true và nêu rõ thiếu tài liệu lịch sử chứng thực.
+3. TUYỆT ĐỐI TRÁNH NGÔN TỪ VÕ ĐOÁN:
+   - Tuyệt đối KHÔNG dùng các từ: "đúng tuyệt đối", "chính xác lịch sử 100%", "đã xác thực văn hóa", "được chứng nhận".
+   - Phân biệt rõ giữa: "Phù hợp với quy tắc của prototype" và "Đã được xác nhận chính xác về lịch sử".
+4. XỬ LÝ VI PHẠM (REDLINE & LƯU Ý QUY THỨC):
+   - Nếu vi phạm KB-RULE-03 (Rồng 5 móng) -> Ghi nhận cảnh báo điển chế hoàng quyền, giải thích trạng thái nguồn cần rà soát thêm (needs_review).
+   - Nếu phát hiện đề xuất đổi vạt sang trái (Tả nhậm) trên Ngũ Thân/Áo Tấc -> Ghi nhận cảnh báo lưu ý quy thức KB-RULE-01, nêu rõ nguồn lịch sử chưa kiểm chứng thư tịch độc lập.
+`;
 }

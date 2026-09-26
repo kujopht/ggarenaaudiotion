@@ -15,7 +15,11 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<'all' | 'invariant' | 'mutable' | 'sacred_rule'>('all');
-  const [filterVerification, setFilterVerification] = useState<'all' | 'verified' | 'unverified'>('all');
+  const [filterVerification, setFilterVerification] = useState<'all' | 'verified' | 'needs_review' | 'unverified'>('all');
+
+  const verifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'verified').length;
+  const needsReviewCount = CKB_REGISTRY.filter((r) => r.verification_status === 'needs_review' || r.verification_status === 'needs_research').length;
+  const unverifiedCount = CKB_REGISTRY.filter((r) => r.verification_status === 'unverified').length;
 
   useEffect(() => {
     if (isOpen && highlightId) {
@@ -35,7 +39,8 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
     const matchesVerification =
       filterVerification === 'all' ||
       (filterVerification === 'verified' && entry.verification_status === 'verified') ||
-      (filterVerification === 'unverified' && entry.verification_status !== 'verified');
+      (filterVerification === 'needs_review' && (entry.verification_status === 'needs_review' || entry.verification_status === 'needs_research')) ||
+      (filterVerification === 'unverified' && entry.verification_status === 'unverified');
 
     const matchesSearch =
       entry.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -101,18 +106,31 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Tất cả nguồn
+                Tất cả ({CKB_REGISTRY.length})
               </button>
+              {verifiedCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterVerification('verified')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border ${
+                    filterVerification === 'verified'
+                      ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
+                      : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
+                  }`}
+                >
+                  Đã có nguồn ({verifiedCount})
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setFilterVerification('verified')}
+                onClick={() => setFilterVerification('needs_review')}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border ${
-                  filterVerification === 'verified'
-                    ? 'border-emerald-500/50 bg-emerald-500/20 text-emerald-300'
+                  filterVerification === 'needs_review'
+                    ? 'border-amber-500/50 bg-amber-500/20 text-amber-300'
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Đã có nguồn (1)
+                Cần rà soát ({needsReviewCount})
               </button>
               <button
                 type="button"
@@ -123,7 +141,7 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                     : 'border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]'
                 }`}
               >
-                Chưa xác minh (11)
+                Chưa xác minh ({unverifiedCount})
               </button>
             </div>
           </div>
@@ -248,9 +266,15 @@ export const CKBExplorerModal: React.FC<CKBExplorerModalProps> = ({
                       <span className={`text-[9px] font-mono px-1 py-0.2 rounded border ${
                         entry.verification_status === 'verified'
                           ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
+                          : entry.verification_status === 'needs_review'
+                          ? 'border-amber-500/40 text-amber-400 bg-amber-500/10'
                           : 'border-neutral-600/40 text-neutral-400 bg-neutral-800/30'
                       }`}>
-                        {entry.verification_status === 'verified' ? 'Có nguồn sử liệu' : 'Chưa đối chiếu'}
+                        {entry.verification_status === 'verified'
+                          ? 'Có nguồn sử liệu'
+                          : entry.verification_status === 'needs_review'
+                          ? 'Cần rà soát thêm'
+                          : 'Chưa đối chiếu'}
                       </span>
                     </div>
                     <div className="text-[10px] text-[#8C7E6C] italic">Thông tin tham chiếu từ thư tịch/hiện vật hoặc truyền ngôn</div>

@@ -5,8 +5,21 @@ import {
   handleWhatIfStandaloneGarmentChange,
   isResponseValid,
 } from '../src/utils/remixStateHelpers.js';
-import { evaluateWhatIfDeterministic } from '../src/utils/deterministicEngines.js';
-import { CKB_REGISTRY, isRuleApplicableToGarment, formatVerificationStatusBadge } from '../src/data/ckbRegistry.js';
+import {
+  evaluateWhatIfDeterministic,
+  generateDeterministicProposals,
+} from '../src/utils/deterministicEngines.js';
+import {
+  CKB_REGISTRY,
+  isRuleApplicableToGarment,
+  formatVerificationStatusBadge,
+  getCKBEntry,
+  getCKBEntries,
+  getRuleCertainty,
+  getRuleEvidenceMetadata,
+  deriveAuditConfidence,
+  buildCKBSystemGrounding,
+} from '../src/data/ckbRegistry.js';
 import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
 
 console.log('--- BẮT ĐẦU CHẠY BỘ KIỂM THỬ: REMIX STATE & FLOW VALIDATION ---\n');
@@ -429,19 +442,20 @@ runTest('9.1 Luồng tạo Look -> Chọn chuyển sang What-If: Dữ liệu k�
 // -------------------------------------------------------------
 // Test Case 10: Submission Hardening & CKB Truthfulness
 // -------------------------------------------------------------
-runTest('10.1 CKB Rule có nguồn xác minh (Verified): KB-RULE-03 chứa trích dẫn sử liệu sơ cấp chính thức', () => {
+runTest('10.1 CKB Rule cần rà soát (needs_review): KB-RULE-03 ghi nhận thư tịch nhưng chưa đối soát thực tế', () => {
   const rule = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-03');
   assert.ok(rule, 'Phải tìm thấy rule KB-RULE-03');
-  assert.strictEqual(rule?.verification_status, 'verified', 'KB-RULE-03 phải có trạng thái verified');
+  assert.strictEqual(rule?.verification_status, 'needs_review', 'KB-RULE-03 phải ở trạng thái needs_review khi chưa đối soát thực địa/bản số hóa');
   assert.strictEqual(rule?.source_title, 'Khâm định Đại Nam hội điển sự lệ');
   assert.strictEqual(rule?.source_type, 'primary_text');
-  assert.strictEqual(rule?.confidence, 'high');
+  assert.strictEqual(rule?.confidence, 'medium');
   assert.ok(rule?.source_page?.includes('Quyển 78'), 'Phải có số quyển/trang khảo cứu');
   assert.ok(rule?.source_author_or_org?.includes('Nội các triều Nguyễn'), 'Phải ghi nhận cơ quan biên soạn');
+  assert.ok(rule?.notes?.includes('chưa được đối soát trực tiếp'), 'Phải có note minh bạch về tình trạng chưa đối soát');
 
   const badge = formatVerificationStatusBadge(rule.verification_status);
-  assert.strictEqual(badge.isVerified, true, 'Badge phải xác nhận đã đối chiếu nguồn');
-  assert.strictEqual(badge.label, 'Đã đối chiếu nguồn thư tịch');
+  assert.strictEqual(badge.isVerified, false, 'Không được nhận là đã verified hoàn toàn khi chưa đối soát');
+  assert.strictEqual(badge.label, 'Cần rà soát thêm nguồn');
 });
 
 runTest('10.2 CKB Rule chưa có nguồn (Unverified): Không tự bịa nguồn, thể hiện minh bạch trạng thái unverified', () => {
@@ -561,11 +575,85 @@ runTest('10.5 Evidence ID mở đúng metadata nguồn và phân tách 3 tầng 
     if (entry.verification_status === 'verified') {
       assert.ok(entry.source_title, `Rule đã verified ${entry.id} phải có source_title`);
       assert.ok(entry.source_author_or_org, `Rule đã verified ${entry.id} phải có source_author_or_org`);
+    } else if (entry.verification_status === 'needs_review') {
+      assert.ok(entry.source_title, `Rule needs_review ${entry.id} có ghi nhận source_title`);
+      assert.ok(entry.notes && entry.notes.includes('chưa được đối soát trực tiếp'), `Rule ${entry.id} ghi rõ cần rà soát`);
     } else {
       assert.strictEqual(entry.source_title, undefined, `Rule unverified ${entry.id} không được có source_title giả`);
       assert.ok(entry.notes && entry.notes.includes('Chưa có nguồn xác minh'), `Rule unverified ${entry.id} phải ghi rõ chưa có nguồn`);
     }
   }
+});
+
+// -------------------------------------------------------------
+// Test Case 11: Single Source of Truth Architecture & Two-Layer Certainty Model
+// -------------------------------------------------------------
+runTest('11.1 Dynamic CKB System Grounding: buildCKBSystemGrounding sinh chỉ dẫn từ CKB_REGISTRY', () => {
+  const grounding = buildCKBSystemGrounding();
+  assert.ok(typeof grounding === 'string', 'Grounding phải là string');
+  assert.ok(grounding.includes('CULTURAL KNOWLEDGE BASE (CKB)'), 'Grounding phải chứa tiêu đề CKB');
+  assert.ok(grounding.includes('TẬP QUY TẮC BẤT BIẾN'), 'Grounding phải chứa tập quy tắc bất biến');
+
+  // Grounding phải chứa tất cả rule id trong registry
+  for (const entry of CKB_REGISTRY) {
+    assert.ok(grounding.includes(entry.id), `Grounding phải tự động chứa mã rule ${entry.id}`);
+  }
+
+  // Grounding phải yêu cầu tách bạch 2 tầng (prototype compliance & historical confidence)
+  assert.ok(grounding.includes('prototype_compliance'), 'Grounding phải yêu cầu trường prototype_compliance');
+  assert.ok(grounding.includes('historical_confidence'), 'Grounding phải yêu cầu trường historical_confidence');
+});
+
+runTest('11.2 Helpers getCKBEntry & isRuleApplicableToGarment hoạt động chính xác', () => {
+  const entry01 = getCKBEntry('KB-RULE-01');
+  assert.ok(entry01, 'getCKBEntry phải trả về entry khi có id hợp lệ');
+  assert.strictEqual(entry01?.id, 'KB-RULE-01');
+
+  const invalidEntry = getCKBEntry('NON_EXISTENT_ID');
+  assert.strictEqual(invalidEntry, undefined, 'getCKBEntry phải trả về undefined khi id không tồn tại');
+
+  // Garment applicability
+  assert.strictEqual(isRuleApplicableToGarment(entry01!, 'ngu_than'), true);
+  assert.strictEqual(isRuleApplicableToGarment(entry01!, 'ao_tac'), true);
+  assert.strictEqual(isRuleApplicableToGarment(entry01!, 'nhat_binh'), false);
+});
+
+runTest('11.3 Tách bạch Prototype Compliance và Historical Confidence trong Audit', () => {
+  // Case 1: Toàn bộ rules là unverified (ví dụ KB-RULE-01, KB-NGUTHAN-01)
+  const unverifiedConfidence = deriveAuditConfidence(['KB-RULE-01', 'KB-NGUTHAN-01'], false);
+  assert.strictEqual(unverifiedConfidence.prototype_compliance, 'compliant', 'Tuân thủ quy ước prototype');
+  assert.strictEqual(unverifiedConfidence.historical_confidence, 'unverified', 'Nguồn lịch sử là unverified');
+  assert.strictEqual(unverifiedConfidence.hasUnverified, true);
+  assert.ok(unverifiedConfidence.verification_summary.includes('chưa được đối chiếu thư tịch độc lập'));
+
+  // Case 2: Có rule needs_review (ví dụ KB-RULE-03)
+  const reviewConfidence = deriveAuditConfidence(['KB-RULE-03'], true);
+  assert.strictEqual(reviewConfidence.prototype_compliance, 'conflict', 'Có xung đột với quy tắc prototype');
+  assert.strictEqual(reviewConfidence.historical_confidence, 'needs_review', 'Nguồn lịch sử ở mức needs_review');
+  assert.strictEqual(reviewConfidence.hasUnverified, true);
+
+  // Case 3: Empty evidence
+  const emptyConfidence = deriveAuditConfidence([], false);
+  assert.strictEqual(emptyConfidence.prototype_compliance, 'unassessed');
+  assert.strictEqual(emptyConfidence.historical_confidence, 'unverified');
+});
+
+runTest('11.4 What-If Fallback phản ánh trung thực certainty model khi vi phạm rule unverified/needs_review', () => {
+  // Khi vi phạm KB-RULE-01 (unverified): không được kết luận tuyệt đối, phải nêu rõ tình trạng nguồn
+  const resLapel = evaluateWhatIfDeterministic('ngu_than', 'Đổi vạt áo sang bên trái');
+  assert.strictEqual(resLapel.violates_invariants, true);
+  assert.strictEqual(resLapel.prototype_compliance, 'conflict');
+  assert.strictEqual(resLapel.historical_confidence, 'unverified');
+  assert.ok(resLapel.impact_analysis.includes('KB-RULE-01'));
+  assert.ok(resLapel.impact_analysis.includes('nguồn lịch sử của rule này trong bản thử nghiệm hiện chưa được xác minh độc lập'));
+
+  // Khi vi phạm KB-RULE-03 (needs_review): nêu rõ điển chế và nguồn cần rà soát thêm
+  const resDragon = evaluateWhatIfDeterministic('ngu_than', 'Thêu rồng 5 móng lên vạt');
+  assert.strictEqual(resDragon.violates_invariants, true);
+  assert.strictEqual(resDragon.prototype_compliance, 'conflict');
+  assert.strictEqual(resDragon.historical_confidence, 'needs_review');
+  assert.ok(resDragon.impact_analysis.includes('KB-RULE-03'));
+  assert.ok(resDragon.impact_analysis.includes('nguồn lịch sử tham chiếu cần được rà soát thêm'));
 });
 
 console.log('\n-------------------------------------------------------------');

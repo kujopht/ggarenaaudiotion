@@ -1,9 +1,14 @@
-import { OutfitProposal, WhatIfEvaluation } from '../types/vietphuc';
+import { OutfitProposal, WhatIfEvaluation, GarmentKey, CulturalAuditResult } from '../types/vietphuc';
+import {
+  getCKBEntry,
+  isRuleApplicableToGarment,
+  getRuleCertainty,
+  deriveAuditConfidence,
+} from '../data/ckbRegistry';
 
 /**
  * Deterministic What-If Evaluator for Cultural Knowledge Base (CKB)
- * Accurately models Invariants & Mutables with rigorous contextual matching,
- * negation handling, and clear fallback boundary reporting.
+ * Single Source of Truth architecture: Rules, metadata, and certainty are read directly from CKB_REGISTRY.
  */
 export function evaluateWhatIfDeterministic(
   garment: string,
@@ -12,7 +17,7 @@ export function evaluateWhatIfDeterministic(
 ): WhatIfEvaluation {
   const rawQuery = query || '';
   const q = rawQuery.toLowerCase().trim();
-  const effectiveGarment = current_outfit?.garment_type || garment || 'ngu_than';
+  const effectiveGarment = (current_outfit?.garment_type || garment || 'ngu_than') as GarmentKey;
   const outfitNote = current_outfit
     ? `[Đang thử nghiệm trên "${current_outfit.title}" (Nấc Dial ${current_outfit.dial_level})]: `
     : '';
@@ -35,10 +40,13 @@ export function evaluateWhatIfDeterministic(
 
   // --------------------------------------------------------------------------
   // Rule 1: Lapel side (Hữu Nhậm vs Tả Nhậm) - KB-RULE-01
-  // Scope: Only applies to overlapping lapel garments (ngu_than, ao_tac).
+  // Scope: Only applies to garments where isRuleApplicableToGarment is true (ngu_than, ao_tac).
   // Áo Nhật Bình is Đối Khâm (parallel front lapels), not Hữu Nhậm.
   // Must NOT trigger for accessories on the left (bags, watches, bows, etc.)
   // --------------------------------------------------------------------------
+  const rule01 = getCKBEntry('KB-RULE-01')!;
+  const isApplicableLapel = isRuleApplicableToGarment(rule01, effectiveGarment);
+
   const isAccessoryLeft =
     q.includes('túi') ||
     q.includes('balo') ||
@@ -50,7 +58,7 @@ export function evaluateWhatIfDeterministic(
     q.includes('khăn tay');
 
   const isLapelLeftProposal =
-    effectiveGarment !== 'nhat_binh' &&
+    isApplicableLapel &&
     !isAccessoryLeft &&
     !hasNegation(q) &&
     (
@@ -63,27 +71,31 @@ export function evaluateWhatIfDeterministic(
     );
 
   if (isLapelLeftProposal) {
+    const auditConf = deriveAuditConfidence([rule01.id], true);
     return {
       query: rawQuery,
       target_garment: effectiveGarment,
       proposed_change: 'Đổi vạt áo và cài khuy sang bên trái (Tả nhậm)',
       status: 'Supported with Caution',
-      uncertainty_flag: false,
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        'Đổi vạt sang cài bên trái là vi phạm quy ước cấu trúc cốt lõi theo KB-RULE-01 (áp dụng cho Áo Ngũ Thân và Áo Tấc). Trong tập quán y phục Á Đông và ghi nhận hiện vật thời Nguyễn, tả nhậm là quy thức cài áo thường liên quan y phục tang ma của người quá cố, khuyến cáo tránh dùng trên trang phục thường nhật.',
+        `Thay đổi này xung đột với quy tắc prototype ${rule01.id} (${rule01.title}). ${rule01.information_tier.prototype_rule} Tuy nhiên, nguồn lịch sử của rule này trong bản thử nghiệm hiện chưa được xác minh độc lập. Trong tập quán y phục Á Đông, tả nhậm là quy thức cài áo thường liên quan y phục tang ma của người quá cố, khuyến cáo tránh dùng trên trang phục thường nhật.`,
       violates_invariants: true,
-      violated_evidence_ids: ['KB-RULE-01'],
-      applicable_evidence_ids: ['KB-RULE-01'],
+      violated_evidence_ids: [rule01.id],
+      applicable_evidence_ids: [rule01.id],
       cautions_and_redlines: [
-        'LƯU Ý QUY THỨC [KB-RULE-01]: Quy thức Hữu nhậm (vạt trái đè vạt phải, khuy cài bên phải) là quy ước cấu trúc cốt lõi của Áo Ngũ Thân và Áo Tấc trong bản thử nghiệm. Khuyến cáo tránh cài vạt sang trái (Tả nhậm).',
+        `LƯU Ý QUY THỨC [${rule01.id}]: ${rule01.core_rule} (Nguồn tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm).`,
       ],
       stylist_counter_proposal: {
         title: 'Bảo lưu Hữu Nhậm với Cúc Bấm Kim Loại Hiện Đại Cho Người Thuận Tay Trái',
         solution:
           'Vẫn giữ đúng quy thức Hữu nhậm (vạt trái đè vạt phải, khuy bên phải), nhưng ứng dụng hệ thống khóa bấm kim loại từ tính (magnetic snap buttons) hoặc khóa kéo ẩn bên hông phải để người thuận tay trái thao tác đóng mở nhanh trong 1 giây.',
         heritage_safeguard:
-          'Bảo vệ nguyên vẹn cấu trúc Hữu nhậm truyền thống, tránh nguy cơ đồng nhất với y phục tang lễ.',
+          'Bảo vệ nguyên vẹn cấu trúc Hữu nhậm theo quy ước prototype, tránh nguy cơ đồng nhất với y phục tang lễ.',
         contemporary_edge:
           'Ứng dụng công nghệ phụ liệu may mặc công thái học hiện đại cho người thuận tay trái.',
         materials_and_cuts: 'Raw denim hoặc linen cao cấp đính khuy nam châm chìm bên phải.',
@@ -93,8 +105,9 @@ export function evaluateWhatIfDeterministic(
 
   // --------------------------------------------------------------------------
   // Rule 2: Five-Claw Dragon Motif (Rồng 5 móng / Ngũ trảo) - KB-RULE-03
-  // REDLINE: Only for genuine 5-claw dragon on civilian outfits
+  // Sourced from CKB_REGISTRY (Status: needs_review)
   // --------------------------------------------------------------------------
+  const rule03 = getCKBEntry('KB-RULE-03')!;
   const isDragonProposal =
     !hasNegation(q) &&
     (q.includes('rồng 5 móng') ||
@@ -104,27 +117,31 @@ export function evaluateWhatIfDeterministic(
       (q.includes('rồng') && q.includes('5 móng')));
 
   if (isDragonProposal) {
+    const auditConf = deriveAuditConfidence([rule03.id], true);
     return {
       query: rawQuery,
       target_garment: effectiveGarment,
       proposed_change: 'Thêu họa tiết Rồng 5 móng lên y phục dân dụng',
       status: 'Supported with Caution',
-      uncertainty_flag: false,
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        'Họa tiết Rồng 5 móng (ngũ trảo long) là biểu tượng tối thượng của Hoàng quyền thời Nguyễn, chỉ dành độc quyền cho Hoàng đế (Long bào). Việc đưa họa tiết này vào trang phục dạo phố, casual, tiệc cưới dân sự vi phạm trực tiếp KB-RULE-03.',
+        `Thay đổi này xung đột với quy tắc prototype ${rule03.id} (${rule03.title}). ${rule03.core_rule} Tuy nhiên, nguồn lịch sử tham chiếu cần được rà soát thêm (${rule03.source_title || 'thư tịch triều Nguyễn'}, trạng thái needs_review), do đó hệ thống khuyến cáo cẩn trọng thay vì khẳng định học thuật tuyệt đối.`,
       violates_invariants: true,
-      violated_evidence_ids: ['KB-RULE-03'],
-      applicable_evidence_ids: ['KB-RULE-03'],
+      violated_evidence_ids: [rule03.id],
+      applicable_evidence_ids: [rule03.id],
       cautions_and_redlines: [
-        'REDLINE CẤM KỴ [KB-RULE-03]: Họa tiết Rồng 5 móng chỉ dành riêng cho Hoàng đế thời Nguyễn. Tuyệt đối không đưa vào trang phục dân dụng, dạo phố, casual.',
+        `LƯU Ý ĐIỂN CHẾ [${rule03.id}]: ${rule03.redline_warning || rule03.core_rule} (Trạng thái nguồn: Cần rà soát thêm tư liệu).`,
       ],
       stylist_counter_proposal: {
         title: 'Chuyển Hướng Sang Họa Tiết Rồng 4 Móng, Giao Long Hoặc Mây Sấm Bát Bửu Dân Gian',
         solution:
           'Thay thế rồng 5 móng bằng họa tiết Rồng 4 móng (tứ trảo long - dùng cho vương thân), Giao long cách điệu hình học, hoặc đồ án Mây sấm (Vân lôi), Hoa chanh, Bát bửu dân gian đương đại.',
         heritage_safeguard:
-          'Tránh hoàn toàn lỗi tiếm phạm hoàng quyền, tôn trọng thứ bậc lễ chế triều đại Nguyễn.',
+          'Tránh lỗi tiếm phạm quy tắc hoàng quyền theo điển chế ghi chép.',
         contemporary_edge:
           'Đồ án Rồng 4 móng cách điệu line-art đồ họa mang hơi thở Cyber-Indochine cực kỳ cuốn hút giới trẻ.',
         materials_and_cuts: 'Thêu chỉ bạc ánh kim hoặc in chuyển nhiệt phản quang trên nền vải dạ hoặc gấm chìm.',
@@ -137,6 +154,7 @@ export function evaluateWhatIfDeterministic(
   // Must distinguish "cổ tay" (cuffs/wrists) from "cổ áo" (collar)!
   // Target garment MUST remain nhat_binh, NEVER mistakenly flipped to ngu_than.
   // --------------------------------------------------------------------------
+  const ruleNhatBinh02 = getCKBEntry('KB-NHATBINH-02')!;
   const isCuffFiveColorsProposal =
     !hasNegation(q) &&
     (effectiveGarment === 'nhat_binh' || q.includes('nhật bình')) &&
@@ -144,27 +162,31 @@ export function evaluateWhatIfDeterministic(
     (q.includes('đổi') || q.includes('thay') || q.includes('bỏ') || q.includes('đảo') || q.includes('màu') || q.includes('viền'));
 
   if (isCuffFiveColorsProposal) {
+    const auditConf = deriveAuditConfidence([ruleNhatBinh02.id], true);
     return {
       query: rawQuery,
       target_garment: 'nhat_binh',
       proposed_change: 'Bỏ hoặc thay đổi màu dải ngũ sắc ở cổ tay Áo Nhật Bình',
       status: 'Supported with Caution',
-      uncertainty_flag: false,
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        'Dải ngũ sắc viền cổ tay áo Nhật Bình tượng trưng cho Ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ) và Ngũ thường, là nhận diện cốt lõi theo KB-NHATBINH-02 trong bản thử nghiệm. Bản thử nghiệm lưu ý không đảo lộn hoặc loại bỏ tùy tiện.',
+        `Thay đổi này xung đột với quy tắc prototype ${ruleNhatBinh02.id} (${ruleNhatBinh02.title}). ${ruleNhatBinh02.core_rule} Tuy nhiên, nguồn lịch sử của quy tắc này trong bản thử nghiệm hiện chưa được xác minh độc lập.`,
       violates_invariants: true,
-      violated_evidence_ids: ['KB-NHATBINH-02'],
-      applicable_evidence_ids: ['KB-NHATBINH-02'],
+      violated_evidence_ids: [ruleNhatBinh02.id],
+      applicable_evidence_ids: [ruleNhatBinh02.id],
       cautions_and_redlines: [
-        'LƯU Ý NHẬN DIỆN [KB-NHATBINH-02]: Dải màu ngũ hành/ngũ thường ở viền tay áo mang tính nhận diện biểu tượng theo quy ước của bản thử nghiệm. Tránh đảo lộn hoặc loại bỏ tùy tiện.',
+        `LƯU Ý NHẬN DIỆN [${ruleNhatBinh02.id}]: ${ruleNhatBinh02.core_rule} (Nguồn tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm).`,
       ],
       stylist_counter_proposal: {
         title: 'Giữ Thứ Tự Ngũ Sắc Nhưng Chuyển Sang Bảng Màu Muted Hoặc Pastel Tinh Tế',
         solution:
           'Vẫn giữ đúng 5 dải màu theo đúng trật tự ngũ hành, nhưng gia giảm độ bão hòa (desaturated) sang tông màu nhã nhặn hiện đại (muted tones) hoặc dệt chìm bằng sợi tơ mờ trên nền cổ tay áo.',
         heritage_safeguard:
-          'Bảo toàn nguyên tắc ngũ hành và thứ tự dải màu nhận diện bất biến của Nhật Bình.',
+          'Bảo toàn nguyên tắc ngũ hành và thứ tự dải màu nhận diện bất biến của Nhật Bình theo quy ước prototype.',
         contemporary_edge:
           'Hài hòa thị giác với các phong cách tối giản và pastel hiện đại.',
         materials_and_cuts: 'Chất liệu lụa tơ tằm dệt chìm hoặc chỉ thêu phối màu chuyển tiếp tinh tế.',
@@ -177,7 +199,7 @@ export function evaluateWhatIfDeterministic(
   // Applicable only to Áo Ngũ Thân (and Áo Tấc).
   // CRITICAL: Must NOT match "cổ tay"! If "cổ" only appears as part of "cổ tay", ignore!
   // --------------------------------------------------------------------------
-  // Strip out occurrences of "cổ tay" to inspect true collar mentions
+  const ruleNguThan01 = getCKBEntry('KB-NGUTHAN-01')!;
   const queryWithoutCuff = q.replace(/cổ\s*tay/g, '');
   const hasTrueCollarMention =
     queryWithoutCuff.includes('cổ áo') ||
@@ -196,27 +218,31 @@ export function evaluateWhatIfDeterministic(
     hasTrueCollarMention;
 
   if (isStandingCollarProposal) {
+    const auditConf = deriveAuditConfidence([ruleNguThan01.id], true);
     return {
       query: rawQuery,
       target_garment: 'ngu_than',
       proposed_change: 'Thay đổi cổ áo Lập Lĩnh thành cổ bẻ / cổ vest / cổ khoét sâu',
       status: 'Supported with Caution',
-      uncertainty_flag: false,
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        'Cổ Lập Lĩnh cao 4-5cm ôm khít cổ với 1 cúc cổ cố định là đặc trưng nhận diện cốt lõi của Áo Ngũ Thân trong bản thử nghiệm (KB-NGUTHAN-01). Nếu thay bằng cổ vest hoặc khoét cổ sâu sẽ làm mất nhận diện truyền thống của Áo Ngũ Thân.',
+        `Thay đổi này xung đột với quy tắc prototype ${ruleNguThan01.id} (${ruleNguThan01.title}). ${ruleNguThan01.core_rule} Tuy nhiên, nguồn lịch sử cho quy chuẩn kích thước cụ thể này trong bản thử nghiệm hiện chưa được xác minh độc lập.`,
       violates_invariants: true,
-      violated_evidence_ids: ['KB-NGUTHAN-01'],
-      applicable_evidence_ids: ['KB-NGUTHAN-01'],
+      violated_evidence_ids: [ruleNguThan01.id],
+      applicable_evidence_ids: [ruleNguThan01.id],
       cautions_and_redlines: [
-        'LƯU Ý NHẬN DIỆN [KB-NGUTHAN-01]: Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cài cổ cố định là đặc trưng nhận diện cốt lõi của Áo Ngũ Thân tay chẽn trong bản thử nghiệm.',
+        `LƯU Ý NHẬN DIỆN [${ruleNguThan01.id}]: ${ruleNguThan01.core_rule} (Nguồn tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm).`,
       ],
       stylist_counter_proposal: {
         title: 'Giữ Cổ Lập Lĩnh Nhưng Mở Cúc Cổ Khi Dạo Phố Hoặc Hạ Cổ Xuống 4.0cm Thoáng Mát',
         solution:
           'Vẫn may cổ Lập Lĩnh chuẩn 4cm nhưng dùng chất liệu dựng cổ (interlining) mềm mại, hoặc thiết kế cúc cổ có thể mở ra khi dạo phố để lật ve nhẹ, nhưng khi cài lại lập tức trở về phom lập lĩnh đoan chính.',
         heritage_safeguard:
-          'Giữ trọn vẹn kết cấu nhận diện bất biến của cổ lập lĩnh thời Nguyễn.',
+          'Giữ trọn vẹn kết cấu nhận diện bất biến của cổ lập lĩnh thời Nguyễn theo quy ước prototype.',
         contemporary_edge:
           'Tạo cảm giác thoải mái tối đa cho ngày hè nhiệt đới mà không phá vỡ cấu trúc.',
         materials_and_cuts: 'Chất liệu linen pha lụa tơ tằm với mex dựng cổ mềm.',
@@ -227,6 +253,8 @@ export function evaluateWhatIfDeterministic(
   // --------------------------------------------------------------------------
   // Rule 5: Áo Tấc Duster Coat Layering - KB-TAC-03
   // --------------------------------------------------------------------------
+  const ruleTac03 = getCKBEntry('KB-TAC-03')!;
+  const ruleTac01 = getCKBEntry('KB-TAC-01')!;
   const isAoTacDusterProposal =
     !hasNegation(q) &&
     (effectiveGarment === 'ao_tac' || q.includes('áo tấc')) &&
@@ -237,25 +265,29 @@ export function evaluateWhatIfDeterministic(
       (q.includes('mở tà') && q.includes('khoác')));
 
   if (isAoTacDusterProposal) {
+    const auditConf = deriveAuditConfidence([ruleTac01.id, ruleTac03.id], false);
     return {
       query: rawQuery,
       target_garment: 'ao_tac',
       proposed_change: 'Mở khuy áo Tấc mặc làm áo khoác dáng dài (duster coat) hiện đại',
-      status: 'Supported',
-      uncertainty_flag: false,
+      status: 'Supported with Caution',
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        'Hoàn toàn hợp lệ! Theo KB-TAC-03, Áo Tấc cho phép cởi mở khuy áo phía trước để tạo layer dạng áo khoác dáng dài (duster coat) hiện đại, phối với quần và giày hiện đại, miễn là ống tay thụng chữ nhật vẫn được bảo toàn (KB-TAC-01).',
+        `Phù hợp với quy tắc prototype hiện tại! Theo ${ruleTac03.id} (${ruleTac03.title}), ${ruleTac03.core_rule}, miễn là bảo toàn ${ruleTac01.title} (${ruleTac01.id}). Nguồn lịch sử của biến tấu này là quy ước sáng tạo nội bộ của lab thử nghiệm, chưa có đối chiếu nghi lễ truyền thống.`,
       violates_invariants: false,
       violated_evidence_ids: [],
-      applicable_evidence_ids: ['KB-TAC-01', 'KB-TAC-03'],
+      applicable_evidence_ids: [ruleTac01.id, ruleTac03.id],
       cautions_and_redlines: [],
       stylist_counter_proposal: {
         title: 'Phối Áo Tấc Duster Coat Với All-Black Turtleneck & Pleated Trousers',
         solution:
           'Mặc buông 2 vạt áo Tấc tự nhiên, bên trong phối áo thun/len cổ lọ màu đen ôm sát và quần âu xếp ly ống rộng, kết hợp bốt da cao cổ.',
         heritage_safeguard:
-          'Bảo lưu trọn vẹn ống tay thụng hình chữ nhật buông dài qua ngón tay theo KB-TAC-01.',
+          `Bảo lưu trọn vẹn ống tay thụng hình chữ nhật buông dài qua ngón tay theo ${ruleTac01.id}.`,
         contemporary_edge:
           'Tạo hiệu ứng silhouette bay bổng đậm chất Haute Couture quốc tế.',
         materials_and_cuts: 'Vải dạ len mỏng (lightweight wool) hoặc đũi tơ tằm dệt thô.',
@@ -291,6 +323,9 @@ export function evaluateWhatIfDeterministic(
     proposed_change: 'Ý kiến thử nghiệm chưa đủ dữ liệu tham chiếu trong bộ quy tắc CKB dự phòng',
     status: 'Insufficient Evidence',
     uncertainty_flag: true,
+    prototype_compliance: 'unassessed',
+    historical_confidence: 'unverified',
+    verification_summary: 'Chưa đủ dữ liệu tham chiếu trong bộ quy tắc CKB dự phòng',
     impact_analysis: explanation,
     violates_invariants: false,
     violated_evidence_ids: [],
@@ -308,6 +343,57 @@ export function evaluateWhatIfDeterministic(
         'Khuyến khích thử nghiệm phụ kiện hiện đại phù hợp bối cảnh sử dụng đương đại.',
       materials_and_cuts: 'Lựa chọn chất liệu và phụ kiện hài hòa với tổng thể trang phục.',
     },
+  };
+}
+
+/**
+ * Helper to build an honest CulturalAuditResult grounded dynamically in CKB_REGISTRY.
+ * Enforces Requirement 3 & 4:
+ * - If historical sources are unverified/needs_review, status is 'Supported with Caution' with uncertainty_flag: true
+ * - Prototype compliance ('compliant') and historical confidence are separated into distinct layers.
+ */
+function buildProposalAudit(
+  evidenceIds: string[],
+  mutablesInfo: { id?: string; evidence_id?: string; element: string; application: string }[] = [],
+  customVerdict?: string
+): CulturalAuditResult {
+  const auditConf = deriveAuditConfidence(evidenceIds, false);
+  const invariants_checked = evidenceIds
+    .map((id) => getCKBEntry(id))
+    .filter((e): e is NonNullable<typeof e> => e !== undefined && (e.category === 'invariant' || e.category === 'sacred_rule'))
+    .map((e) => ({
+      evidence_id: e.id,
+      rule_name: e.title,
+      passed: true,
+      detail: `Tuân thủ quy ước prototype: ${e.core_rule}`,
+    }));
+
+  const mutables_used = mutablesInfo.map((m) => ({
+    evidence_id: m.evidence_id || m.id || '',
+    element: m.element,
+    application: m.application,
+  }));
+
+  const isFullyVerified = !auditConf.hasUnverified;
+
+  return {
+    status: isFullyVerified ? 'Supported' : 'Supported with Caution',
+    uncertainty_flag: !isFullyVerified,
+    uncertainty_note: !isFullyVerified
+      ? 'Bản thiết kế phù hợp với quy ước của prototype, tuy nhiên các quy tắc tham chiếu trong bản thử nghiệm hiện chưa được đối chiếu thư tịch độc lập.'
+      : '',
+    prototype_compliance: auditConf.prototype_compliance,
+    historical_confidence: auditConf.historical_confidence,
+    verification_summary: auditConf.verification_summary,
+    evidence_ids: evidenceIds,
+    invariants_checked,
+    mutables_used,
+    cautions_and_redlines: [],
+    auditor_verdict:
+      customVerdict ||
+      (!isFullyVerified
+        ? 'Bản thiết kế phù hợp với quy tắc của prototype trong bản thử nghiệm. Các nguồn lịch sử tham chiếu hiện chưa được xác minh độc lập.'
+        : 'Thiết kế chuẩn mực theo quy thức y phục đã đối chiếu nguồn.'),
   };
 }
 
@@ -344,21 +430,11 @@ export function generateDeterministicProposals(
           accessories: ['Khăn xếp đen truyền thống', 'Thẻ ngọc / chuỗi hạt trầm'],
           color_palette: ['#1E293B (Chàm Đậm)', '#F8FAFC (Trắng Tơ)', '#D97706 (Hổ Phách)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-RULE-01', 'KB-RULE-02', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02'],
-          invariants_checked: [
-            { evidence_id: 'KB-RULE-01', rule_name: 'Quy thức Hữu nhậm', passed: true, detail: 'Vạt trái đè vạt phải, cài khuy bên phải hoàn toàn chuẩn mực' },
-            { evidence_id: 'KB-RULE-02', rule_name: 'Cấu trúc Ngũ thân', passed: true, detail: 'Đủ 5 thân tượng trưng tứ thân phụ mẫu che chở' },
-            { evidence_id: 'KB-NGUTHAN-01', rule_name: 'Cổ Lập lĩnh 4-5cm', passed: true, detail: 'Cổ đứng 4.5cm ôm khít, có 1 khuy cài cổ cố định' },
-            { evidence_id: 'KB-NGUTHAN-02', rule_name: 'Ống tay chẽn', passed: true, detail: 'Ống tay thu nhỏ gọn gàng về cổ tay' },
-          ],
-          mutables_used: [],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Thiết kế bảo tồn toàn vẹn cấu trúc cốt lõi của Áo Ngũ Thân thời Nguyễn. Hoàn toàn tuân thủ các Invariants của CKB.',
-        },
+        audit: buildProposalAudit(
+          ['KB-RULE-01', 'KB-RULE-02', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02'],
+          [],
+          'Thiết kế bảo tồn cấu trúc theo quy ước prototype của Áo Ngũ Thân thời Nguyễn. Các nguồn lịch sử tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm.'
+        ),
         stylist_notes: {
           philosophy: 'Giữ nguyên tỉ lệ vàng của tiền nhân, tối giản hóa phụ kiện để tôn vinh sự kín đáo và đoan chính.',
           gen_z_tips: [
@@ -387,22 +463,17 @@ export function generateDeterministicProposals(
           accessories: ['Túi đeo chéo da thuộc tối giản', 'Kính mắt gọng vuông đen'],
           color_palette: ['#172554 (Indigo Xanh Thẫm)', '#F1F5F9 (Trắng Ngà)', '#475569 (Xám Kaki)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-RULE-01', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02', 'KB-NGUTHAN-03'],
-          invariants_checked: [
-            { evidence_id: 'KB-RULE-01', rule_name: 'Quy thức Hữu nhậm', passed: true, detail: 'Bảo lưu tuyệt đối vạt trái đè vạt phải và cài khuy bên phải' },
-            { evidence_id: 'KB-NGUTHAN-01', rule_name: 'Cổ Lập lĩnh', passed: true, detail: 'Duy trì cổ đứng 4.2cm ôm sát cổ với 1 cúc cổ định vị' },
-            { evidence_id: 'KB-NGUTHAN-02', rule_name: 'Ống tay chẽn', passed: true, detail: 'Giữ cấu trúc ống tay ôm thon cử động thuận tiện' },
+        audit: buildProposalAudit(
+          ['KB-RULE-01', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02', 'KB-NGUTHAN-03'],
+          [
+            {
+              evidence_id: 'KB-NGUTHAN-03',
+              element: 'Chất liệu Denim & Chiều dài vạt',
+              application: 'Ứng dụng chất liệu denim hiện đại và rút ngắn vạt áo trong vùng Mutable cho phép',
+            },
           ],
-          mutables_used: [
-            { evidence_id: 'KB-NGUTHAN-03', element: 'Chất liệu Denim & Chiều dài vạt', application: 'Ứng dụng chất liệu denim hiện đại và rút ngắn vạt áo trong vùng Mutable cho phép' },
-          ],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Biến tấu hợp thức: Khai thác chính xác vùng Mutable theo KB-NGUTHAN-03 (chất liệu denim, vạt lửng) đồng thời giữ nghiêm Invariants (Hữu nhậm & Cổ lập lĩnh). Đạt trạng thái Supported.',
-        },
+          'Biến tấu hợp thức: Khai thác chính xác vùng Mutable theo KB-NGUTHAN-03 (chất liệu denim, vạt lửng) đồng thời giữ nghiêm Invariants (Hữu nhậm & Cổ lập lĩnh). Phù hợp quy tắc prototype.'
+        ),
         stylist_notes: {
           philosophy: 'Đưa di sản vào tủ đồ thường nhật của giới trẻ bằng cách kết hợp chất liệu bền vững hiện đại với hình khối y phục cổ.',
           gen_z_tips: [
@@ -434,20 +505,11 @@ export function generateDeterministicProposals(
           accessories: ['Khăn đóng quấn tỉ mỉ', 'Quạt xếp nan trúc'],
           color_palette: ['#065F46 (Xanh Ngọc Bích)', '#FEF3C7 (Vàng Nhạt)', '#FFFFFF (Trắng Nguyệt Bạch)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-RULE-01', 'KB-RULE-02', 'KB-TAC-01', 'KB-TAC-02'],
-          invariants_checked: [
-            { evidence_id: 'KB-RULE-01', rule_name: 'Hữu nhậm', passed: true, detail: 'Cài khuy bên phải chuẩn quy thức' },
-            { evidence_id: 'KB-TAC-01', rule_name: 'Tay thụng chữ nhật', passed: true, detail: 'Ống tay thụng rộng hình chữ nhật qua ngón tay khi thả buông' },
-            { evidence_id: 'KB-TAC-02', rule_name: 'Tính lễ nghi trang trọng', passed: true, detail: 'Giữ trọn tính nghiêm cẩn của lễ phục cung đình thời Nguyễn' },
-          ],
-          mutables_used: [],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Thiết kế nguyên bản chuẩn mực lễ phục Áo Tấc thời Nguyễn. Đạt chuẩn Supported theo CKB.',
-        },
+        audit: buildProposalAudit(
+          ['KB-RULE-01', 'KB-RULE-02', 'KB-TAC-01', 'KB-TAC-02'],
+          [],
+          'Thiết kế nguyên bản chuẩn mực lễ phục Áo Tấc theo quy ước prototype. Các nguồn lịch sử tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm.'
+        ),
         stylist_notes: {
           philosophy: 'Tôn trọng toàn diện giá trị lễ nghi của y phục truyền thống trang trọng bậc nhất.',
           gen_z_tips: ['Giữ động tác chắp tay bái lễ khi diện Áo Tấc để hai ống tay thụng phủ đều sang hai bên.'],
@@ -473,21 +535,17 @@ export function generateDeterministicProposals(
           accessories: ['Kính râm gọng oval kim loại', 'Túi clutch cầm tay tối giản'],
           color_palette: ['#0F172A (Đen Mực)', '#B45309 (Hổ Phách Sậm)', '#94A3B8 (Xám Bạc)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-TAC-01', 'KB-TAC-02', 'KB-TAC-03'],
-          invariants_checked: [
-            { evidence_id: 'KB-TAC-01', rule_name: 'Ống tay thụng chữ nhật', passed: true, detail: 'Duy trì chuẩn xác tay thụng rộng buông dài qua ngón tay' },
-            { evidence_id: 'KB-TAC-02', rule_name: 'Tính lễ nghi thân trên', passed: true, detail: 'Lớp layer cổ lọ bên trong bảo toàn sự kín đáo, đoan trang thân trên' },
+        audit: buildProposalAudit(
+          ['KB-TAC-01', 'KB-TAC-02', 'KB-TAC-03'],
+          [
+            {
+              evidence_id: 'KB-TAC-03',
+              element: 'Mở khuy mặc dạng Duster Coat & Chất liệu Dạ mỏng',
+              application: 'Khai thác điều khoản Mutable KB-TAC-03 cho phép mở vạt tạo dáng áo khoác dài thời thượng',
+            },
           ],
-          mutables_used: [
-            { evidence_id: 'KB-TAC-03', element: 'Mở khuy mặc dạng Duster Coat & Chất liệu Dạ mỏng', application: 'Khai thác điều khoản Mutable KB-TAC-03 cho phép mở vạt tạo dáng áo khoác dài thời thượng' },
-          ],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Ứng dụng sáng tạo điều khoản Mutable KB-TAC-03 (mở vạt dạng áo khoác) nhưng vẫn nghiêm cẩn giữ ống tay thụng qua ngón tay. Đạt trạng thái Supported.',
-        },
+          'Ứng dụng sáng tạo điều khoản Mutable KB-TAC-03 (mở vạt dạng áo khoác) nhưng vẫn nghiêm cẩn giữ ống tay thụng qua ngón tay. Phù hợp quy tắc prototype.'
+        ),
         stylist_notes: {
           philosophy: 'Biến lễ phục Áo Tấc thành item thời trang dạo phố mang hơi thở Haute Couture quốc tế.',
           gen_z_tips: [
@@ -520,19 +578,11 @@ export function generateDeterministicProposals(
           accessories: ['Khăn vành quấn đầu màu lam/tía', 'Trâm cài tóc khảm xà cừ'],
           color_palette: ['#991B1B (Đỏ Son)', '#F59E0B (Vàng Hoàng Yến)', '#047857 (Xanh Ngọc Lam)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-NHATBINH-01', 'KB-NHATBINH-02'],
-          invariants_checked: [
-            { evidence_id: 'KB-NHATBINH-01', rule_name: 'Nẹp cổ đối khâm chữ nhật', passed: true, detail: 'Nẹp cổ to bản chạy dọc song song từ cổ xuống ngực đặc trưng và có dây buộc ngực' },
-            { evidence_id: 'KB-NHATBINH-02', rule_name: 'Cổ tay ngũ sắc', passed: true, detail: 'Giữ nguyên vẹn thứ tự và nhận diện của dải màu ngũ hành ở viền tay' },
-          ],
-          mutables_used: [],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Thiết kế Nhật Bình mẫu mực, tuân thủ nghiêm ngặt 2 Invariants bất biến cốt lõi KB-NHATBINH-01 và KB-NHATBINH-02. Trạng thái: Supported.',
-        },
+        audit: buildProposalAudit(
+          ['KB-NHATBINH-01', 'KB-NHATBINH-02'],
+          [],
+          'Thiết kế Nhật Bình mẫu mực theo quy ước prototype, tuân thủ nghiêm ngặt 2 Invariants bất biến cốt lõi KB-NHATBINH-01 và KB-NHATBINH-02. Nguồn lịch sử tham chiếu hiện chưa được xác minh độc lập.'
+        ),
         stylist_notes: {
           philosophy: 'Gìn giữ vẻ đẹp đài các, chuẩn mực của y phục cung tần mệnh phụ triều Nguyễn.',
           gen_z_tips: ['Giữ tóc bới cao gọn gàng để lộ trọn vẹn nẹp cổ đối khâm thêu hoa văn.'],
@@ -558,21 +608,17 @@ export function generateDeterministicProposals(
           accessories: ['Vòng cổ ngọc trai nước ngọt mini', 'Túi xách tay quai ngọc'],
           color_palette: ['#881337 (Đỏ Đô Velvet)', '#FFFBEB (Kem Tuyết)', '#312E81 (Chàm Tím)'],
         },
-        audit: {
-          status: 'Supported',
-          uncertainty_flag: false,
-          uncertainty_note: '',
-          evidence_ids: ['KB-NHATBINH-01', 'KB-NHATBINH-02', 'KB-NHATBINH-03'],
-          invariants_checked: [
-            { evidence_id: 'KB-NHATBINH-01', rule_name: 'Nẹp cổ đối khâm', passed: true, detail: 'Nẹp cổ to bản chữ nhật được may chuẩn xác, giữ dải buộc ngực' },
-            { evidence_id: 'KB-NHATBINH-02', rule_name: 'Cổ tay ngũ sắc', passed: true, detail: 'Dải màu ngũ sắc ở cổ tay được giữ nguyên trật tự nhận diện' },
+        audit: buildProposalAudit(
+          ['KB-NHATBINH-01', 'KB-NHATBINH-02', 'KB-NHATBINH-03'],
+          [
+            {
+              evidence_id: 'KB-NHATBINH-03',
+              element: 'Mặc mở tà, phối chân váy xếp ly & chất liệu dạ Tweed',
+              application: 'Thay thế quần lụa bằng chân váy xếp ly và cách tân chất liệu vải áo theo điều khoản Mutable KB-NHATBINH-03',
+            },
           ],
-          mutables_used: [
-            { evidence_id: 'KB-NHATBINH-03', element: 'Mặc mở tà, phối chân váy xếp ly & chất liệu dạ Tweed', application: 'Thay thế quần lụa bằng chân váy xếp ly và cách tân chất liệu vải áo theo điều khoản Mutable KB-NHATBINH-03' },
-          ],
-          cautions_and_redlines: [],
-          auditor_verdict: 'Ứng dụng điều khoản KB-NHATBINH-03 xuất sắc: Giữ trọn 2 nhận diện bất biến (Nẹp đối khâm & Tay ngũ sắc) trong khi phối cùng chân váy xếp ly hiện đại. Đạt trạng thái Supported.',
-        },
+          'Ứng dụng điều khoản KB-NHATBINH-03 xuất sắc: Giữ trọn 2 nhận diện bất biến (Nẹp đối khâm & Tay ngũ sắc) trong khi phối cùng chân váy xếp ly hiện đại. Phù hợp quy tắc prototype.'
+        ),
         stylist_notes: {
           philosophy: 'Tái định nghĩa Nhật Bình thành một chiếc áo khoác Haute Couture hiện đại, duyên dáng và kiêu sa.',
           gen_z_tips: [

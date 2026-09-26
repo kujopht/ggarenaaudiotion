@@ -39,28 +39,52 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
           </h4>
         </div>
 
-        {/* Status Badges */}
+        {/* Two-Layer Status Badges (Requirement 4 & 5) */}
         <div className="flex items-center gap-2 flex-wrap">
-          {isPurelySupported && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
-              <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
-              <span>Phù hợp với quy tắc tham chiếu của bản thử nghiệm</span>
-            </div>
-          )}
+          {/* Lớp 1: Prototype Compliance */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-xs border bg-[#241A17] border-[#C9A66B]/30">
+            {audit.prototype_compliance === 'conflict' || (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0) ? (
+              <div className="flex items-center gap-1.5 text-amber-300">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Có xung đột với quy tắc prototype</span>
+              </div>
+            ) : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence' ? (
+              <div className="flex items-center gap-1.5 text-rose-300">
+                <HelpCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                <span>Chưa đối soát quy tắc prototype</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-[#E6C88B]">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#C9A66B] shrink-0" />
+                <span>Phù hợp với quy tắc prototype</span>
+              </div>
+            )}
+          </div>
 
-          {hasCaution && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span>Có điểm cần lưu ý theo quy tắc tham chiếu</span>
-            </div>
-          )}
-
-          {hasUncertainty && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-              <HelpCircle className="w-4 h-4 text-rose-400" />
-              <span>Chưa đủ dữ liệu tham chiếu</span>
-            </div>
-          )}
+          {/* Lớp 2: Historical Confidence */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold backdrop-blur-xs border bg-[#1A1412] border-neutral-700/50">
+            {audit.historical_confidence === 'verified' ? (
+              <div className="flex items-center gap-1.5 text-emerald-300">
+                <FileCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Đã đối chiếu nguồn thư tịch</span>
+              </div>
+            ) : audit.historical_confidence === 'needs_review' ? (
+              <div className="flex items-center gap-1.5 text-amber-300">
+                <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Nguồn lịch sử cần rà soát thêm</span>
+              </div>
+            ) : audit.historical_confidence === 'partially_verified' ? (
+              <div className="flex items-center gap-1.5 text-amber-200">
+                <Layers className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span>Nguồn đối chiếu một phần</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-neutral-300">
+                <Info className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                <span>Nguồn lịch sử chưa xác minh độc lập</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -68,11 +92,11 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
       {audit.uncertainty_flag && (
         <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 text-rose-200 rounded-lg text-sm backdrop-blur-xs">
           <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
-            <AlertOctagon className="w-4 h-4 text-rose-400" />
-            <span>Chi tiết nằm ngoài dữ liệu tham chiếu của bản thử nghiệm</span>
+            <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>Minh bạch về độ tin cậy của nguồn tham chiếu:</span>
           </div>
           <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
-            {audit.uncertainty_note || 'Chi tiết này chưa có căn cứ trong tài liệu tham chiếu hiện tại của bản thử nghiệm. Cần xem đây là nét sáng tạo tự do hoặc đối chiếu thêm tư liệu khảo cứu.'}
+            {audit.uncertainty_note || audit.verification_summary || 'Các quy tắc tham chiếu trong bản thử nghiệm hiện chưa được đối chiếu thư tịch độc lập. Vui lòng xem đây là đề xuất thử nghiệm mang tính chất tham khảo.'}
           </p>
         </div>
       )}
@@ -158,6 +182,8 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                             <span>{inv.evidence_id}</span>
                             {isVerified ? (
                               <span className="text-[9px] text-emerald-400 font-sans">✓ Có nguồn</span>
+                            ) : ckbEntry?.verification_status === 'needs_review' ? (
+                              <span className="text-[9px] text-amber-400 font-sans">! Cần rà soát</span>
                             ) : (
                               <span className="text-[9px] text-neutral-400 font-sans">? Chưa xác minh</span>
                             )}
@@ -309,6 +335,8 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                               <span>{mut.evidence_id}</span>
                               {isVerified ? (
                                 <span className="text-[9px] text-emerald-400 font-sans">✓ Có nguồn</span>
+                              ) : ckbEntry?.verification_status === 'needs_review' ? (
+                                <span className="text-[9px] text-amber-400 font-sans">! Cần rà soát</span>
                               ) : (
                                 <span className="text-[9px] text-neutral-400 font-sans">? Chưa xác minh</span>
                               )}
@@ -429,6 +457,8 @@ export const CulturalAuditPanel: React.FC<CulturalAuditPanelProps> = ({ audit, o
                       <span>{id}</span>
                       {isVerified ? (
                         <span className="text-[9px] text-emerald-400">✓</span>
+                      ) : entry?.verification_status === 'needs_review' ? (
+                        <span className="text-[9px] text-amber-400">!</span>
                       ) : (
                         <span className="text-[9px] text-neutral-400">?</span>
                       )}

@@ -43,6 +43,8 @@ export interface LookSummaryResult {
   hasCaution: boolean;
   hasUncertainty: boolean;
   isFullySupported: boolean;
+  prototypeComplianceLabel?: string;
+  historicalConfidenceLabel?: string;
 }
 
 /**
@@ -59,6 +61,8 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
       hasCaution: false,
       hasUncertainty: true,
       isFullySupported: false,
+      prototypeComplianceLabel: 'Chưa đối soát quy tắc prototype',
+      historicalConfidenceLabel: 'Nguồn lịch sử chưa xác minh độc lập',
     };
   }
 
@@ -111,12 +115,30 @@ export function getLookSummaryStatus(audit?: CulturalAuditResult | null): LookSu
     summaryText = audit.auditor_verdict || 'Tuân thủ các quy tắc cốt lõi của bản thử nghiệm.';
   }
 
+  const prototypeComplianceLabel =
+    audit.prototype_compliance === 'conflict' || (audit.cautions_and_redlines && audit.cautions_and_redlines.length > 0)
+      ? 'Có xung đột với quy tắc prototype'
+      : audit.prototype_compliance === 'unassessed' || audit.status === 'Insufficient Evidence'
+      ? 'Chưa đối soát quy tắc prototype'
+      : 'Phù hợp với quy tắc prototype';
+
+  const historicalConfidenceLabel =
+    audit.historical_confidence === 'verified'
+      ? 'Đã đối chiếu nguồn thư tịch'
+      : audit.historical_confidence === 'needs_review'
+      ? 'Nguồn lịch sử cần rà soát thêm'
+      : audit.historical_confidence === 'partially_verified'
+      ? 'Nguồn đối chiếu một phần'
+      : 'Nguồn lịch sử chưa xác minh độc lập';
+
   return {
     badges,
     summaryText,
     hasCaution,
     hasUncertainty,
     isFullySupported: !hasCaution && !hasUncertainty && audit.status === 'Supported',
+    prototypeComplianceLabel,
+    historicalConfidenceLabel,
   };
 }
 
