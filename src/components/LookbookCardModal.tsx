@@ -20,50 +20,48 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
 
   const handleShare = () => {
     navigator.clipboard.writeText(
-      `[VIỆTPHỤC REMIX LAB] ${proposal.title} · Audit: ${proposal.audit.status} · Phối đồ: ${proposal.stylist_notes.philosophy}`
+      `[VIỆTPHỤC REMIX LAB] ${proposal.title} · Thẩm định: ${proposal.audit.status} · Stylist: ${proposal.stylist_notes.philosophy}`
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="relative w-full max-w-2xl bg-[#FAF7F0] border-2 border-[#1C1917] rounded-2xl flex flex-col shadow-2xl overflow-hidden max-h-[95vh]">
-        {/* Top bar with Vietnamese Seal */}
-        <div className="flex items-center justify-between px-6 py-3 border-b border-[#E2DBD0] bg-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+      <div className="relative w-full max-w-2xl bg-[#181C24] border border-[#2A313E] rounded-2xl flex flex-col shadow-2xl overflow-hidden max-h-[92vh]">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-6 py-3.5 border-b border-[#272D3A] bg-[#161920]">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-[#991B1B]">ẤN TRIỆN</span>
-            <span className="text-[#A8A29E]">·</span>
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#78716C]">
-              THẺ LOOKBOOK VIỆT PHỤC REMIX
-            </span>
+            <span className="text-xs font-mono font-semibold text-[#14B8A6]">THẺ LOOKBOOK</span>
+            <span className="text-[#64748B]">·</span>
+            <span className="text-xs text-[#94A3B8]">Việt Phục Đương Đại</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-[#78716C] hover:text-[#1C1917] rounded-lg hover:bg-[#F2ECE0] transition-colors"
+            className="p-1.5 text-[#94A3B8] hover:text-white rounded-lg hover:bg-[#202530] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Card Body */}
-        <div className="p-6 sm:p-7 overflow-y-auto space-y-5">
+        <div className="p-5 sm:p-7 overflow-y-auto space-y-5">
           {/* Card Marquee */}
-          <div className="border-b-2 border-[#1C1917] pb-3.5">
-            <div className="flex items-center justify-between text-xs text-[#78716C] font-mono mb-1">
+          <div className="border-b border-[#272D3A] pb-3.5 space-y-1">
+            <div className="flex items-center justify-between text-xs text-[#94A3B8] font-mono">
               <span>BẢN GHI SỐ 2026 // LOOKBOOK ARCHIVE</span>
-              <span className="font-bold text-[#991B1B]">DIAL NẤC {proposal.dial_level}/5</span>
+              <span className="font-bold text-[#2DD4BF]">MỨC REMIX {proposal.dial_level}/5</span>
             </div>
-            <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#1C1917] leading-tight">
+            <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] leading-tight">
               {proposal.title}
             </h3>
-            <div className="text-xs font-mono font-bold uppercase text-[#B45309] tracking-wider mt-1">
+            <div className="text-xs font-mono font-semibold uppercase text-[#14B8A6] tracking-wider">
               {proposal.concept_tag}
             </div>
           </div>
 
           {/* Schematic Visual */}
-          <div className="rounded-xl overflow-hidden shadow-inner">
+          <div className="rounded-xl overflow-hidden border border-[#272D3A]">
             <GarmentSchematic
               garment={proposal.garment_type}
               visualDetails={proposal.visual_details}
@@ -72,93 +70,82 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
           </div>
 
           {/* Cultural Certification Stamp */}
-          <div className="p-4 bg-white border border-[#E2DBD0] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] font-mono text-[#991B1B] uppercase tracking-wider font-bold">
-                CULTURAL AUDITOR CERTIFICATION
+          <div className="p-4 bg-[#161920] border border-[#272D3A] rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <div className="text-xs font-mono text-[#14B8A6] uppercase tracking-wider font-semibold">
+                CHỨNG THƯ THẨM ĐỊNH DI SẢN
               </div>
-              <div className="text-sm font-serif font-bold text-[#1C1917] mt-0.5">
-                Chứng Thư Thẩm Định Di Sản CKB
-              </div>
-              <p className="text-xs text-[#57534E] mt-1 italic font-serif">
+              <p className="text-xs sm:text-sm text-[#CBD5E1] italic font-serif">
                 "{proposal.audit.auditor_verdict}"
               </p>
             </div>
 
             <div className="shrink-0">
               {proposal.audit.status === 'Supported' && (
-                <div className="px-3 py-1.5 bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] rounded-md font-bold text-xs flex items-center gap-1.5 font-sans">
-                  <ShieldCheck className="w-4 h-4 text-[#059669]" />
-                  <span>SUPPORTED</span>
+                <div className="px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg font-semibold text-xs flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
+                  <span>HỢP THỨC DI SẢN</span>
                 </div>
               )}
               {proposal.audit.status === 'Supported with Caution' && (
-                <div className="px-3 py-1.5 bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] rounded-md font-bold text-xs flex items-center gap-1.5 font-sans">
-                  <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-                  <span>CAUTION</span>
+                <div className="px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg font-semibold text-xs flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span>CÓ LƯU Ý</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Outfit Anatomy Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="space-y-1.5 p-3.5 bg-white border border-[#E2DBD0] rounded-lg">
-              <span className="font-mono text-[10px] text-[#A8A29E] uppercase block font-semibold">CẤU TRÚC THÂN TRÊN</span>
-              <div className="font-bold text-[#1C1917]">{proposal.visual_details.collar_style}</div>
-              <div className="text-[#57534E] text-[11px]">{proposal.visual_details.lapel_side}</div>
-              <div className="text-[#57534E] text-[11px]">{proposal.visual_details.sleeve_style}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+            <div className="space-y-1.5 p-3.5 bg-[#161920] border border-[#272D3A] rounded-xl">
+              <span className="font-mono text-xs text-[#14B8A6] uppercase block font-semibold">CẤU TRÚC THÂN TRÊN</span>
+              <div className="font-semibold text-[#F1F5F9]">{proposal.visual_details.collar_style}</div>
+              <div className="text-[#94A3B8] text-xs">{proposal.visual_details.lapel_side}</div>
+              <div className="text-[#94A3B8] text-xs">{proposal.visual_details.sleeve_style}</div>
             </div>
 
-            <div className="space-y-1.5 p-3.5 bg-white border border-[#E2DBD0] rounded-lg">
-              <span className="font-mono text-[10px] text-[#A8A29E] uppercase block font-semibold">PHỐI HỢP ĐƯƠNG ĐẠI</span>
-              <div className="font-bold text-[#1C1917]">{proposal.visual_details.bottom_garment}</div>
-              <div className="text-[#57534E] text-[11px]">Giày: {proposal.visual_details.footwear}</div>
-              <div className="text-[#57534E] text-[11px]">Vật liệu: {proposal.visual_details.fabric_materials.join(', ')}</div>
+            <div className="space-y-1.5 p-3.5 bg-[#161920] border border-[#272D3A] rounded-xl">
+              <span className="font-mono text-xs text-[#14B8A6] uppercase block font-semibold">PHỐI HỢP ĐƯƠNG ĐẠI</span>
+              <div className="font-semibold text-[#F1F5F9]">{proposal.visual_details.bottom_garment}</div>
+              <div className="text-[#94A3B8] text-xs">Giày: {proposal.visual_details.footwear}</div>
+              <div className="text-[#94A3B8] text-xs">Vật liệu: {proposal.visual_details.fabric_materials.join(', ')}</div>
             </div>
           </div>
 
           {/* Stylist Guidance */}
-          <div className="p-4 bg-white border border-[#E2DBD0] rounded-xl text-xs space-y-1.5">
-            <span className="font-mono text-[10px] text-[#B45309] uppercase tracking-wider block font-bold">
-              LỜI KHUYÊN CONTEMPORARY STYLIST
+          <div className="p-4 bg-[#161920] border border-[#272D3A] rounded-xl text-xs sm:text-sm space-y-1.5">
+            <span className="font-mono text-xs text-[#14B8A6] uppercase tracking-wider block font-semibold">
+              LỜI KHUYÊN TỪ STYLIST
             </span>
-            <p className="text-[#44403C] leading-relaxed font-serif text-sm">
+            <p className="text-[#CBD5E1] leading-relaxed font-serif text-sm italic">
               "{proposal.stylist_notes.philosophy}"
             </p>
-            <div className="pt-2 border-t border-[#F2ECE0] flex flex-wrap gap-2 text-[11px] text-[#57534E]">
-              <span className="font-semibold text-[#1C1917]">Phù hợp:</span>
-              {proposal.stylist_notes.occasions.map((occ, i) => (
-                <span key={i} className="text-[#57534E]">
-                  {occ}{i < proposal.stylist_notes.occasions.length - 1 ? ' ·' : ''}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-3.5 bg-white border-t border-[#E2DBD0] flex items-center justify-between gap-3">
+        <div className="px-6 py-3.5 bg-[#161920] border-t border-[#272D3A] flex items-center justify-between gap-3">
           <button
             onClick={handleShare}
-            className="px-4 py-2 border border-[#D6CEBE] hover:bg-[#F2ECE0] text-[#1C1917] rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+            className="px-4 py-2 border border-[#2D3546] hover:bg-[#202530] text-[#E2E8F0] rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-colors cursor-pointer min-h-[40px]"
           >
             {copied ? (
               <>
-                <Check className="w-4 h-4 text-[#059669]" />
+                <Check className="w-4 h-4 text-[#10B981]" />
                 <span>Đã sao chép Lookbook!</span>
               </>
             ) : (
               <>
-                <Share2 className="w-4 h-4 text-[#991B1B]" />
-                <span>Sao Chép Công Thức</span>
+                <Share2 className="w-4 h-4 text-[#2DD4BF]" />
+                <span>Sao chép công thức</span>
               </>
             )}
           </button>
 
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-[#1C1917] hover:bg-[#991B1B] text-white rounded-lg text-xs font-semibold transition-colors shadow-xs"
+            className="px-5 py-2 bg-[#0D9488] hover:bg-[#0F766E] text-white rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer min-h-[40px]"
           >
             Đóng
           </button>

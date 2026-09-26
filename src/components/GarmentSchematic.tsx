@@ -22,18 +22,18 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
   );
 
   return (
-    <div className="relative w-full h-[440px] bg-[#141311] border border-stone-800 rounded-xl overflow-hidden flex flex-col items-center justify-center p-4">
+    <div className="relative w-full h-[400px] sm:h-[440px] bg-[#161920] border border-[#272D3A] rounded-xl overflow-hidden flex flex-col items-center justify-center p-4">
       {/* Background Architectural Grid Lines */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
 
-      {/* Heritage Watermark Seal */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 text-xs text-stone-400 font-mono tracking-wider">
-        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-        <span>SCHEMATIC · {garment === 'ngu_than' ? 'ÁO NGŨ THÂN TAY CHẼN' : garment === 'ao_tac' ? 'ÁO TẤC LỄ PHỤC' : 'ÁO NHẬT BÌNH HOÀNG TỘC'}</span>
+      {/* Structural exploration caption */}
+      <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 text-xs text-[#94A3B8] font-mono">
+        <span className="w-1.5 h-1.5 rounded-full bg-[#14B8A6]" />
+        <span>SƠ ĐỒ CẤU TRÚC · {garment === 'ngu_than' ? 'ÁO NGŨ THÂN' : garment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}</span>
       </div>
 
-      <div className="absolute top-4 right-4 z-10 text-[11px] font-mono text-stone-400">
-        DIAL LEVEL {dialLevel}/5
+      <div className="absolute top-3.5 right-4 z-10 text-[11px] font-mono text-[#94A3B8]">
+        MỨC REMIX {dialLevel}/5
       </div>
 
       {/* SVG Canvas */}

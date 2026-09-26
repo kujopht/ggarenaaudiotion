@@ -7,44 +7,44 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
   return (
-    <footer className="w-full bg-[#1C1917] text-[#D6CEBE] py-10 px-6 border-t border-[#2E2824] mt-12">
+    <footer className="w-full bg-[#0F1115] text-[#94A3B8] py-8 px-6 border-t border-[#202530] mt-12">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-[#991B1B] text-[#FEF3C7] flex items-center justify-center font-serif font-black text-sm shrink-0 border border-[#7F1D1D]">
-            VIỆT
+          <div className="w-8 h-8 rounded-lg bg-[#0D9488]/15 text-[#2DD4BF] border border-[#0D9488]/30 flex items-center justify-center font-bold text-sm shrink-0">
+            VP
           </div>
           <div>
-            <span className="text-base font-serif font-bold text-[#FAF7F0] block">
+            <span className="text-base font-serif font-bold text-[#F1F5F9] block">
               ViệtPhục Remix Lab
             </span>
-            <p className="text-xs text-[#A8A29E] mt-0.5 max-w-md leading-relaxed">
-              Hệ thống đồng sáng tạo thời trang đương đại song hành cùng chuyên gia thẩm định di sản văn hóa Việt phục chuẩn mực triều Nguyễn (1802 - 1945).
+            <p className="text-xs text-[#64748B] mt-0.5 max-w-md leading-relaxed">
+              Studio đồng sáng tạo thời trang đương đại song hành cùng chuyên gia thẩm định di sản văn hóa Việt phục chuẩn mực.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-5 text-xs text-[#A8A29E]">
+        <div className="flex flex-wrap items-center gap-5 text-xs text-[#94A3B8]">
           <button
             onClick={onOpenCKB}
-            className="hover:text-[#FEF3C7] transition-colors underline underline-offset-4"
+            className="hover:text-[#2DD4BF] transition-colors cursor-pointer"
           >
-            Hồ sơ CKB & Evidence
+            Hồ sơ quy thức di sản
           </button>
           <button
             onClick={onScrollToTop}
-            className="hover:text-[#FEF3C7] transition-colors"
+            className="hover:text-[#2DD4BF] transition-colors cursor-pointer"
           >
-            Lên Đầu Trang ↑
+            Lên đầu trang ↑
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto mt-6 pt-5 border-t border-[#2E2824] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#78716C] gap-2">
+      <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-[#1C212B] flex flex-col sm:flex-row items-center justify-between text-xs text-[#64748B] gap-2">
         <div>
-          © {new Date().getFullYear()} Việt Phục Remix Lab. Nền tảng thời trang di sản thế hệ mới.
+          © {new Date().getFullYear()} Việt Phục Remix Lab. Nền tảng thời trang di sản đương đại.
         </div>
-        <div className="font-mono text-[10px]">
-          GOVERNANCE: INVARIANT · MUTABLE · REDLINES PROTOCOL
+        <div className="font-mono text-[11px] text-[#475569]">
+          BẢO TỒN CỐT LÕI · TỰ DO BIẾN TẤU
         </div>
       </div>
     </footer>

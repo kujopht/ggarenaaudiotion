@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
-import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X } from 'lucide-react';
+import { HelpCircle, Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw } from 'lucide-react';
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
   activeProposal: OutfitProposal | null;
-  onClearActiveProposal?: () => void;
   onOpenCKB?: (evidenceId?: string) => void;
 }
 
@@ -44,7 +43,7 @@ const PRESET_QUERIES = [
     query: 'What if cởi mở toàn bộ khuy áo Tấc mặc buông làm áo khoác duster coat phối với quần tây và boots?',
     badge: 'KB-TAC-03',
     badgeType: 'mutable',
-    hint: 'Vùng khả biến hợp thức',
+    hint: 'Vùng biến tấu hợp thức',
   },
   {
     title: 'Bỏ Dải Ngũ Sắc Ở Cổ Tay Nhật Bình',
@@ -56,25 +55,29 @@ const PRESET_QUERIES = [
     hint: 'Ngũ hành bất biến',
   },
   {
-    title: 'Thêu Chim Lạc Thời Đông Sơn / Lý',
+    title: 'Thêu Chim Lạc Thời Đông Sơn',
     garment: 'ngu_than' as GarmentKey,
     garmentLabel: 'Áo Ngũ Thân',
     query: 'What if thêu hình chim Lạc trống đồng thời Đông Sơn và rồng thời Lý lên tà áo ngũ thân?',
-    badge: 'NGOÀI CKB',
+    badge: 'NGOÀI SỬ LIỆU',
     badgeType: 'insufficient',
-    hint: 'Thiếu căn cứ sử liệu',
+    hint: 'Thiếu chứng cứ sử liệu',
   },
 ];
 
 export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   currentGarment,
   activeProposal,
-  onClearActiveProposal,
   onOpenCKB,
 }) => {
-  // Sync selectedGarment with activeProposal if present, otherwise currentGarment
+  // Local detachment flag: if true, user has deliberately detached WhatIf to standalone mode,
+  // without deleting the proposals in Studio!
+  const [isDetached, setIsDetached] = useState<boolean>(false);
+
+  const effectiveActiveProposal = !isDetached ? activeProposal : null;
+
   const [selectedGarment, setSelectedGarment] = useState<GarmentKey>(
-    activeProposal ? activeProposal.garment_type : currentGarment
+    effectiveActiveProposal ? effectiveActiveProposal.garment_type : currentGarment
   );
   const [queryInput, setQueryInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -82,13 +85,13 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   const [evaluationSource, setEvaluationSource] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const activeProposalId = activeProposal?.id ?? null;
+  const activeProposalId = effectiveActiveProposal?.id ?? null;
   const prevProposalIdRef = React.useRef(activeProposalId);
 
-  // When activeProposal changes, sync the target garment and clear previous evaluation
+  // Sync garment and clear previous evaluation when target proposal changes
   useEffect(() => {
-    if (activeProposal) {
-      setSelectedGarment(activeProposal.garment_type);
+    if (effectiveActiveProposal) {
+      setSelectedGarment(effectiveActiveProposal.garment_type);
     } else {
       setSelectedGarment(currentGarment);
     }
@@ -100,16 +103,24 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       setQueryInput('');
       setErrorMsg(null);
     }
-  }, [activeProposal, activeProposalId, currentGarment]);
+  }, [effectiveActiveProposal, activeProposalId, currentGarment]);
 
-  const handleClearActive = () => {
+  // Handle user detaching WhatIf to standalone mode (DOES NOT DELETE STUDIO PROPOSALS)
+  const handleDetachToStandalone = () => {
+    setIsDetached(true);
     setEvaluation(null);
     setEvaluationSource(null);
     setQueryInput('');
     setErrorMsg(null);
-    if (onClearActiveProposal) {
-      onClearActiveProposal();
-    }
+  };
+
+  // Handle re-attaching the active proposal from Studio
+  const handleReattachStudioProposal = () => {
+    setIsDetached(false);
+    setEvaluation(null);
+    setEvaluationSource(null);
+    setQueryInput('');
+    setErrorMsg(null);
   };
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
@@ -125,8 +136,8 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         body: JSON.stringify({
           garment: targetGarment,
           query: queryText,
-          // Send current_outfit when user has an active look
-          current_outfit: activeProposal || undefined,
+          // Only send current_outfit if not detached and activeProposal exists
+          current_outfit: effectiveActiveProposal || undefined,
         }),
       });
 
@@ -149,146 +160,166 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     }
   };
 
+  const renderSourceBadge = () => {
+    if (evaluationSource === 'gemini') {
+      return (
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#0D9488]/15 text-[#2DD4BF] border border-[#0D9488]/30 flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-[#2DD4BF]" />
+          Gemini · Trực tiếp
+        </span>
+      );
+    }
+    if (evaluationSource === 'deterministic_engine' || evaluationSource === 'deterministic_engine_fallback') {
+      return (
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
+          Bản mẫu dự phòng
+        </span>
+      );
+    }
+    return (
+      <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-700/30 text-slate-400 border border-slate-700">
+        Nguồn: Chưa xác định
+      </span>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#1E3A8A] text-[#FEF3C7] flex items-center justify-center font-serif font-bold text-lg border border-[#172554] shrink-0">
-            BIỆN
+      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-semibold text-[#38BDF8] uppercase tracking-wider">
+              Phòng Thử Nghiệm Giả Định
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold text-[#1E3A8A] uppercase tracking-wider">
-                SIMULATOR GIẢ ĐỊNH & THẨM ĐỊNH
-              </span>
-              <span className="text-[#A8A29E]">·</span>
-              <span className="text-xs text-[#78716C]">Quy tắc CKB Bất Biến & Khả Biến</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#1C1917] tracking-tight">
-              "What If...?" Phản Biện & Đề Xuất Thay Thế
-            </h2>
-          </div>
+          <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F1F5F9] tracking-tight">
+            "What If...?" Thử nghiệm mọi thay đổi & tìm giải pháp thay thế
+          </h2>
+          <p className="text-sm sm:text-base text-[#94A3B8] max-w-2xl leading-relaxed">
+            Bạn muốn thay đổi kiểu cổ, dời khuy cài hay phối hoa văn mới? Đặt câu hỏi để hệ thống thẩm định tác động và đề xuất giải pháp thay thế (Stylist Counter-Proposal) chuẩn mực.
+          </p>
         </div>
-
-        <p className="text-xs text-[#57534E] max-w-md leading-relaxed">
-          Thử nghiệm mọi ý tưởng táo bạo. Hệ thống sẽ thẩm định theo CKB và tạo <strong className="text-[#1C1917]">Stylist Counter-Proposal</strong> thông minh giúp đạt thẩm mỹ mong muốn mà vẫn chuẩn mực di sản.
-        </p>
       </div>
 
-      {/* Active Proposal Connection Indicator */}
-      {activeProposal ? (
-        <div className="bg-[#FAF7F0] border-2 border-[#991B1B] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#991B1B] text-white flex items-center justify-center font-serif font-bold text-xs shrink-0 shadow-xs">
-              LOOK
+      {/* Connection Indicator: Linked to Studio Look vs Standalone */}
+      {effectiveActiveProposal ? (
+        <div className="bg-[#1A2230] border-2 border-[#0284C7]/60 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono font-bold uppercase text-[#38BDF8] tracking-wider">
+                Đang thử nghiệm trên bản phối đã chọn:
+              </span>
+              <span className="text-xs font-mono px-2 py-0.5 bg-[#0284C7]/20 text-[#38BDF8] rounded-md border border-[#0284C7]/40">
+                Mức biến tấu {effectiveActiveProposal.dial_level}/5
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase text-[#991B1B] font-bold tracking-wider">
-                  ĐANG THỬ NGHIỆM TRÊN LOOK ĐÃ CHỌN:
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 bg-[#991B1B]/10 text-[#991B1B] rounded">
-                  Nấc Dial {activeProposal.dial_level}/5
-                </span>
-              </div>
-              <h3 className="text-sm font-serif font-bold text-[#1C1917]">
-                {activeProposal.title}
-              </h3>
-              <p className="text-[11px] text-[#57534E]">
-                Cổ phục: {activeProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân tay chẽn' : activeProposal.garment_type === 'ao_tac' ? 'Áo Tấc lễ phục' : 'Áo Nhật Bình'} · {activeProposal.concept_tag}
-              </p>
-            </div>
+            <h3 className="text-base sm:text-lg font-serif font-bold text-[#F1F5F9]">
+              {effectiveActiveProposal.title}
+            </h3>
+            <p className="text-xs sm:text-sm text-[#94A3B8]">
+              Cổ phục: {effectiveActiveProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân tay chẽn' : effectiveActiveProposal.garment_type === 'ao_tac' ? 'Áo Tấc lễ phục' : 'Áo Nhật Bình'} · {effectiveActiveProposal.concept_tag}
+            </p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
-              onClick={handleClearActive}
-              className="text-[11px] font-medium text-[#78716C] hover:text-[#991B1B] bg-white border border-[#D6CEBE] hover:border-[#991B1B] px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+              onClick={handleDetachToStandalone}
+              className="text-xs sm:text-sm font-medium text-[#94A3B8] hover:text-[#F43F5E] bg-[#161920] border border-[#2D3545] hover:border-[#F43F5E]/60 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer min-h-[42px]"
             >
-              <X className="w-3 h-3" />
-              <span>Bỏ chọn (Về chế độ tự do)</span>
+              <X className="w-3.5 h-3.5" />
+              <span>Bỏ chọn (Chuyển sang thử tự do)</span>
             </button>
           </div>
         </div>
       ) : (
-        <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#57534E]">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#ECE5D8] text-[#44403C]">
-              STANDALONE MODE
+        <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-[#94A3B8]">
+          <div className="flex items-center gap-2.5">
+            <span className="font-mono text-xs font-bold px-2 py-1 rounded-md bg-[#222834] text-[#94A3B8] border border-[#2D3646]">
+              CHẾ ĐỘ TỰ DO
             </span>
-            <span>Chế độ tự do: Chưa chọn look cụ thể từ Xưởng Phối Đồ. Bạn có thể chọn loại áo bất kỳ bên dưới để thử nghiệm độc lập.</span>
+            <span>Bạn đang thử nghiệm độc lập. Bạn có thể chọn bất kỳ loại áo nào bên dưới.</span>
           </div>
+
+          {/* Re-attach button if studio proposal exists */}
+          {activeProposal && isDetached && (
+            <button
+              onClick={handleReattachStudioProposal}
+              className="text-xs font-semibold text-[#38BDF8] hover:text-white bg-[#0284C7]/15 hover:bg-[#0284C7]/25 border border-[#0284C7]/40 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[40px]"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Dùng lại bản phối từ Xưởng ({activeProposal.title})</span>
+            </button>
+          )}
         </div>
       )}
 
       {/* Preset Fast-Test Scenarios */}
-      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#1C1917] font-serif flex items-center gap-1.5">
-            <Compass className="w-4 h-4 text-[#B45309]" />
-            <span>Tình Huống Giả Định Nổi Bật (Bấm Để Thử Nghiệm Ngay)</span>
+      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#F1F5F9] flex items-center gap-2">
+            <Compass className="w-4 h-4 text-[#14B8A6]" />
+            <span>Kịch bản thử nghiệm phổ biến (Bấm để thử ngay)</span>
           </span>
-          <span className="text-[11px] text-[#78716C] font-mono">
-            {activeProposal ? `Lọc cho ${activeProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân' : activeProposal.garment_type === 'ao_tac' ? 'Áo Tấc' : 'Áo Nhật Bình'}` : '6 kịch bản thử thách'}
+          <span className="text-xs text-[#94A3B8] font-mono">
+            {effectiveActiveProposal ? `Đang lọc cho ${effectiveActiveProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân' : effectiveActiveProposal.garment_type === 'ao_tac' ? 'Áo Tấc' : 'Áo Nhật Bình'}` : '6 kịch bản mẫu'}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {PRESET_QUERIES.map((item, idx) => {
-            // When activeProposal exists, check if preset matches active look's garment
-            const isConflict = Boolean(activeProposal && item.garment !== activeProposal.garment_type);
+            const isConflict = Boolean(effectiveActiveProposal && item.garment !== effectiveActiveProposal.garment_type);
 
             return (
               <button
                 key={idx}
                 disabled={isConflict}
                 onClick={() => {
-                  if (!activeProposal) {
+                  if (!effectiveActiveProposal) {
                     setSelectedGarment(item.garment);
                   }
-                  handleRunWhatIf(item.query, activeProposal ? activeProposal.garment_type : item.garment);
+                  handleRunWhatIf(item.query, effectiveActiveProposal ? effectiveActiveProposal.garment_type : item.garment);
                 }}
-                className={`text-left p-3 rounded-lg border transition-all flex flex-col justify-between ${
+                className={`text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
                   isConflict
-                    ? 'opacity-40 cursor-not-allowed bg-[#ECE7DC]/60 border-[#DDD5C5]'
-                    : 'bg-white border-[#E2DBD0] hover:border-[#991B1B] hover:shadow-xs cursor-pointer group'
+                    ? 'opacity-40 cursor-not-allowed bg-[#14161C] border-[#20242E]'
+                    : 'bg-[#161920] border-[#272D3A] hover:border-[#14B8A6] hover:bg-[#1C212B] cursor-pointer group'
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between gap-1 mb-1">
-                    <span className={`text-xs font-bold font-serif ${isConflict ? 'text-[#8C827A]' : 'text-[#1C1917] group-hover:text-[#991B1B]'}`}>
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className={`text-xs sm:text-sm font-bold ${isConflict ? 'text-[#64748B]' : 'text-[#F1F5F9] group-hover:text-[#2DD4BF]'}`}>
                       {item.title}
                     </span>
                     <span
-                      className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
                         item.badgeType === 'redline'
-                          ? 'border-[#991B1B] text-[#991B1B] bg-[#991B1B]/10'
+                          ? 'border-rose-500/40 text-rose-400 bg-rose-500/10'
                           : item.badgeType === 'invariant'
-                          ? 'border-[#065F46] text-[#065F46] bg-[#065F46]/10'
+                          ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10'
                           : item.badgeType === 'mutable'
-                          ? 'border-[#0284C7] text-[#0284C7] bg-[#0284C7]/10'
-                          : 'border-[#64748B] text-[#64748B] bg-[#64748B]/10'
+                          ? 'border-sky-500/40 text-sky-400 bg-sky-500/10'
+                          : 'border-slate-500/40 text-slate-400 bg-slate-500/10'
                       }`}
                     >
                       {item.badge}
                     </span>
                   </div>
-                  <p className={`text-[11px] line-clamp-2 leading-relaxed ${isConflict ? 'text-[#8C827A]' : 'text-[#57534E]'}`}>
+                  <p className={`text-xs leading-relaxed line-clamp-2 ${isConflict ? 'text-[#475569]' : 'text-[#94A3B8]'}`}>
                     "{item.query}"
                   </p>
                 </div>
 
-                <div className="mt-2 pt-2 border-t border-[#F2ECE0] flex items-center justify-between text-[10px]">
+                <div className="mt-2.5 pt-2 border-t border-[#232834] flex items-center justify-between text-xs">
                   {isConflict ? (
-                    <span className="text-[#8C827A] italic">
+                    <span className="text-[#64748B] italic text-[11px]">
                       Dành cho {item.garmentLabel} (khác loại áo đang chọn)
                     </span>
                   ) : (
                     <>
-                      <span className="text-[#78716C]">{item.hint}</span>
-                      <span className="text-[#991B1B] font-semibold group-hover:translate-x-0.5 transition-transform">
-                        Kiểm tra →
+                      <span className="text-[#94A3B8]">{item.hint}</span>
+                      <span className="text-[#14B8A6] font-semibold group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                        Thử ngay →
                       </span>
                     </>
                   )}
@@ -300,18 +331,18 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       </div>
 
       {/* Query Bar */}
-      <div className="bg-[#FAF7F0] border border-[#E2DBD0] rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+      <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
           <div className="sm:w-56 shrink-0">
-            <label className="text-[11px] font-mono text-[#78716C] block mb-1">
-              {activeProposal ? 'CỔ PHỤC ĐANG THỬ NGHIỆM' : 'CHỌN CỔ PHỤC THỬ NGHIỆM'}
+            <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] block mb-1.5">
+              {effectiveActiveProposal ? 'Loại áo đang thử nghiệm' : 'Chọn loại áo thử nghiệm'}
             </label>
             <select
               value={selectedGarment}
               onChange={(e) => setSelectedGarment(e.target.value as GarmentKey)}
-              disabled={!!activeProposal}
-              className={`w-full text-xs font-semibold bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] focus:outline-none focus:ring-1 focus:ring-[#991B1B] ${
-                activeProposal ? 'bg-[#F2ECE0]/60 cursor-not-allowed text-[#78716C]' : ''
+              disabled={!!effectiveActiveProposal}
+              className={`w-full text-sm font-medium bg-[#161920] border border-[#2B3342] rounded-xl px-3 py-2.5 text-[#E2E8F0] focus:outline-none focus:border-[#14B8A6] min-h-[44px] ${
+                effectiveActiveProposal ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
               <option value="ngu_than">Áo Ngũ Thân tay chẽn</option>
@@ -321,8 +352,8 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           </div>
 
           <div className="flex-1">
-            <label className="text-[11px] font-mono text-[#78716C] block mb-1">
-              NHẬP CÂU HỎI THỬ NGHIỆM CỦA BẠN (WHAT IF...?)
+            <label className="text-xs font-semibold uppercase tracking-wider text-[#94A3B8] block mb-1.5">
+              Nhập câu hỏi thử nghiệm của bạn (What If...?)
             </label>
             <input
               type="text"
@@ -332,31 +363,31 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleRunWhatIf(queryInput);
               }}
-              className="w-full text-xs bg-white border border-[#D6CEBE] rounded-lg px-3 py-2 text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-1 focus:ring-[#991B1B]"
+              className="w-full text-sm bg-[#161920] border border-[#2B3342] rounded-xl px-3.5 py-2.5 text-[#E2E8F0] placeholder:text-[#64748B] focus:outline-none focus:border-[#14B8A6] min-h-[44px]"
             />
           </div>
 
           <button
             onClick={() => handleRunWhatIf(queryInput)}
             disabled={loading || !queryInput.trim()}
-            className="px-5 py-2 bg-[#1C1917] hover:bg-[#991B1B] disabled:bg-[#A8A29E] text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm h-[36px] cursor-pointer"
+            className="px-5 py-2.5 bg-[#0284C7] hover:bg-[#0369A1] disabled:bg-[#334155] text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 whitespace-nowrap shadow-xs min-h-[44px] cursor-pointer"
           >
             {loading ? (
               <>
-                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Đang Thẩm Định...</span>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span>Đang thẩm định...</span>
               </>
             ) : (
               <>
-                <Wand2 className="w-3.5 h-3.5 text-[#F59E0B]" />
-                <span>Thẩm Định Ngay</span>
+                <Wand2 className="w-4 h-4 text-[#99F6E4]" />
+                <span>Thẩm định ngay</span>
               </>
             )}
           </button>
         </div>
 
         {errorMsg && (
-          <div className="p-2.5 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg">
+          <div className="p-3 bg-rose-950/40 border border-rose-800 text-rose-300 text-xs rounded-xl">
             {errorMsg}
           </div>
         )}
@@ -364,77 +395,65 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
       {/* Results Viewport */}
       {evaluation && (
-        <div className="bg-[#FAF7F0] border-2 border-[#1C1917] rounded-xl p-5 sm:p-6 shadow-md space-y-5 animate-in fade-in slide-in-from-bottom-2">
+        <div className="bg-[#181C24] border border-[#272D3A] rounded-2xl p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in duration-200">
           {/* Top Status Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#E2DBD0] gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-[#78716C]">
-                  KẾT QUẢ PHẢN BIỆN DI SẢN (WHAT-IF EVALUATION)
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#272D3A] gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#94A3B8]">
+                  Kết quả phản biện di sản
                 </span>
-
-                {/* Source Badge: Live Gemini vs Demo Fallback */}
-                {evaluationSource === 'gemini' && (
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-emerald-600" />
-                    Gemini · Live
-                  </span>
-                )}
-                {evaluationSource && evaluationSource !== 'gemini' && (
-                  <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300">
-                    Demo fallback
-                  </span>
-                )}
+                {renderSourceBadge()}
               </div>
-              <h3 className="text-lg sm:text-xl font-serif font-bold text-[#1C1917]">
+              <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F1F5F9]">
                 "{evaluation.query}"
               </h3>
             </div>
 
-            {/* Strict 3 Status Badge */}
+            {/* Status Badge */}
             <div className="shrink-0">
               {evaluation.status === 'Supported' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] rounded-md text-xs font-bold">
-                  <ShieldCheck className="w-4 h-4 text-[#059669]" />
-                  <span>SUPPORTED (HỢP THỨC DI SẢN)</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D9488]/15 border border-[#0D9488]/40 text-[#2DD4BF] rounded-lg text-xs font-semibold">
+                  <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
+                  <span>HỢP THỨC DI SẢN</span>
                 </div>
               )}
               {evaluation.status === 'Supported with Caution' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] rounded-md text-xs font-bold">
-                  <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-                  <span>SUPPORTED WITH CAUTION (CẢNH BÁO)</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold">
+                  <AlertTriangle className="w-4 h-4 text-amber-400" />
+                  <span>CÓ ĐIỂM CẦN LƯU Ý</span>
                 </div>
               )}
               {evaluation.status === 'Insufficient Evidence' && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] rounded-md text-xs font-bold">
-                  <HelpCircle className="w-4 h-4 text-[#DC2626]" />
-                  <span>INSUFFICIENT EVIDENCE (THIẾU SỬ LIỆU)</span>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold">
+                  <HelpCircle className="w-4 h-4 text-rose-400" />
+                  <span>THIẾU SỬ LIỆU XÁC THỰC</span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Uncertainty Flag Banner if true */}
+          {/* Uncertainty Flag Banner */}
           {evaluation.uncertainty_flag && (
-            <div className="p-3.5 bg-[#FEF2F2] border-l-4 border-[#DC2626] rounded-r text-xs text-[#991B1B]">
-              <div className="font-bold flex items-center gap-1.5 mb-1">
-                <AlertOctagon className="w-4 h-4 text-[#DC2626]" />
-                <span>UNCERTAINTY FLAG: KHÔNG CÓ TRONG CULTURAL KNOWLEDGE BASE</span>
+            <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs sm:text-sm text-rose-200">
+              <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
+                <AlertOctagon className="w-4 h-4 text-rose-400" />
+                <span>Chi tiết nằm ngoài sử liệu xác thực</span>
               </div>
-              <p className="text-[#7F1D1D] leading-relaxed">
-                Chi tiết hoặc họa tiết bạn hỏi chưa được chứng thực trong CKB. Cần thận trọng ghi chú tính chất sáng tác đương đại, tránh ngộ nhận là lịch sử.
+              <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
+                Chi tiết hoặc họa tiết bạn hỏi chưa có tài liệu xác thực trong kho tri thức di sản. Cần lưu ý đây là sáng tác tự do đương đại, tránh ngộ nhận là trang phục cổ truyền.
               </p>
             </div>
           )}
 
-          {/* Redlines & Invariant Warnings */}
+          {/* Redlines & Warnings */}
           {evaluation.cautions_and_redlines.length > 0 && (
-            <div className="p-4 bg-[#FEF2F2] border border-[#FCA5A5] rounded-xl text-xs text-[#991B1B] space-y-1.5">
-              <div className="font-bold flex items-center gap-1.5 text-[#7F1D1D]">
-                <AlertOctagon className="w-4 h-4 text-[#DC2626]" />
-                <span>CẢNH BÁO VI PHẠM CỐT LÕI (REDLINES):</span>
+            <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs sm:text-sm text-amber-200 space-y-1.5">
+              <div className="font-semibold flex items-center gap-1.5 text-amber-300">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                <span>Cảnh báo điểm vi phạm cốt lõi:</span>
               </div>
-              <ul className="list-disc list-inside space-y-1 text-[#7F1D1D] pl-1 font-medium leading-relaxed">
+              <ul className="list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm pl-1 leading-relaxed">
                 {evaluation.cautions_and_redlines.map((c, i) => (
                   <li key={i}>{c}</li>
                 ))}
@@ -443,23 +462,23 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           )}
 
           {/* Cultural Impact Analysis */}
-          <div className="p-4 bg-white border border-[#E2DBD0] rounded-xl space-y-1.5">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#78716C] block font-semibold">
-              PHÂN TÍCH TÁC ĐỘNG VĂN HÓA TỪ AUDITOR
+          <div className="p-4 bg-[#161920] border border-[#272D3A] rounded-xl space-y-1.5">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#14B8A6] font-semibold block">
+              Phân tích tác động văn hóa
             </span>
-            <p className="text-xs text-[#44403C] leading-relaxed font-serif text-sm">
+            <p className="text-sm sm:text-base text-[#E2E8F0] leading-relaxed font-serif">
               {evaluation.impact_analysis}
             </p>
           </div>
 
           {/* Relevant Evidence Badges */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-[#78716C]">Hồ sơ CKB liên đới:</span>
+            <span className="text-[#94A3B8]">Dẫn chứng di sản liên quan:</span>
             {evaluation.violated_evidence_ids.map((id) => (
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-[#FEE2E2] text-[#991B1B] border border-[#FCA5A5] rounded hover:bg-[#FECACA] cursor-pointer"
+                className="font-mono text-xs font-semibold px-2.5 py-1 bg-rose-500/15 text-rose-300 border border-rose-500/40 rounded-lg hover:bg-rose-500/25 cursor-pointer"
               >
                 Vi phạm: {id}
               </button>
@@ -468,7 +487,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               <button
                 key={id}
                 onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-[11px] font-bold px-2 py-0.5 bg-white text-[#1C1917] border border-[#D6CEBE] rounded hover:bg-[#F2ECE0] cursor-pointer"
+                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#222834] text-[#E2E8F0] border border-[#2E3646] rounded-lg hover:bg-[#2A3140] cursor-pointer"
               >
                 Căn cứ: {id}
               </button>
@@ -476,46 +495,46 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           </div>
 
           {/* Stylist Counter-Proposal (Smart Alternative) */}
-          <div className="p-5 bg-white border-2 border-[#B45309] rounded-xl shadow-xs space-y-3">
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-[#B45309]" />
+          <div className="p-5 sm:p-6 bg-[#1A2330] border-2 border-[#14B8A6]/60 rounded-xl shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5">
+              <Lightbulb className="w-5 h-5 text-[#2DD4BF]" />
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-[#B45309] font-bold block">
-                  STYLIST COUNTER-PROPOSAL (GIẢI PHÁP THAY THẾ THÔNG MINH)
+                <span className="text-xs font-mono uppercase tracking-wider text-[#2DD4BF] font-semibold block">
+                  Stylist Counter-Proposal · Đề xuất thay thế thông minh
                 </span>
-                <h4 className="text-base font-serif font-bold text-[#1C1917]">
+                <h4 className="text-base sm:text-lg font-serif font-bold text-[#F1F5F9]">
                   {evaluation.stylist_counter_proposal.title}
                 </h4>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#E2DBD0] text-xs">
-              <div className="space-y-1">
-                <span className="font-bold text-[#1C1917] flex items-center gap-1">
-                  <ArrowRight className="w-3.5 h-3.5 text-[#B45309]" />
-                  Giải Pháp Thiết Kế
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#272D3A] text-xs sm:text-sm">
+              <div className="space-y-1.5">
+                <span className="font-semibold text-[#F1F5F9] flex items-center gap-1.5">
+                  <ArrowRight className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                  Giải pháp thiết kế
                 </span>
-                <p className="text-[#57534E] leading-relaxed text-[11px]">
+                <p className="text-[#94A3B8] leading-relaxed text-xs sm:text-sm">
                   {evaluation.stylist_counter_proposal.solution}
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-[#065F46] flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#059669]" />
-                  Bảo Toàn Di Sản
+              <div className="space-y-1.5">
+                <span className="font-semibold text-[#10B981] flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#10B981]" />
+                  Bảo toàn di sản
                 </span>
-                <p className="text-[#57534E] leading-relaxed text-[11px]">
+                <p className="text-[#94A3B8] leading-relaxed text-xs sm:text-sm">
                   {evaluation.stylist_counter_proposal.heritage_safeguard}
                 </p>
               </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-[#1C1917] flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#B45309]" />
-                  Vật Liệu & Cắt May
+              <div className="space-y-1.5">
+                <span className="font-semibold text-[#38BDF8] flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#38BDF8]" />
+                  Vật liệu & Cắt may
                 </span>
-                <p className="text-[#57534E] leading-relaxed text-[11px]">
+                <p className="text-[#94A3B8] leading-relaxed text-xs sm:text-sm">
                   {evaluation.stylist_counter_proposal.materials_and_cuts}
                 </p>
               </div>

@@ -12,6 +12,12 @@ import { OutfitProposal, GarmentKey } from './types/vietphuc';
 export default function App() {
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('studio');
   const [selectedGarment, setSelectedGarment] = useState<GarmentKey>('ngu_than');
+
+  // Form controls state lifted to App so user selections are preserved across tab changes
+  const [dialLevel, setDialLevel] = useState<number>(3);
+  const [context, setContext] = useState<string>('streetwear');
+  const [style, setStyle] = useState<string>('indigo_denim');
+  const [customNotes, setCustomNotes] = useState<string>('');
   
   // State lifted to App so proposals and provenance source are retained across tab switches
   const [studioProposals, setStudioProposals] = useState<OutfitProposal[]>([]);
@@ -59,14 +65,8 @@ export default function App() {
     }
   };
 
-  const handleClearActiveProposal = () => {
-    setStudioProposals([]);
-    setSelectedPlanIndex(0);
-    setProposalSource(null);
-  };
-
   return (
-    <div className="min-h-screen bg-[#F6F3EC] text-[#221F1C] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#121418] text-[#E2E6EC] flex flex-col font-sans selection:bg-[#0D9488]/30 selection:text-[#2DD4BF]">
       {/* Top Bar with Workspace Tab Switcher */}
       <Navbar
         activeTab={activeTab}
@@ -75,7 +75,7 @@ export default function App() {
       />
 
       {/* Main Workspace (Direct Tab View) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {activeTab === 'studio' && (
           <CoDesignStudio
             proposals={studioProposals}
@@ -85,6 +85,14 @@ export default function App() {
             proposalSource={proposalSource}
             selectedGarment={selectedGarment}
             onChangeGarment={handleChangeGarment}
+            dialLevel={dialLevel}
+            onChangeDialLevel={setDialLevel}
+            context={context}
+            onChangeContext={setContext}
+            style={style}
+            onChangeStyle={setStyle}
+            customNotes={customNotes}
+            onChangeCustomNotes={setCustomNotes}
             onOpenCKB={handleOpenCKB}
             onOpenLookbookCard={handleOpenLookbook}
             onNavigateToWhatIf={() => setActiveTab('what-if')}
@@ -95,7 +103,6 @@ export default function App() {
           <WhatIfLab
             currentGarment={selectedGarment}
             activeProposal={selectedProposal}
-            onClearActiveProposal={handleClearActiveProposal}
             onOpenCKB={handleOpenCKB}
           />
         )}
