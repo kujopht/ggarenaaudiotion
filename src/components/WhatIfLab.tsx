@@ -703,8 +703,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
               </div>
             </div>
           </div>
-        );
-      })()}
-    </div>
-  );
+        </div>
+      );
+    })()}
+  </div>
+);
 };
