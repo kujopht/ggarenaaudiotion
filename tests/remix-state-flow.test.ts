@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import {
   formatSourceBadge,
   getLookSummaryStatus,
+  getWhatIfSummaryStatus,
   handleWhatIfStandaloneGarmentChange,
   isResponseValid,
 } from '../src/utils/remixStateHelpers.js';
@@ -29,6 +30,8 @@ import {
   hasOverconfidentClaim,
   sanitizeAuditorVerdict,
   sanitizeWhatIfImpactAnalysis,
+  validateGeminiProposalContract,
+  processGeminiProposalResponse,
 } from '../src/utils/auditNormalization.js';
 import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
 
@@ -1064,6 +1067,369 @@ runTest('15.8 What-If: Inapplicable violated evidence ID không làm garment th�
   assert.strictEqual(normalized.prototype_compliance, 'compliant', 'Prototype compliance phải là compliant');
   assert.ok(normalized.system_warnings && normalized.system_warnings.length > 0, 'Phải có system warning về scope');
   assert.strictEqual(normalized.cautions_and_redlines.length, 0);
+});
+
+// -------------------------------------------------------------
+// Test Case 16: Regression Tests for Gemini Contract & Summary Helpers
+// -------------------------------------------------------------
+const createValidMockProposal = (
+  garment: GarmentKey = 'nhat_binh',
+  planType: 'heritage_anchored' | 'contemporary_remix' = 'heritage_anchored'
+) => ({
+  id: 'mock-prop-1',
+  plan_type: planType,
+  title: 'Áo Nhật Bình Hoàng Gia',
+  concept_tag: 'EDITORIAL',
+  garment_type: garment,
+  dial_level: 2,
+  visual_details: {
+    collar_style: 'Nẹp cổ đối khâm chuẩn',
+    lapel_side: 'Đối khâm cài khuy tim',
+    sleeve_style: 'Tay thụng ngũ sắc',
+    cut_length: 'Dài ngang bắp chân',
+    fabric_materials: ['Tơ tằm tự nhiên', 'Gấm'],
+    layering_pieces: ['Áo ngũ thân lót'],
+    bottom_garment: 'Quần lụa trắng',
+    footwear: 'Hài thêu hoa',
+    accessories: ['Trâm cài hoa cài đầu'],
+    color_palette: ['#B8342B', '#E6C88B', '#1E3A8A'],
+  },
+  audit: {
+    status: 'Supported',
+    uncertainty_flag: false,
+    evidence_ids: ['KB-NHATBINH-01'],
+    invariants_checked: [
+      { evidence_id: 'KB-NHATBINH-01', rule_name: 'Đối khâm', passed: true, detail: 'Chuẩn' },
+    ],
+    mutables_used: [],
+    cautions_and_redlines: [],
+    auditor_verdict: 'Hợp lệ theo quy thức y phục cổ truyền.',
+  },
+  stylist_notes: {
+    philosophy: 'Bảo lưu trọn vẹn đối khâm và cổ tay ngũ sắc.',
+    gen_z_tips: ['Mặc chuẩn nghi thức'],
+    occasions: ['Lễ cưới', 'Chụp ảnh di sản'],
+  },
+});
+
+// Case 1: User chọn nhat_binh nhưng proposal trả ngu_than -> validateGeminiProposalContract phải fail
+runTest('16.1 Contract check: User chọn nhat_binh nhưng proposal trả ngu_than -> validateGeminiProposalContract phải fail', () => {
+  const mockProposal = createValidMockProposal('ngu_than');
+  const validation = validateGeminiProposalContract(mockProposal, 'nhat_binh');
+  assert.strictEqual(validation.valid, false);
+  assert.ok(validation.error && validation.error.includes('nhat_binh'));
+});
+
+// Case 2: Có đúng 2 proposal hợp lệ và đều đúng garment -> processGeminiProposalResponse phải trả source gemini
+runTest('16.2 Process response: Có đúng 2 proposal hợp lệ và đều đúng garment -> processGeminiProposalResponse phải trả source gemini', () => {
+  const responseJson = {
+    proposals: [
+      createValidMockProposal('nhat_binh', 'heritage_anchored'),
+      createValidMockProposal('nhat_binh', 'contemporary_remix'),
+    ],
+  };
+  const result = processGeminiProposalResponse(responseJson, 'nhat_binh');
+  assert.strictEqual(result.success, true);
+  assert.strictEqual(result.source, 'gemini');
+  assert.strictEqual(result.proposals.length, 2);
+  assert.strictEqual(result.proposals[0].garment_type, 'nhat_binh');
+  assert.strictEqual(result.proposals[1].garment_type, 'nhat_binh');
+});
+
+// Case 3: Chỉ có 1 proposal -> Phải fallback và source deterministic_engine_fallback
+runTest('16.3 Process response: Chỉ có 1 proposal -> Phải fallback và source deterministic_engine_fallback', () => {
+  const responseJson = {
+    proposals: [createValidMockProposal('ngu_than')],
+  };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.success, true);
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('1 proposals'));
+  assert.strictEqual(result.proposals.length, 2);
+});
+
+// Case 4: Có 3 proposal -> Phải fallback
+runTest('16.4 Process response: Có 3 proposal -> Phải fallback', () => {
+  const responseJson = {
+    proposals: [
+      createValidMockProposal('ngu_than'),
+      createValidMockProposal('ngu_than'),
+      createValidMockProposal('ngu_than'),
+    ],
+  };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('3 proposals'));
+});
+
+// Case 5: Một proposal thiếu visual_details -> Phải fallback
+runTest('16.5 Process response: Một proposal thiếu visual_details -> Phải fallback', () => {
+  const prop1 = createValidMockProposal('ngu_than');
+  const prop2 = createValidMockProposal('ngu_than');
+  delete (prop2 as any).visual_details;
+  const responseJson = { proposals: [prop1, prop2] };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('visual_details'));
+});
+
+// Case 6: Một proposal thiếu audit -> Phải fallback
+runTest('16.6 Process response: Một proposal thiếu audit -> Phải fallback', () => {
+  const prop1 = createValidMockProposal('ngu_than');
+  const prop2 = createValidMockProposal('ngu_than');
+  delete (prop2 as any).audit;
+  const responseJson = { proposals: [prop1, prop2] };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('audit'));
+});
+
+// Case 7: Một proposal thiếu stylist_notes -> Phải fallback
+runTest('16.7 Process response: Một proposal thiếu stylist_notes -> Phải fallback', () => {
+  const prop1 = createValidMockProposal('ngu_than');
+  const prop2 = createValidMockProposal('ngu_than');
+  delete (prop2 as any).stylist_notes;
+  const responseJson = { proposals: [prop1, prop2] };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('stylist_notes'));
+});
+
+// Case 8: Một proposal có plan_type sai -> Phải fallback
+runTest('16.8 Process response: Một proposal có plan_type sai -> Phải fallback', () => {
+  const prop1 = createValidMockProposal('ngu_than');
+  const prop2 = createValidMockProposal('ngu_than');
+  (prop2 as any).plan_type = 'invalid_plan_type';
+  const responseJson = { proposals: [prop1, prop2] };
+  const result = processGeminiProposalResponse(responseJson, 'ngu_than');
+  assert.strictEqual(result.source, 'deterministic_engine_fallback');
+  assert.ok(result.warning && result.warning.includes('plan_type'));
+});
+
+// Case 9: Canonical evidence union: evidence_ids rỗng, invariants_checked có KB-NGUTHAN-01, mutables_used có KB-NGUTHAN-03
+// Sau normalize: audit.evidence_ids phải chứa cả hai ID hợp lệ. Không được trả Insufficient Evidence chỉ vì evidence_ids ban đầu rỗng.
+runTest('16.9 Canonical evidence union: evidence_ids rỗng, có invariants_checked & mutables_used -> audit.evidence_ids chứa cả hai ID, không trả Insufficient Evidence', () => {
+  const rawAudit = {
+    status: 'Supported',
+    prototype_compliance: 'compliant',
+    uncertainty_flag: false,
+    evidence_ids: [], // empty initial array
+    invariants_checked: [
+      { evidence_id: 'KB-NGUTHAN-01', rule_name: 'Cổ lập lĩnh', passed: true, detail: 'Đúng chuẩn' },
+    ],
+    mutables_used: [
+      { evidence_id: 'KB-NGUTHAN-03', element: 'Tà áo', application: 'Cắt tà lửng' },
+    ],
+    cautions_and_redlines: [],
+  };
+  const normalized = normalizeGeminiProposalAudit(rawAudit, 'ngu_than');
+  assert.ok(normalized.evidence_ids.includes('KB-NGUTHAN-01'), 'evidence_ids phải chứa KB-NGUTHAN-01');
+  assert.ok(normalized.evidence_ids.includes('KB-NGUTHAN-03'), 'evidence_ids phải chứa KB-NGUTHAN-03');
+  assert.strictEqual(normalized.evidence_ids.length, 2);
+  assert.notStrictEqual(
+    normalized.status,
+    'Insufficient Evidence',
+    'Không được trả Insufficient Evidence chỉ vì evidence_ids ban đầu rỗng'
+  );
+});
+
+// Case 10: getWhatIfSummaryStatus với Insufficient Evidence -> Phải nói chưa đủ dữ liệu
+runTest('16.10 getWhatIfSummaryStatus với Insufficient Evidence: Phải nói chưa đủ dữ liệu', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if phối phong cách cyberpunk?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Cyberpunk elements',
+    status: 'Insufficient Evidence',
+    uncertainty_flag: true,
+    impact_analysis: 'Chưa đủ dữ liệu tham chiếu.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: [],
+    cautions_and_redlines: [],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'unassessed',
+    historical_confidence: 'unverified',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.showInsufficientEvidence, true);
+  assert.strictEqual(summary.historicalLabel, 'Chưa đủ dữ liệu tham chiếu');
+  assert.strictEqual(summary.uncertaintyTitle, 'Chưa đủ dữ liệu tham chiếu');
+  assert.ok(
+    summary.uncertaintyText.toLowerCase().includes('chưa đủ dữ liệu') ||
+    summary.uncertaintyTitle.toLowerCase().includes('chưa đủ dữ liệu'),
+    'Phải nói chưa đủ dữ liệu'
+  );
+});
+
+// Case 11: getWhatIfSummaryStatus với rule unverified nhưng có trong CKB -> Không được nói rule nằm ngoài CKB
+runTest('16.11 getWhatIfSummaryStatus với rule unverified nhưng có trong CKB: Không được nói rule nằm ngoài CKB', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if cổ áo ngũ thân?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Cổ lập lĩnh',
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    impact_analysis: 'Tuân thủ cổ lập lĩnh.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: ['KB-NGUTHAN-01'], // unverified, but exists in CKB
+    cautions_and_redlines: [],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'compliant',
+    historical_confidence: 'unverified',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.showInsufficientEvidence, false);
+  assert.strictEqual(summary.uncertaintyTitle, 'Nguồn lịch sử chưa xác minh độc lập');
+  assert.ok(
+    !summary.uncertaintyText.includes('nằm ngoài phạm vi các quy tắc'),
+    'Không được nói rule nằm ngoài CKB khi rule đã có trong CKB'
+  );
+  assert.ok(
+    summary.uncertaintyText.includes('có trong CKB của prototype'),
+    'Phải khẳng định quy tắc có trong CKB'
+  );
+});
+
+// Case 12: getWhatIfSummaryStatus với needs_review -> Phải nói nguồn đang chờ đối soát
+runTest('16.12 getWhatIfSummaryStatus với needs_review: Phải nói nguồn đang chờ đối soát', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if thêu rồng 5 móng?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Thêu rồng',
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    impact_analysis: 'Quy thức triều Nguyễn.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: ['KB-RULE-03'], // needs_review
+    cautions_and_redlines: [],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'compliant',
+    historical_confidence: 'needs_review',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.uncertaintyTitle, 'Nguồn tham chiếu đang chờ đối soát');
+  assert.ok(summary.uncertaintyText.includes('đối chiếu trực tiếp') || summary.uncertaintyText.includes('chờ'));
+});
+
+// Case 13: compliant nhưng unverified -> hasDesignCaution phải false, hasEvidenceUncertainty phải true
+runTest('16.13 getWhatIfSummaryStatus: compliant nhưng unverified -> hasDesignCaution false, hasEvidenceUncertainty true', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if tay chẽn vừa vặn?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Tay chẽn',
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    impact_analysis: 'Tay chẽn chuẩn.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: ['KB-NGUTHAN-02'],
+    cautions_and_redlines: [],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'compliant',
+    historical_confidence: 'unverified',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.hasDesignCaution, false, 'hasDesignCaution phải false');
+  assert.strictEqual(summary.hasEvidenceUncertainty, true, 'hasEvidenceUncertainty phải true');
+  assert.strictEqual(summary.isPrototypeConflict, false);
+});
+
+// Case 14: conflict và unverified -> Phải có cả prototype conflict và evidence uncertainty
+runTest('16.14 getWhatIfSummaryStatus: conflict và unverified -> Phải có cả prototype conflict và evidence uncertainty', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if vạt cài sang trái?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Tả nhậm',
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    impact_analysis: 'Xung đột tả nhậm.',
+    violates_invariants: true,
+    violated_evidence_ids: ['KB-RULE-01'], // unverified
+    applicable_evidence_ids: [],
+    cautions_and_redlines: ['Xung đột quy thức tả nhậm tang phục'],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'conflict',
+    historical_confidence: 'unverified',
+    has_design_caution: true,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.isPrototypeConflict, true, 'Phải có prototype conflict');
+  assert.strictEqual(summary.hasDesignCaution, true, 'Phải có design caution');
+  assert.strictEqual(summary.hasEvidenceUncertainty, true, 'Phải có evidence uncertainty');
+  assert.strictEqual(summary.prototypeLabel, 'Có xung đột với quy tắc prototype');
+});
+
+// Case 15: system warning nhưng không có design conflict -> Không được biến thành design caution
+runTest('16.15 getWhatIfSummaryStatus: system warning nhưng không có design conflict -> Không được biến thành design caution', () => {
+  const evaluation: WhatIfEvaluation = {
+    query: 'What if thay cúc?',
+    target_garment: 'ngu_than',
+    proposed_change: 'Khuy ngọc',
+    status: 'Supported with Caution',
+    uncertainty_flag: true,
+    impact_analysis: 'Khuy hợp lệ.',
+    violates_invariants: false,
+    violated_evidence_ids: [],
+    applicable_evidence_ids: ['KB-NGUTHAN-01'],
+    cautions_and_redlines: [], // No design cautions
+    system_warnings: ['[Lưu ý hệ thống] Mã bằng chứng "KB-FAKE-ID" không tồn tại trong CKB.'],
+    stylist_counter_proposal: {
+      title: 'Đề xuất',
+      solution: 'Giải pháp',
+      heritage_safeguard: 'Bảo toàn',
+      contemporary_edge: 'Đương đại',
+      materials_and_cuts: 'Vật liệu',
+    },
+    prototype_compliance: 'compliant',
+    historical_confidence: 'unverified',
+    has_design_caution: false,
+    has_evidence_uncertainty: true,
+  };
+  const summary = getWhatIfSummaryStatus(evaluation);
+  assert.strictEqual(summary.hasDesignCaution, false, 'System warning không được biến thành design caution');
+  assert.strictEqual(summary.isPrototypeConflict, false, 'Không được có prototype conflict');
+  assert.strictEqual(summary.systemWarnings.length, 1);
 });
 
 console.log('\n-------------------------------------------------------------');
