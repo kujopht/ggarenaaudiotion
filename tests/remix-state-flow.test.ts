@@ -767,6 +767,21 @@ runTest('10.7 Metadata & wording verification cho batch 2A CKB (KB-NGUTHAN-01, K
     false,
     'Deterministic counter proposal không được claim tay qua ngón tay'
   );
+
+  // generateDeterministicProposals('ngu_than') không hardcode số đo cổ bắt buộc
+  const nguThanProposals = generateDeterministicProposals('ngu_than', 'streetwear', 'modern_minimal', 3);
+  for (const prop of nguThanProposals) {
+    const collar = prop.visual_details.collar_style;
+    assert.strictEqual(
+      collar.includes('4.2cm') || collar.includes('4.5cm') || collar.includes('4-5cm') || collar.includes('chuẩn 4cm'),
+      false,
+      `Proposal ${prop.id} collar_style (${collar}) không được chứa số đo cổ hardcode (4.2cm, 4.5cm, 4-5cm, chuẩn 4cm)`
+    );
+    assert.ok(
+      collar.includes('Cổ vuông đứng') || collar.includes('cổ vuông đứng') || collar.includes('cổ đứng') || collar.includes('Cổ đứng'),
+      `Proposal ${prop.id} collar_style (${collar}) phải giữ cấu trúc cổ đứng theo KB-NGUTHAN-01`
+    );
+  }
 });
 
 // -------------------------------------------------------------

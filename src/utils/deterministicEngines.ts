@@ -419,7 +419,7 @@ export function generateDeterministicProposals(
         garment_type: 'ngu_than',
         dial_level: 1,
         visual_details: {
-          collar_style: 'Cổ Lập Lĩnh cao 4.5cm ôm sát cổ, 1 khuy cài cổ cố định',
+          collar_style: 'Cổ vuông đứng kín đáo, giữ phom nhận diện truyền thống',
           lapel_side: 'Hữu Nhậm (vạt trái đè lên vạt phải, cài khuy bên phải)',
           sleeve_style: 'Tay chẽn ôm thon dần về cổ tay, cử động linh hoạt',
           cut_length: 'Vạt dài qua đầu gối truyền thống, 5 thân đoan chính',
@@ -452,7 +452,7 @@ export function generateDeterministicProposals(
         garment_type: 'ngu_than',
         dial_level: dial || 3,
         visual_details: {
-          collar_style: 'Cổ Lập Lĩnh cao 4.2cm ôm khít cổ, đính khuy đồng thau đúc',
+          collar_style: 'Cổ vuông đứng gọn, dựng mềm để phù hợp mặc thường ngày',
           lapel_side: 'Hữu Nhậm (vạt trái đè vạt phải, cài khuy bên phải theo quy ước prototype)',
           sleeve_style: 'Tay chẽn thon gọn với đường may đôi (twin needle stitch)',
           cut_length: 'Vạt cách tân lửng ngang hông (midi-cut) hiện đại',
