@@ -604,6 +604,71 @@ runTest('10.5 Evidence ID mở đúng metadata nguồn và phân tách 3 tầng 
   }
 });
 
+runTest('10.6 Metadata & wording verification cho batch 1 CKB (KB-RULE-01, 02, 03, KB-NHATBINH-01)', () => {
+  const targetIds = ['KB-RULE-01', 'KB-RULE-02', 'KB-RULE-03', 'KB-NHATBINH-01'];
+
+  for (const id of targetIds) {
+    const entry = CKB_REGISTRY.find((r) => r.id === id);
+    assert.ok(entry, `Phải tìm thấy rule ${id}`);
+
+    // source_url tồn tại và không chỉ là homepage
+    assert.ok(entry?.source_url, `Rule ${id} phải có source_url`);
+    assert.ok(
+      entry!.source_url!.startsWith('https://') || entry!.source_url!.startsWith('http://'),
+      `source_url của ${id} phải là HTTP(S) URL`
+    );
+    const parsedUrl = new URL(entry!.source_url!);
+    assert.ok(
+      parsedUrl.pathname.length > 1,
+      `source_url của ${id} không được chỉ là homepage, phải trỏ đến bài cụ thể`
+    );
+  }
+
+  // Verification status
+  const rule01 = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-01')!;
+  const rule02 = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-02')!;
+  const rule03 = CKB_REGISTRY.find((r) => r.id === 'KB-RULE-03')!;
+  const ruleNhatBinh01 = CKB_REGISTRY.find((r) => r.id === 'KB-NHATBINH-01')!;
+
+  assert.strictEqual(ruleNhatBinh01.verification_status, 'verified', 'KB-NHATBINH-01 phải ở trạng thái verified');
+  assert.strictEqual(rule01.verification_status, 'needs_review', 'KB-RULE-01 phải ở trạng thái needs_review');
+  assert.strictEqual(rule02.verification_status, 'needs_review', 'KB-RULE-02 phải ở trạng thái needs_review');
+  assert.strictEqual(rule03.verification_status, 'needs_review', 'KB-RULE-03 phải ở trạng thái needs_review');
+
+  // KB-RULE-01: Không chứa wording ngụ ý hiện vật gốc thời Nguyễn
+  const rule01CombinedText = `${rule01.core_rule} ${rule01.historical_context} ${rule01.information_tier.historical_claim}`;
+  assert.strictEqual(
+    rule01CombinedText.toLowerCase().includes('hiện vật thời nguyễn xác nhận'),
+    false,
+    'KB-RULE-01 không được chứa "hiện vật thời Nguyễn xác nhận"'
+  );
+  assert.strictEqual(
+    rule01CombinedText.toLowerCase().includes('khảo cổ vật'),
+    false,
+    'KB-RULE-01 không được ngụ ý khảo cổ vật thế kỷ XIX'
+  );
+
+  // KB-RULE-02: Vẫn có wording tương truyền
+  const rule02CombinedText = `${rule02.historical_context} ${rule02.notes} ${rule02.information_tier.historical_claim}`;
+  assert.ok(
+    rule02CombinedText.toLowerCase().includes('tương truyền'),
+    'KB-RULE-02 phải có wording tương truyền'
+  );
+
+  // KB-RULE-03: Không chứa "tuyệt đối cấm" hoặc "vi phạm trực tiếp điển chế"
+  const rule03CombinedText = `${rule03.core_rule} ${rule03.historical_context} ${rule03.redline_warning} ${rule03.information_tier.historical_claim}`;
+  assert.strictEqual(
+    rule03CombinedText.toLowerCase().includes('tuyệt đối cấm'),
+    false,
+    'KB-RULE-03 không được chứa "tuyệt đối cấm"'
+  );
+  assert.strictEqual(
+    rule03CombinedText.toLowerCase().includes('vi phạm trực tiếp điển chế'),
+    false,
+    'KB-RULE-03 không được chứa "vi phạm trực tiếp điển chế"'
+  );
+});
+
 // -------------------------------------------------------------
 // Test Case 11: Single Source of Truth Architecture & Two-Layer Certainty Model
 // -------------------------------------------------------------
