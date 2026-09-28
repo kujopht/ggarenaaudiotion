@@ -268,7 +268,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     }
     if (info.badgeType === 'fallback') {
       return (
-        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#B8342B]/15 text-[#F5A39D] border border-[#B8342B]/40 shadow-xs">
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 border border-slate-600/50 shadow-xs">
           {info.label}
         </span>
       );

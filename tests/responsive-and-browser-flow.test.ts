@@ -6,6 +6,9 @@ import { HeritageBackground } from '../src/components/HeritageBackground.js';
 import { DongSonDialRing } from '../src/components/MotionMotifs.js';
 import { evaluateWhatIfDeterministic, generateDeterministicProposals } from '../src/utils/deterministicEngines.js';
 import { OutfitProposal } from '../src/types/vietphuc.js';
+import { CKBExplorerModal } from '../src/components/CKBExplorerModal.js';
+import { CKBRegistryView } from '../src/components/CKBRegistryView.js';
+import fs from 'node:fs';
 
 console.log('--- BẮT ĐẦU KIỂM THỬ: BROWSER VIEWPORT SIMULATION & MOCK WORKSPACE FLOW ---\n');
 
@@ -136,6 +139,37 @@ runTest('3.1 Luồng hoàn chỉnh Studio -> What If: Tạo outfit giả lập v
   assert.ok(evaluation.impact_analysis.includes(selectedProposal.title), 'Phải liên kết tên outfit vào phân tích');
   assert.strictEqual(evaluation.violates_invariants, false, 'Không vi phạm Invariant');
   assert.strictEqual(evaluation.uncertainty_flag, true, 'Fallback bật cờ uncertainty với câu hỏi dạo phố ngoài core');
+});
+
+// ----------------------------------------------------------------------------
+// 4. Pre-recording Regression Check: CKB Source Links & Fallback Badge Semantics
+// ----------------------------------------------------------------------------
+runTest('4.1 CKBRegistryView & CKBExplorerModal: Sử dụng source_url với target="_blank" và rel="noopener noreferrer"', () => {
+  const registryHtml = renderToString(React.createElement(CKBRegistryView, {}));
+  assert.ok(registryHtml.includes('Mở nguồn tham khảo'), 'CKBRegistryView phải có action "Mở nguồn tham khảo"');
+  assert.ok(registryHtml.includes('target="_blank"'), 'Link ngoài phải có target="_blank"');
+  assert.ok(registryHtml.includes('rel="noopener noreferrer"'), 'Link ngoài phải có rel="noopener noreferrer"');
+  assert.ok(registryHtml.includes('https://baotanglichsu.vn'), 'Phải chứa URL từ CKB registry');
+  assert.ok(registryHtml.includes('https://vanhoanghethuat.vn'), 'Phải chứa URL Tạp chí Văn hóa Nghệ thuật');
+
+  const modalHtml = renderToString(React.createElement(CKBExplorerModal, { isOpen: true, onClose: () => {} }));
+  assert.ok(modalHtml.includes('Mở nguồn tham khảo'), 'CKBExplorerModal phải có action "Mở nguồn tham khảo"');
+  assert.ok(modalHtml.includes('target="_blank"'), 'Modal link ngoài phải có target="_blank"');
+  assert.ok(modalHtml.includes('rel="noopener noreferrer"'), 'Modal link ngoài phải có rel="noopener noreferrer"');
+});
+
+runTest('4.2 WhatIfLab Fallback Badge semantics: Không dùng màu red/rose cho Bản phân tích dự phòng', () => {
+  const whatIfCode = fs.readFileSync('src/components/WhatIfLab.tsx', 'utf-8');
+  // Check badgeType === 'fallback' block inside WhatIfLab
+  const fallbackBlockMatch = whatIfCode.match(/if\s*\(\s*info\.badgeType\s*===\s*['"]fallback['"]\s*\)\s*\{([\s\S]*?)\}/);
+  assert.ok(fallbackBlockMatch, 'Phải có block render cho info.badgeType === fallback trong WhatIfLab');
+  const fallbackBlock = fallbackBlockMatch[1];
+  
+  assert.ok(!fallbackBlock.includes('#B8342B'), 'Fallback badge KHÔNG ĐƯỢC dùng màu đỏ sơn mài (#B8342B)');
+  assert.ok(!fallbackBlock.includes('#F5A39D'), 'Fallback badge KHÔNG ĐƯỢC dùng màu hồng/đỏ (#F5A39D)');
+  assert.ok(!fallbackBlock.includes('text-rose'), 'Fallback badge KHÔNG ĐƯỢC dùng text-rose');
+  assert.ok(!fallbackBlock.includes('bg-rose'), 'Fallback badge KHÔNG ĐƯỢC dùng bg-rose');
+  assert.ok(fallbackBlock.includes('slate') || fallbackBlock.includes('neutral'), 'Fallback badge phải dùng slate hoặc neutral đồng bộ với CoDesignStudio');
 });
 
 console.log('\n-------------------------------------------------------------');

@@ -5,7 +5,7 @@ import {
   formatVerificationStatusBadge,
   getCKBStats,
 } from '../data/ckbRegistry';
-import { Search, ShieldCheck, BookOpen, Layers, Sparkles, AlertCircle, FileText } from 'lucide-react';
+import { Search, ShieldCheck, BookOpen, Layers, Sparkles, AlertCircle, FileText, ExternalLink } from 'lucide-react';
 
 interface CKBRegistryViewProps {
   onSelectEntry?: (id: string) => void;
@@ -301,6 +301,20 @@ export const CKBRegistryView: React.FC<CKBRegistryViewProps> = ({ onSelectEntry 
                     </div>
                     {entry.notes && (
                       <div className="text-[10px] opacity-80 italic pt-0.5">{entry.notes}</div>
+                    )}
+                    {entry.source_url && (
+                      <div className="pt-1">
+                        <a
+                          href={entry.source_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#C9A66B] hover:text-[#F2E9D8] underline underline-offset-2 transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                          <span>Mở nguồn tham khảo</span>
+                        </a>
+                      </div>
                     )}
                   </div>
                 ) : (
