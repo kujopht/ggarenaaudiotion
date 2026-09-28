@@ -57,19 +57,19 @@ function runTest(name: string, fn: () => void) {
 // -------------------------------------------------------------
 // Test Case 1: Xử lý nhãn nguồn (Gemini, Fallback, Thiếu nguồn, Nguồn lạ)
 // -------------------------------------------------------------
-runTest('1.1 Nhãn nguồn: exact "gemini" phải trả về "Gemini · Trực tiếp"', () => {
+runTest('1.1 Nhãn nguồn: exact "gemini" phải trả về "Gemini trực tiếp"', () => {
   const result = formatSourceBadge('gemini');
-  assert.strictEqual(result.label, 'Gemini · Trực tiếp');
+  assert.strictEqual(result.label, 'Gemini trực tiếp');
   assert.strictEqual(result.badgeType, 'gemini');
 });
 
-runTest('1.2 Nhãn nguồn: deterministic fallback phải trả về "Bản mẫu dự phòng"', () => {
+runTest('1.2 Nhãn nguồn: deterministic fallback phải trả về "Bản phân tích dự phòng"', () => {
   const res1 = formatSourceBadge('deterministic_engine');
-  assert.strictEqual(res1.label, 'Bản mẫu dự phòng');
+  assert.strictEqual(res1.label, 'Bản phân tích dự phòng');
   assert.strictEqual(res1.badgeType, 'fallback');
 
   const res2 = formatSourceBadge('deterministic_engine_fallback');
-  assert.strictEqual(res2.label, 'Bản mẫu dự phòng');
+  assert.strictEqual(res2.label, 'Bản phân tích dự phòng');
   assert.strictEqual(res2.badgeType, 'fallback');
 });
 
@@ -394,11 +394,11 @@ runTest('8.5 Fallback: Câu hỏi ngoài khả năng xử lý trả về Insuffi
 runTest('8.6 Fallback: Thiếu API key hoặc Gemini lỗi, nhãn nguồn trả về dự phòng', () => {
   const badge1 = formatSourceBadge('deterministic_engine');
   assert.strictEqual(badge1.badgeType, 'fallback');
-  assert.strictEqual(badge1.label, 'Bản mẫu dự phòng');
+  assert.strictEqual(badge1.label, 'Bản phân tích dự phòng');
 
   const badge2 = formatSourceBadge('deterministic_engine_fallback');
   assert.strictEqual(badge2.badgeType, 'fallback');
-  assert.strictEqual(badge2.label, 'Bản mẫu dự phòng');
+  assert.strictEqual(badge2.label, 'Bản phân tích dự phòng');
 });
 
 // -------------------------------------------------------------

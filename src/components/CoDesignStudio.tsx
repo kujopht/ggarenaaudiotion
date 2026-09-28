@@ -262,7 +262,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
     }
     if (info.badgeType === 'fallback') {
       return (
-        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-[#B8342B]/15 text-[#F5A39D] border border-[#B8342B]/40 shadow-xs">
+        <span className="text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-slate-800/80 text-slate-300 border border-slate-600/50 shadow-xs">
           {info.label}
         </span>
       );
@@ -355,7 +355,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#C9A66B]/30 text-[#E6C88B] hover:text-[#F2E9D8] transition-colors cursor-pointer"
                 >
-                  ⚡ Ngũ Thân Indigo (Mức 3)
+                  Ngũ Thân Indigo (Mức 3)
                 </button>
                 <button
                   type="button"
@@ -367,7 +367,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#43B6A4]/30 text-[#43B6A4] hover:text-[#F2E9D8] transition-colors cursor-pointer"
                 >
-                  ⚡ Áo Tấc Duster Coat (Mức 4)
+                  Áo Tấc Duster Coat (Mức 4)
                 </button>
                 <button
                   type="button"
@@ -379,7 +379,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   }}
                   className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#B8342B]/30 text-[#F5A39D] hover:text-[#F2E9D8] transition-colors cursor-pointer"
                 >
-                  ⚡ Nhật Bình Linen (Mức 2)
+                  Nhật Bình Linen (Mức 2)
                 </button>
               </div>
             </div>
@@ -704,8 +704,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                         }
                         if (badge.variant === 'uncertainty') {
                           return (
-                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/40 text-rose-300 flex items-center gap-1 shrink-0">
-                              <HelpCircle className="w-3.5 h-3.5 text-rose-400" />
+                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/50 text-[#D4C7B4] flex items-center gap-1 shrink-0">
+                              <HelpCircle className="w-3.5 h-3.5 text-[#B8AA96]" />
                               {badge.label}
                             </span>
                           );

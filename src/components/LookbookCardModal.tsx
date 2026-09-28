@@ -97,8 +97,8 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
                 </div>
               )}
               {hasUncertainty && (
-                <div className="px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg font-semibold text-xs flex items-center gap-1.5 backdrop-blur-xs">
-                  <HelpCircle className="w-4 h-4 text-rose-400" />
+                <div className="px-3 py-1.5 bg-slate-800/80 border border-slate-600/50 text-[#D4C7B4] rounded-lg font-semibold text-xs flex items-center gap-1.5 backdrop-blur-xs">
+                  <HelpCircle className="w-4 h-4 text-[#B8AA96]" />
                   <span>Chưa đủ dữ liệu tham chiếu</span>
                 </div>
               )}

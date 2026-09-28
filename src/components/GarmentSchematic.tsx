@@ -187,7 +187,7 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 fill="url(#silkPattern)"
               />
 
-              {/* Tay thụng rộng buông dài theo gấu áo (KB-TAC-01) */}
+              {/* Tay thụng rộng và dài theo gấu áo (KB-TAC-01) */}
               <path
                 d="M60,110 L15,135 L10,270 L75,255 L80,180"
                 fill="url(#fabricGradAoTac)"
@@ -410,10 +410,10 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
             <div>
               <div className="flex items-center justify-between font-semibold text-[#E6C88B] mb-1">
                 <span>KB-NHATBINH-02 · DẢI NGŨ HÀNH THEO PHẨM CẤP</span>
-                <span className="text-[10px] text-[#E6C88B] font-mono">THAM CHIẾU THEO CẤP BẬC</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">VÍ DỤ THAM CHIẾU</span>
               </div>
               <p className="text-[#B8AA96]">
-                Dải ngũ hành xuất hiện trên nhiều phẩm cấp cung đình nhưng có ngoại lệ Hoàng hậu. Đây là đặc điểm tham chiếu theo cấp bậc, không áp đặt bắt buộc cho mọi phẩm cấp.
+                Hình vẽ thể hiện dải ngũ hành như một ví dụ tham chiếu theo phẩm cấp; không phải bắt buộc cho mọi phẩm cấp và Hoàng hậu là ngoại lệ theo nguồn hiện tại.
               </p>
             </div>
           )}
@@ -427,12 +427,16 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
             <span className="w-2 h-2 rounded-full bg-[#43B6A4]" />
             Quy thức Bất biến
           </span>
-          <span className="flex items-center gap-1 text-[#C9A66B]">
-            <span className="w-2 h-2 rounded-full bg-[#C9A66B]" />
-            Vùng Khả biến
+          <span className="flex items-center gap-1 text-[#E6C88B]">
+            <span className="w-2 h-2 rounded-full bg-[#E6C88B]" />
+            Vùng Khả biến / Tham chiếu
           </span>
         </div>
-        <span className="text-[#8C7E6C]">Bấm điểm ghim để xem quy thức</span>
+        <span className="text-[#8C7E6C]">
+          {garment === 'nhat_binh'
+            ? 'Bấm ghim để xem (Dải ngũ hành là ví dụ tham chiếu)'
+            : 'Bấm điểm ghim để xem quy thức'}
+        </span>
       </div>
     </div>
   );

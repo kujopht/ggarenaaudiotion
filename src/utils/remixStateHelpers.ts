@@ -9,20 +9,20 @@ export interface SourceBadgeInfo {
 
 /**
  * 1. Safely formats provenance source badge.
- * ONLY exact 'gemini' gets 'Gemini · Trực tiếp'.
- * Fallbacks get 'Bản mẫu dự phòng'.
+ * ONLY exact 'gemini' gets 'Gemini trực tiếp'.
+ * Fallbacks get 'Bản phân tích dự phòng'.
  * Missing, empty, or unknown strings get 'Nguồn chưa xác định'.
  */
 export function formatSourceBadge(source: string | null | undefined): SourceBadgeInfo {
   if (source === 'gemini') {
     return {
-      label: 'Gemini · Trực tiếp',
+      label: 'Gemini trực tiếp',
       badgeType: 'gemini',
     };
   }
   if (source === 'deterministic_engine' || source === 'deterministic_engine_fallback') {
     return {
-      label: 'Bản mẫu dự phòng',
+      label: 'Bản phân tích dự phòng',
       badgeType: 'fallback',
     };
   }
