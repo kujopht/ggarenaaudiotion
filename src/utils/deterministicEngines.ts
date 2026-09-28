@@ -238,11 +238,11 @@ export function evaluateWhatIfDeterministic(
         `LƯU Ý NHẬN DIỆN [${ruleNguThan01.id}]: ${ruleNguThan01.core_rule} (Nguồn tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm).`,
       ],
       stylist_counter_proposal: {
-        title: 'Giữ Cổ Lập Lĩnh Nhưng Mở Cúc Cổ Khi Dạo Phố Hoặc Hạ Cổ Xuống 4.0cm Thoáng Mát',
+        title: 'Giữ Cổ Đứng Nhưng Mở Cúc Cổ Khi Dạo Phố Hoặc Hạ Cổ Thoáng Mát',
         solution:
-          'Vẫn may cổ Lập Lĩnh chuẩn 4cm nhưng dùng chất liệu dựng cổ (interlining) mềm mại, hoặc thiết kế cúc cổ có thể mở ra khi dạo phố để lật ve nhẹ, nhưng khi cài lại lập tức trở về phom lập lĩnh đoan chính.',
+          'Vẫn may phom cổ vuông đứng kín đáo trang nhã nhưng dùng chất liệu dựng cổ (interlining) mềm mại, hoặc thiết kế cúc cổ có thể mở ra khi dạo phố để lật ve nhẹ, nhưng khi cài lại lập tức trở về phom cổ đứng đoan chính.',
         heritage_safeguard:
-          'Giữ trọn vẹn kết cấu nhận diện cốt lõi của cổ lập lĩnh theo quy ước prototype.',
+          'Giữ trọn vẹn kết cấu nhận diện cốt lõi của cổ đứng theo quy ước prototype.',
         contemporary_edge:
           'Tạo cảm giác thoải mái tối đa cho ngày hè nhiệt đới mà không phá vỡ cấu trúc.',
         materials_and_cuts: 'Chất liệu linen pha lụa tơ tằm với mex dựng cổ mềm.',
@@ -287,7 +287,7 @@ export function evaluateWhatIfDeterministic(
         solution:
           'Mặc buông 2 vạt áo Tấc tự nhiên, bên trong phối áo thun/len cổ lọ màu đen ôm sát và quần âu xếp ly ống rộng, kết hợp bốt da cao cổ.',
         heritage_safeguard:
-          `Bảo lưu trọn vẹn ống tay thụng hình chữ nhật buông dài qua ngón tay theo ${ruleTac01.id}.`,
+          `Bảo lưu trọn vẹn ống tay thụng rộng dài theo ${ruleTac01.id}.`,
         contemporary_edge:
           'Tạo hiệu ứng silhouette bay bổng đậm chất Haute Couture quốc tế.',
         materials_and_cuts: 'Vải dạ len mỏng (lightweight wool) hoặc đũi tơ tằm dệt thô.',
@@ -496,7 +496,7 @@ export function generateDeterministicProposals(
         visual_details: {
           collar_style: 'Cổ Lập Lĩnh đính khuy tơ tằm, viền cổ nghiêm trang',
           lapel_side: 'Hữu Nhậm (vạt trái đè lên vạt phải)',
-          sleeve_style: 'Tay thụng chữ nhật rộng, thả xuôi dài qua ngón tay',
+          sleeve_style: 'Tay thụng rộng và dài buông thả tự nhiên theo gấu áo',
           cut_length: 'Vạt dài chạm bắp chân, kết cấu 5 thân rộng rãi',
           fabric_materials: ['Gấm dệt vân hoa mai', 'Lót lụa tơ tằm mềm'],
           layering_pieces: ['Áo lót cánh màu nguyệt bạch'],
@@ -526,7 +526,7 @@ export function generateDeterministicProposals(
         visual_details: {
           collar_style: 'Cổ Lập Lĩnh dựng đứng thanh thoát, giữ khuy đồng cài hờ',
           lapel_side: 'Hữu Nhậm khi đóng; cho phép mở khuy tạo phom duster coat',
-          sleeve_style: 'Tay thụng chữ nhật buông dài vượt qua bàn tay bất biến',
+          sleeve_style: 'Tay thụng rộng và dài buông thả trang trọng',
           cut_length: 'Áo khoác dáng dài bay bổng qua bắp chân',
           fabric_materials: ['Vải dạ mỏng Wool-blend cao cấp', 'Lớp lót Habotai trượt mịn'],
           layering_pieces: ['Áo cổ lọ đen mỏng ôm sát (Turtleneck knitwear)'],
@@ -544,7 +544,7 @@ export function generateDeterministicProposals(
               application: 'Khai thác điều khoản Mutable KB-TAC-03 cho phép mở vạt tạo dáng áo khoác dài thời thượng',
             },
           ],
-          'Ứng dụng sáng tạo điều khoản Mutable KB-TAC-03 (mở vạt dạng áo khoác) nhưng vẫn nghiêm cẩn giữ ống tay thụng qua ngón tay. Phù hợp quy tắc prototype.'
+          'Ứng dụng sáng tạo điều khoản Mutable KB-TAC-03 (mở vạt dạng áo khoác) nhưng vẫn nghiêm cẩn giữ ống tay thụng rộng dài. Phù hợp quy tắc prototype.'
         ),
         stylist_notes: {
           philosophy: 'Biến lễ phục Áo Tấc thành item thời trang dạo phố mang hơi thở Haute Couture quốc tế.',

@@ -476,10 +476,7 @@ runTest('10.1 CKB Rule cần rà soát (needs_review): KB-RULE-03 ghi nhận hi�
 
 runTest('10.2 CKB Rule chưa có nguồn (Unverified): Không tự bịa nguồn, thể hiện minh bạch trạng thái unverified', () => {
   const unverifiedIds = [
-    'KB-NGUTHAN-01',
-    'KB-NGUTHAN-02',
     'KB-NGUTHAN-03',
-    'KB-TAC-01',
     'KB-TAC-02',
     'KB-TAC-03',
     'KB-NHATBINH-02',
@@ -594,7 +591,8 @@ runTest('10.5 Evidence ID mở đúng metadata nguồn và phân tách 3 tầng 
         entry.notes &&
           (entry.notes.includes('chưa được đối soát trực tiếp') ||
             entry.notes.includes('chờ đối soát') ||
-            entry.notes.includes('tiếp tục tra cứu')),
+            entry.notes.includes('tiếp tục tra cứu') ||
+            entry.notes.includes('đối chiếu thêm')),
         `Rule ${entry.id} ghi rõ cần rà soát`
       );
     } else {
@@ -669,6 +667,108 @@ runTest('10.6 Metadata & wording verification cho batch 1 CKB (KB-RULE-01, 02, 0
   );
 });
 
+runTest('10.7 Metadata & wording verification cho batch 2A CKB (KB-NGUTHAN-01, KB-NGUTHAN-02, KB-TAC-01)', () => {
+  const targetIds = ['KB-NGUTHAN-01', 'KB-NGUTHAN-02', 'KB-TAC-01'];
+
+  for (const id of targetIds) {
+    const entry = CKB_REGISTRY.find((r) => r.id === id);
+    assert.ok(entry, `Phải tìm thấy rule ${id}`);
+
+    // exact source_url tồn tại và không chỉ là homepage
+    assert.ok(entry?.source_url, `Rule ${id} phải có source_url`);
+    assert.ok(
+      entry!.source_url!.startsWith('https://') || entry!.source_url!.startsWith('http://'),
+      `source_url của ${id} phải là HTTP(S) URL`
+    );
+    const parsedUrl = new URL(entry!.source_url!);
+    assert.ok(
+      parsedUrl.pathname.length > 1,
+      `source_url của ${id} không được chỉ là homepage, phải trỏ đến bài cụ thể`
+    );
+
+    // Cả 3 rule là needs_review
+    assert.strictEqual(entry!.verification_status, 'needs_review', `Rule ${id} phải ở trạng thái needs_review`);
+  }
+
+  const ruleNguThan01 = CKB_REGISTRY.find((r) => r.id === 'KB-NGUTHAN-01')!;
+  const ruleNguThan02 = CKB_REGISTRY.find((r) => r.id === 'KB-NGUTHAN-02')!;
+  const ruleTac01 = CKB_REGISTRY.find((r) => r.id === 'KB-TAC-01')!;
+
+  // Exact URLs
+  assert.strictEqual(
+    ruleNguThan01.source_url,
+    'https://vanhoanghethuat.vn/nhan-dien-va-phat-huy-gia-tri-ao-dai-truyen-thong-trong-boi-canh-hoi-nhap-bai-1-gia-tri-tham-m-va-ban-sac-van-hoa-cua-trang-phuc-ao-dai-77753129.html'
+  );
+  assert.strictEqual(
+    ruleNguThan02.source_url,
+    'https://vanhoanghethuat.vn/nhan-dien-va-phat-huy-gia-tri-ao-dai-truyen-thong-trong-boi-canh-hoi-nhap-bai-1-gia-tri-tham-m-va-ban-sac-van-hoa-cua-trang-phuc-ao-dai-77753129.html'
+  );
+  assert.strictEqual(
+    ruleTac01.source_url,
+    'https://vanhoanghethuat.vn/gen-z-va-trao-luu-phuc-dung-co-phuc-viet-tuong-lai-noi-dai-qua-khu-77755196.html'
+  );
+
+  // KB-NGUTHAN-01 không còn hardcode "4-5cm" làm invariant bắt buộc
+  assert.strictEqual(
+    ruleNguThan01.core_rule.includes('4-5cm'),
+    false,
+    'KB-NGUTHAN-01 core_rule không được hardcode 4-5cm làm invariant bắt buộc'
+  );
+
+  // KB-NGUTHAN-01 historical text ghi nhận khoảng 2cm ở nữ và 4cm ở nam
+  const nguThan01Text = `${ruleNguThan01.historical_context} ${ruleNguThan01.information_tier.historical_claim}`;
+  assert.ok(
+    nguThan01Text.includes('2cm') && nguThan01Text.includes('4cm'),
+    'KB-NGUTHAN-01 phải ghi nhận khoảng 2cm ở áo nữ và 4cm ở áo nam'
+  );
+
+  // KB-NGUTHAN-02 có wording rộng ở nách và thu hẹp ở đầu ống tay
+  const nguThan02Text = `${ruleNguThan02.core_rule} ${ruleNguThan02.historical_context}`;
+  assert.ok(
+    nguThan02Text.includes('rộng ở nách') || nguThan02Text.includes('nách rộng'),
+    'KB-NGUTHAN-02 phải có wording rộng ở nách'
+  );
+  assert.ok(
+    nguThan02Text.includes('thu hẹp') && nguThan02Text.includes('ống tay'),
+    'KB-NGUTHAN-02 phải có wording thu hẹp ở đầu ống tay'
+  );
+
+  // KB-TAC-01 không còn claim "hình chữ nhật" nếu không có nguồn
+  const tac01Text = `${ruleTac01.core_rule} ${ruleTac01.historical_context} ${ruleTac01.information_tier.historical_claim}`;
+  assert.strictEqual(
+    tac01Text.toLowerCase().includes('hình chữ nhật'),
+    false,
+    'KB-TAC-01 không được chứa claim hình chữ nhật'
+  );
+
+  // KB-TAC-01 không còn claim "qua ngón tay" nếu không có nguồn
+  assert.strictEqual(
+    tac01Text.toLowerCase().includes('qua ngón tay'),
+    false,
+    'KB-TAC-01 không được chứa claim qua ngón tay'
+  );
+
+  // Deterministic fallback không tái tạo lại các claim đã bị loại
+  const fallbackWhatIfCollar = evaluateWhatIfDeterministic('ngu_than', 'Đổi cổ áo ngũ thân');
+  assert.strictEqual(
+    fallbackWhatIfCollar.stylist_counter_proposal.solution.includes('chuẩn 4cm'),
+    false,
+    'Deterministic counter proposal không được hardcode chuẩn 4cm'
+  );
+
+  const fallbackWhatIfDuster = evaluateWhatIfDeterministic('ao_tac', 'Mặc áo tấc dạng duster coat');
+  assert.strictEqual(
+    fallbackWhatIfDuster.stylist_counter_proposal.heritage_safeguard.toLowerCase().includes('hình chữ nhật'),
+    false,
+    'Deterministic counter proposal không được claim tay hình chữ nhật'
+  );
+  assert.strictEqual(
+    fallbackWhatIfDuster.stylist_counter_proposal.heritage_safeguard.toLowerCase().includes('qua ngón tay'),
+    false,
+    'Deterministic counter proposal không được claim tay qua ngón tay'
+  );
+});
+
 // -------------------------------------------------------------
 // Test Case 11: Single Source of Truth Architecture & Two-Layer Certainty Model
 // -------------------------------------------------------------
@@ -703,8 +803,8 @@ runTest('11.2 Helpers getCKBEntry & isRuleApplicableToGarment hoạt động ch�
 });
 
 runTest('11.3 Tách bạch Prototype Compliance và Historical Confidence trong Audit', () => {
-  // Case 1: Toàn bộ rules là unverified (ví dụ KB-NGUTHAN-01, KB-NGUTHAN-02)
-  const unverifiedConfidence = deriveAuditConfidence(['KB-NGUTHAN-01', 'KB-NGUTHAN-02'], false);
+  // Case 1: Toàn bộ rules là unverified (ví dụ KB-TAC-02, KB-TAC-03)
+  const unverifiedConfidence = deriveAuditConfidence(['KB-TAC-02', 'KB-TAC-03'], false);
   assert.strictEqual(unverifiedConfidence.prototype_compliance, 'compliant', 'Tuân thủ quy ước prototype');
   assert.strictEqual(unverifiedConfidence.historical_confidence, 'unverified', 'Nguồn lịch sử là unverified');
   assert.strictEqual(unverifiedConfidence.hasUnverified, true);
@@ -743,20 +843,20 @@ runTest('11.4 What-If Fallback phản ánh trung thực certainty model khi vi p
 // -------------------------------------------------------------
 // Test Case 12: Gemini Normalization Layer Tests (Mock Gemini Outputs)
 // -------------------------------------------------------------
-runTest('12.1 Normalization Case 1: Gemini nói verified nhưng evidence KB-NGUTHAN-01 unverified -> demote historical_confidence & uncertainty true', () => {
+runTest('12.1 Normalization Case 1: Gemini nói verified nhưng evidence KB-TAC-02 unverified -> demote historical_confidence & uncertainty true', () => {
   const fakeGeminiAudit = {
     status: 'Supported',
     historical_confidence: 'verified', // Overconfident model claim
     prototype_compliance: 'compliant',
     uncertainty_flag: false,
-    evidence_ids: ['KB-NGUTHAN-01'], // Real status in CKB is unverified
-    invariants_checked: [{ evidence_id: 'KB-NGUTHAN-01', rule_name: 'Cổ lập lĩnh', passed: true, detail: 'Đúng cổ' }],
+    evidence_ids: ['KB-TAC-02'], // Real status in CKB is unverified
+    invariants_checked: [{ evidence_id: 'KB-TAC-02', rule_name: 'Tính lễ nghi', passed: true, detail: 'Kín đáo' }],
     mutables_used: [],
     cautions_and_redlines: [],
     auditor_verdict: 'Chính xác lịch sử 100%.',
   };
 
-  const normalized = normalizeGeminiProposalAudit(fakeGeminiAudit, 'ngu_than');
+  const normalized = normalizeGeminiProposalAudit(fakeGeminiAudit, 'ao_tac');
   assert.strictEqual(normalized.historical_confidence, 'unverified', 'Historical confidence phải bị hạ về unverified');
   assert.strictEqual(normalized.uncertainty_flag, true, 'uncertainty_flag phải bị ép thành true');
   assert.strictEqual(normalized.status, 'Supported with Caution', 'Status không được là Supported khi nguồn unverified');
@@ -853,16 +953,16 @@ runTest('12.6 Normalization Case 6: Prototype compliant, không caution, evidenc
       historical_confidence: 'verified',
       prototype_compliance: 'compliant',
       uncertainty_flag: false,
-      evidence_ids: ['KB-NGUTHAN-01', 'KB-NGUTHAN-02'],
+      evidence_ids: ['KB-TAC-02', 'KB-TAC-03'],
       invariants_checked: [
-        { evidence_id: 'KB-NGUTHAN-01', passed: true, detail: 'Cổ lập lĩnh chuẩn' },
-        { evidence_id: 'KB-NGUTHAN-02', passed: true, detail: 'Tay chẽn chuẩn' },
+        { evidence_id: 'KB-TAC-02', passed: true, detail: 'Kín đáo thân trên' },
+        { evidence_id: 'KB-TAC-03', passed: true, detail: 'Vạt mở' },
       ],
       mutables_used: [],
       cautions_and_redlines: [],
       auditor_verdict: 'Thiết kế đẹp.',
     },
-    'ngu_than'
+    'ao_tac'
   );
 
   const summary = getLookSummaryStatus(normalizedAudit);
@@ -880,13 +980,13 @@ runTest('12.7 Normalization Case 7: Prototype conflict và evidence unverified -
       historical_confidence: 'unverified',
       prototype_compliance: 'conflict',
       uncertainty_flag: true,
-      evidence_ids: ['KB-NGUTHAN-01'],
-      invariants_checked: [{ evidence_id: 'KB-NGUTHAN-01', passed: false, detail: 'Bỏ cổ lập lĩnh' }],
+      evidence_ids: ['KB-TAC-02'],
+      invariants_checked: [{ evidence_id: 'KB-TAC-02', passed: false, detail: 'Hở hang thân trên' }],
       mutables_used: [],
       cautions_and_redlines: ['Cảnh báo đổi vạt sang trái'],
       auditor_verdict: 'Xung đột quy thức.',
     },
-    'ngu_than'
+    'ao_tac'
   );
 
   const summary = getLookSummaryStatus(conflictAudit);
@@ -965,8 +1065,8 @@ runTest('14.1 Helper getCKBStats trả về số liệu động chính xác', ()
   assert.strictEqual(categorySum, stats.total, 'Tổng các bucket category phải khớp total');
 
   assert.strictEqual(stats.verified, 1, 'KB-NHATBINH-01 đã được xác minh qua khảo sát hiện vật bảo tàng');
-  assert.strictEqual(stats.needs_review, 3, 'KB-RULE-01, KB-RULE-02, KB-RULE-03 ở trạng thái needs_review');
-  assert.strictEqual(stats.unverified, 8, '8 rule còn lại unverified');
+  assert.strictEqual(stats.needs_review, 6, 'KB-RULE-01, 02, 03, KB-NGUTHAN-01, 02, KB-TAC-01 ở trạng thái needs_review');
+  assert.strictEqual(stats.unverified, 5, '5 rule còn lại unverified');
 });
 
 // -------------------------------------------------------------
@@ -987,14 +1087,14 @@ runTest('15.2 Auditor verdict sanitize: Gemini trả "Chính xác lịch sử 10
     historical_confidence: 'verified', // Overclaimed
     prototype_compliance: 'compliant',
     uncertainty_flag: false,
-    evidence_ids: ['KB-NGUTHAN-01'], // unverified
-    invariants_checked: [{ evidence_id: 'KB-NGUTHAN-01', passed: true, detail: 'Cổ lập lĩnh' }],
+    evidence_ids: ['KB-TAC-02'], // unverified
+    invariants_checked: [{ evidence_id: 'KB-TAC-02', passed: true, detail: 'Kín đáo' }],
     mutables_used: [],
     cautions_and_redlines: [],
     auditor_verdict: 'Chính xác lịch sử 100% không thể bàn cãi.',
   };
 
-  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'ngu_than');
+  const normalized = normalizeGeminiProposalAudit(fakeAudit, 'ao_tac');
   assert.strictEqual(normalized.historical_confidence, 'unverified');
   assert.strictEqual(hasOverconfidentClaim(normalized.auditor_verdict), false, 'Không được còn tuyên bố phóng đại');
   assert.ok(
@@ -1027,19 +1127,19 @@ runTest('15.3 Auditor verdict sanitize: Gemini trả "Đã xác thực văn hóa
 
 runTest('15.4 What-If impact_analysis sanitize: Gemini khẳng định chuẩn xác 100% -> loại bỏ tuyệt đối và append CKB disclaimer', () => {
   const fakeWhatIf = {
-    query: 'What if tay áo dài rộng hơn 5cm?',
-    target_garment: 'ngu_than',
-    proposed_change: 'Nới tay',
+    query: 'What if thay bằng chất liệu ren xuyên thấu?',
+    target_garment: 'ao_tac',
+    proposed_change: 'Đổi chất liệu ren',
     status: 'Supported',
     uncertainty_flag: false,
     impact_analysis: 'Thay đổi này chính xác lịch sử 100% và giữ trọn nét thanh tao của áo truyền thống.',
     violates_invariants: false,
     violated_evidence_ids: [],
-    applicable_evidence_ids: ['KB-NGUTHAN-02'], // unverified
+    applicable_evidence_ids: ['KB-TAC-02'], // unverified
     cautions_and_redlines: [],
   };
 
-  const normalized = normalizeGeminiWhatIfEvaluation(fakeWhatIf, 'ngu_than');
+  const normalized = normalizeGeminiWhatIfEvaluation(fakeWhatIf, 'ao_tac');
   assert.strictEqual(hasOverconfidentClaim(normalized.impact_analysis), false);
   assert.ok(
     normalized.impact_analysis.includes('chưa được xác minh độc lập'),
