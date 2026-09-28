@@ -17,7 +17,7 @@
 **Việt Phục Remix Lab** giải quyết nghịch lý lớn nhất của phong trào phục hưng cổ phục Việt Nam trong giới trẻ:
 *Làm sao để người trẻ tự do ứng dụng cổ phục vào đời sống hiện đại (streetwear, công sở sáng tạo, dạ tiệc) mà không vô tình phá vỡ những quy thức cốt lõi của tiền nhân?*
 
-Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowledge Base - CKB)** (lưu trạng thái xác minh riêng cho từng rule và công khai mức độ chắc chắn của nguồn) và năng lực thẩm mỹ sáng tạo của **Google Gemini AI**. Người dùng có thể phối đồ, thử nghiệm mọi ý tưởng phá cách (What If) và nhận được các phương án thay thế thông minh (Stylist Counter-Proposal) bảo toàn hồn cốt di sản.
+Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowledge Base - CKB)** (lưu trạng thái xác minh riêng cho từng rule và công khai mức độ chắc chắn của nguồn) và năng lực thẩm mỹ sáng tạo của **Google Gemini AI** (mô hình `gemini-3.8-flash`). Người dùng có thể phối đồ, thử nghiệm mọi ý tưởng phá cách (What If) và nhận được các phương án thay thế thông minh (Stylist Counter-Proposal) bảo toàn hồn cốt di sản.
 
 ### 🏛️ Trụ cột Trung thực Văn hóa (Single Source of Truth)
 
@@ -105,7 +105,7 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
 │  - CulturalAuditPanel & CKB Registry Explorer               │
 └──────────────────────────────┬──────────────────────────────┘
                                │
-            fetch (/api/gemini/remix, /api/gemini/whatif)
+            fetch (/api/remix/generate, /api/remix/what-if)
             [Guards: AbortController, Request-ID, Fallback]
                                │
 ┌──────────────────────────────▼──────────────────────────────┐
@@ -119,7 +119,7 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   GOOGLE GEMINI API ENGINE                  │
-│                (Gemini 2.5 / Flash Multimodal)              │
+│                      (gemini-3.8-flash)                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
