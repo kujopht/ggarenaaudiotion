@@ -1,6 +1,6 @@
-# Việt Phục Remix Lab
+# KUJO Re:Wear
 
-> **Nền tảng đồng sáng tạo Việt phục đương đại dựa trên Cơ sở tri thức Văn hóa (CKB) và Trí tuệ nhân tạo Gemini**  
+> **KUJO Re:Wear - Vietnamese Heritage Co-Design & Cultural Reference Studio**  
 > Dự án tham gia: **AI Arena Vietnam 2026**
 
 ---
@@ -15,8 +15,8 @@
 
 ## 🎯 Giới thiệu & Triết lý thiết kế
 
-**Việt Phục Remix Lab** giải quyết nghịch lý lớn nhất của phong trào phục hưng cổ phục Việt Nam trong giới trẻ:
-*Làm sao để người trẻ tự do ứng dụng cổ phục vào đời sống hiện đại (streetwear, công sở sáng tạo, dạ tiệc) mà không vô tình phá vỡ những quy thức cốt lõi của tiền nhân?*
+**KUJO Re:Wear** giải quyết nghịch lý lớn nhất của phong trào phục hưng cổ phục Việt Nam trong giới trẻ:
+*Wear heritage differently — Làm sao để người trẻ tự do ứng dụng cổ phục vào đời sống hiện đại (streetwear, công sở sáng tạo, dạ tiệc) mà không vô tình phá vỡ những quy thức cốt lõi của tiền nhân?*
 
 Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowledge Base - CKB)** (lưu trạng thái xác minh riêng cho từng rule và công khai mức độ chắc chắn của nguồn) và năng lực thẩm mỹ sáng tạo của **Google Gemini AI** (mô hình `gemini-3.8-flash`). Người dùng có thể phối đồ, thử nghiệm mọi ý tưởng phá cách (What If) và nhận được các phương án thay thế thông minh (Stylist Counter-Proposal) bảo toàn hồn cốt di sản.
 

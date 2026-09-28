@@ -1,7 +1,7 @@
 # HỒ SƠ ĐĂNG KÝ DỰ THI AI ARENA VIETNAM 2026
 
 ## 1. Tên giải pháp
-**Việt Phục Remix Lab (Vietnamese Heritage Co-Design & Cultural Audit Platform)**
+**KUJO Re:Wear - Vietnamese Heritage Co-Design & Cultural Reference Studio**
 
 ---
 
@@ -16,7 +16,7 @@
 ---
 
 ## 3. Tóm tắt giải pháp
-Việt Phục Remix Lab là nền tảng web tương tác thời gian thực, kết hợp giữa **Cơ sở tri thức Văn hóa (Cultural Knowledge Base - CKB)** và mô hình trí tuệ nhân tạo **Google Gemini (gemini-3.8-flash)** nhằm hỗ trợ đồng sáng tạo thời trang cổ phục đương đại:
+KUJO Re:Wear là nền tảng web tương tác thời gian thực, kết hợp giữa **Cơ sở tri thức Văn hóa (Cultural Knowledge Base - CKB)** và mô hình trí tuệ nhân tạo **Google Gemini (gemini-3.8-flash)** nhằm hỗ trợ đồng sáng tạo thời trang cổ phục đương đại:
 - **Đĩa xoay phá cách (Remix Dial):** Cho phép điều chỉnh mức độ sáng tạo từ Mức 1 (Bám sát tham chiếu) đến Mức 5 (Phá cách thể nghiệm).
 - **Cơ chế 2 bản phối song hành (2-Look Co-Design):** Luôn sinh ra đồng thời Bản phối A (Heritage Anchored - Tôn trọng truyền thống) và Bản phối B (Contemporary Edge - Phá cách đương đại) để người dùng so sánh trực quan.
 - **Thẩm định văn hóa minh bạch (Cultural Audit):** Phân tách độc lập 2 tầng đánh giá — Chuẩn mực mẫu thiết kế (*Prototype Compliance*: `compliant` / `conflict`) và Độ tin cậy lịch sử (*Historical Confidence*: `verified` / `needs_review` / `unverified`).

@@ -35,15 +35,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               {/* Lacquer Cinnabar & Gold Emblem */}
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-xs tracking-tight group-hover:border-[#C9A66B] group-hover:bg-[#B8342B]/35 transition-all shadow-xs shrink-0">
-                VP
+                KR
               </div>
               <div className="flex flex-col min-w-0">
                 <span className="text-sm sm:text-base md:text-lg font-serif font-bold tracking-tight text-[#F2E9D8] group-hover:text-[#C9A66B] transition-colors leading-none truncate">
-                  Việt Phục Remix Lab
+                  KUJO Re:Wear
                 </span>
                 {/* Subtitle: Hidden on mobile to prevent crowding */}
                 <span className="hidden sm:block text-[11px] font-sans font-medium text-[#B8AA96] tracking-normal mt-0.5 whitespace-nowrap">
-                  Studio thời trang đương đại & tham chiếu văn hóa
+                  Vietnamese Heritage Co-Design Studio
                 </span>
               </div>
             </a>

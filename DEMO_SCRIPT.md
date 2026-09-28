@@ -1,5 +1,5 @@
 # KỊCH BẢN QUAY VIDEO DEMO (90 - 120 GIÂY)
-## DỰ ÁN: VIỆT PHỤC REMIX LAB (AI ARENA 2026)
+## DỰ ÁN: KUJO RE:WEAR (AI ARENA 2026)
 
 ---
 
@@ -13,7 +13,7 @@
 ### PHÂN CẢNH CHI TIẾT
 
 #### 🎬 PHÂN CẢNH 1: ĐẶT VẤN ĐỀ (00:00 – 00:10)
-- **Hình ảnh trên màn hình:** Mở đầu với giao diện trang chủ Việt Phục Remix Lab. Cuộn nhẹ lướt qua Hero section với họa tiết chim phượng hoàng và trống đồng Đông Sơn.
+- **Hình ảnh trên màn hình:** Mở đầu với giao diện trang chủ KUJO Re:Wear. Cuộn nhẹ lướt qua Hero section với họa tiết chim phượng hoàng và trống đồng Đông Sơn.
 - **Hành động:** Di chuột nhẹ nhàng trên màn hình.
 - **Lời thoại (Voiceover):**  
   *"Là một người trẻ yêu cổ phục, mình và rất nhiều bạn Gen Z luôn muốn mặc áo dài ngũ thân hay áo tấc ra phố mỗi ngày. Thế nhưng tụi mình luôn băn khoăn: Chi tiết nào của tiền nhân bắt buộc phải giữ, và chi tiết nào có thể biến tấu để vừa thời thượng vừa không bị coi là lai căng?"*
@@ -24,7 +24,7 @@
 - **Hình ảnh trên màn hình:** Cuộn xuống khu vực **Xưởng phối đồ (Co-Design Studio)**. Trỏ chuột vào đĩa xoay **Remix Dial** ở trung tâm.
 - **Hành động:** Kéo thanh trượt hoặc xoay đĩa Remix Dial từ mức 1 lên mức 3, rồi mức 4. Vành trống đồng phản hồi mượt mà cùng số hiển thị.
 - **Lời thoại (Voiceover):**  
-  *"Đó là lý do tụi mình tạo nên Việt Phục Remix Lab. Trái tim của ứng dụng là chiếc đĩa xoay Remix Dial này — cho phép bạn tự do điều chỉnh mức độ sáng tạo: từ Mức 1 bám sát tham chiếu đến Mức 5 phá cách thể nghiệm đương đại cùng Google Gemini."*
+  *"Đó là lý do tụi mình tạo nên KUJO Re:Wear. Trái tim của ứng dụng là chiếc đĩa xoay Remix Dial này — cho phép bạn tự do điều chỉnh mức độ sáng tạo: từ Mức 1 bám sát tham chiếu đến Mức 5 phá cách thể nghiệm đương đại cùng Google Gemini."*
 
 ---
 
@@ -82,9 +82,9 @@
 ---
 
 #### 🎬 PHÂN CẢNH 7: KẾT LUẬN & TẦM NHÌN (01:50 – 02:00)
-- **Hình ảnh trên màn hình:** Thu nhỏ về toàn cảnh ứng dụng, hiển thị giao diện mượt mà, chuyên nghiệp. Hiển thị logo Việt Phục Remix Lab và lời kêu gọi trải nghiệm.
+- **Hình ảnh trên màn hình:** Thu nhỏ về toàn cảnh ứng dụng, hiển thị giao diện mượt mà, chuyên nghiệp. Hiển thị logo KUJO Re:Wear và lời kêu gọi trải nghiệm.
 - **Lời thoại (Voiceover):**  
-  *"Việt Phục Remix Lab không chỉ là một công cụ tạo mẫu thời trang — đây là cầu nối giúp di sản sống động trong hơi thở hiện đại bằng sức mạnh của AI và sự tôn trọng cội nguồn. Hãy cùng tụi mình đưa áo dài Việt bước ra thế giới!"*
+  *"KUJO Re:Wear không chỉ là một công cụ tạo mẫu thời trang — đây là cầu nối giúp di sản sống động trong hơi thở hiện đại bằng sức mạnh của AI và sự tôn trọng cội nguồn. Wear heritage differently — hãy cùng tụi mình đưa áo dài Việt bước ra thế giới!"*
 
 ---
 

@@ -17,7 +17,7 @@ export const ManifestoSection: React.FC<ManifestoSectionProps> = ({ onOpenCKB })
           Hiến Chương Thẩm Định & Tôn Chỉ Giám Định Di Sản
         </h2>
         <p className="text-sm text-stone-700 mt-2 leading-relaxed font-serif">
-          Việt Phục Remix Lab thiết lập một chuẩn mực minh bạch giữa tự do sáng tạo đương đại và sự nghiêm cẩn với cổ nhân. Mọi phán quyết của hệ thống đều tuân thủ 2 nguyên tắc tối thượng sau:
+          KUJO Re:Wear thiết lập một chuẩn mực minh bạch giữa tự do sáng tạo đương đại và sự nghiêm cẩn với cổ nhân. Mọi phán quyết của hệ thống đều tuân thủ 2 nguyên tắc tối thượng sau:
         </p>
       </div>
 

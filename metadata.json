@@ -1,6 +1,6 @@
 {
-  "name": "Việt Phục Remix Lab",
-  "description": "Studio đồng sáng tạo Việt phục đương đại với hệ thống tham chiếu văn hóa minh bạch theo mức độ xác minh nguồn.",
+  "name": "KUJO Re:Wear",
+  "description": "KUJO Re:Wear - Vietnamese Heritage Co-Design Studio. Nền tảng đồng sáng tạo Việt phục đương đại với hệ thống tham chiếu văn hóa minh bạch.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -312,7 +312,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Việt Phục Remix Lab server running on http://localhost:${PORT}`);
+    console.log(`KUJO Re:Wear server running on http://localhost:${PORT}`);
   });
 }
 

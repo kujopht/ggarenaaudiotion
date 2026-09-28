@@ -11,14 +11,14 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-[#B8342B]/25 text-[#C9A66B] border border-[#C9A66B]/40 flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
-            VP
+            KR
           </div>
           <div>
             <span className="text-base font-serif font-bold text-[#F2E9D8] block">
-              Việt Phục Remix Lab
+              KUJO Re:Wear
             </span>
             <p className="text-xs text-[#8C7E6C] mt-0.5 max-w-md leading-relaxed">
-              Studio thời trang Việt đương đại song hành cùng ghi chú tham chiếu văn hóa.
+              Vietnamese Heritage Co-Design Studio · Wear heritage differently.
             </p>
           </div>
         </div>
@@ -41,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenCKB, onScrollToTop }) => {
 
       <div className="max-w-7xl mx-auto mt-6 pt-4 border-t border-[#C9A66B]/15 flex flex-col sm:flex-row items-center justify-between text-xs text-[#8C7E6C] gap-2">
         <div>
-          © {new Date().getFullYear()} Việt Phục Remix Lab. Nền tảng thời trang di sản đương đại.
+          © {new Date().getFullYear()} KUJO Re:Wear. Nền tảng thời trang di sản đương đại.
         </div>
         <div className="font-mono text-[11px] text-[#6E5D53]">
           SƠN MÀI ĐƯƠNG ĐẠI · BẢO TỒN CỐT LÕI · TỰ DO BIẾN TẤU

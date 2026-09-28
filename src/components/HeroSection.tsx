@@ -31,7 +31,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           {/* Subtle Editorial Kicker */}
           <div className="flex items-center gap-2 text-xs font-mono tracking-wider text-[#C9A66B]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8342B] shrink-0" />
-            <span className="uppercase text-[11px] sm:text-xs">Sơn mài & Thời trang Việt đương đại</span>
+            <span className="uppercase text-[11px] sm:text-xs">KUJO Re:Wear · Vietnamese Heritage Co-Design Studio</span>
           </div>
 
           {/* Big Editorial Headline blending seamlessly into background */}
@@ -42,7 +42,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Subtitle */}
           <p className="text-sm sm:text-base text-[#B8AA96] leading-relaxed max-w-lg">
-            Phối lại nét xưa bằng gu riêng, cùng những gợi ý tham chiếu văn hóa.
+            Wear heritage differently. Phối lại nét xưa bằng gu riêng, cùng những gợi ý tham chiếu văn hóa.
           </p>
 
           {/* Primary Action Buttons - Each with its own tactile surface */}
