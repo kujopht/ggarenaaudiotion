@@ -98,10 +98,10 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
                 </div>
                 <ul className="space-y-1.5 text-[#F2E9D8] text-xs sm:text-sm leading-relaxed">
                   <li>
-                    <span className="font-bold text-[#F5A39D]">KB-RULE-01 (Hữu nhậm):</span> Vạt trái đè lên vạt phải, khuy cài bên phải. CẤM TẢ NHẬM (tang ma).
+                    <span className="font-bold text-[#F5A39D]">KB-RULE-01 (Hữu nhậm):</span> Vạt trái đè lên vạt phải, khuy cài bên phải theo quy ước cấu trúc cố định của prototype.
                   </li>
                   <li>
-                    <span className="font-bold text-[#F5A39D]">KB-NGUTHAN-01 (Cổ Lập Lĩnh):</span> Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cổ cố định.
+                    <span className="font-bold text-[#F5A39D]">KB-NGUTHAN-01 (Cổ vuông đứng):</span> Cổ vuông đứng kín đáo, giữ phom nhận diện truyền thống.
                   </li>
                   <li>
                     <span className="font-bold text-[#F5A39D]">KB-NGUTHAN-02 (Ống tay chẽn):</span> Ống tay thu nhỏ dần về phía cổ tay, thuận tiện cử động hàng ngày.
@@ -140,7 +140,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
                   Đại lễ phục trang nghiêm hoàng triều
                 </h3>
                 <p className="text-sm text-[#B8AA96] mt-1.5 leading-relaxed font-serif">
-                  Áo Tấc là lễ phục mặc trong các dịp đại lễ: cúng tế gia tiên, yết kiến triều đình, hôn lễ. Nhận diện cốt tử nằm ở đôi ống tay thụng rộng hình chữ nhật buông dài quá ngón tay, tạo nên cử chỉ chắp tay trang nghiêm và phong thái thanh tao.
+                  Áo Tấc là lễ phục mặc trong các dịp đại lễ: cúng tế gia tiên, yết kiến triều đình, hôn lễ. Nhận diện cốt tử nằm ở đôi ống tay thụng rộng buông dài bằng gấu áo, tạo nên cử chỉ chắp tay trang nghiêm và phong thái thanh tao.
                 </p>
               </div>
 
@@ -152,7 +152,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
                 </div>
                 <ul className="space-y-1.5 text-[#F2E9D8] text-xs sm:text-sm leading-relaxed">
                   <li>
-                    <span className="font-bold text-[#F5A39D]">KB-TAC-01 (Tay thụng chữ nhật):</span> Ống tay thụng rộng hình chữ nhật, thả xuôi dài bằng hoặc qua ngón tay. Tuyệt đối không may chẽn.
+                    <span className="font-bold text-[#F5A39D]">KB-TAC-01 (Tay thụng rộng dài):</span> Ống tay thụng rộng buông dài theo gấu áo. Nhận diện cốt lõi của lễ phục Áo Tấc, không may thu hẹp thành tay chẽn.
                   </li>
                   <li>
                     <span className="font-bold text-[#F5A39D]">KB-TAC-02 (Tính lễ nghi):</span> Thân trên luôn phải giữ sự kín đáo, đoan nghiêm khi phối hợp đương đại.
@@ -191,7 +191,7 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
                   Y phục quyền quý cung tần mệnh phụ
                 </h3>
                 <p className="text-sm text-[#B8AA96] mt-1.5 leading-relaxed font-serif">
-                  Áo Nhật Bình là triều phục của hoàng hậu, công chúa và cung tần triều Nguyễn. Điểm nhận diện đặc trưng là nẹp cổ đối khâm hình chữ nhật trước ngực và viền tay áo dải màu ngũ hành rực rỡ.
+                  Áo Nhật Bình là triều phục của hoàng hậu, công chúa và cung tần triều Nguyễn. Điểm nhận diện đặc trưng là nẹp cổ đối khâm hình chữ nhật trước ngực; viền tay áo có dải màu ngũ hành theo phẩm cấp (ngoại lệ Hoàng hậu).
                 </p>
               </div>
 
@@ -203,10 +203,10 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
                 </div>
                 <ul className="space-y-1.5 text-[#F2E9D8] text-xs sm:text-sm leading-relaxed">
                   <li>
-                    <span className="font-bold text-[#F5A39D]">KB-NHATBINH-01 (Nẹp cổ đối khâm):</span> Nẹp cổ hình chữ nhật chạy dọc đối xứng từ cổ xuống ngực.
+                    <span className="font-bold text-[#F5A39D]">KB-NHATBINH-01 (Nẹp cổ đối khâm):</span> Nẹp cổ hình chữ nhật chạy dọc đối xứng từ cổ xuống ngực cài cúc ở trục chính giữa.
                   </li>
                   <li>
-                    <span className="font-bold text-[#F5A39D]">KB-NHATBINH-02 (Cổ tay ngũ sắc):</span> Viền tay áo 5 màu ngũ hành / ngũ thường. Không được xóa bỏ khi giữ nhận diện Nhật Bình.
+                    <span className="font-bold text-[#E6C88B]">KB-NHATBINH-02 (Dải ngũ hành theo phẩm cấp):</span> Dải màu viền tay áo xuất hiện trên nhiều phẩm cấp hậu phi nhưng có ngoại lệ ở Hoàng hậu; vùng tham chiếu linh hoạt.
                   </li>
                 </ul>
               </div>

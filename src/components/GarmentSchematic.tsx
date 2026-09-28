@@ -127,7 +127,7 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 strokeWidth="1"
               />
 
-              {/* Cổ Lập Lĩnh (Standing Collar 4-5cm - KB-NGUTHAN-01) */}
+              {/* Cổ vuông đứng (Standing Collar - KB-NGUTHAN-01) */}
               <path
                 d="M142,52 L178,52 L176,72 L144,72 Z"
                 fill="#1E293B"
@@ -337,11 +337,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
           {activePin === 'collar' && (
             <div>
               <div className="flex items-center justify-between font-semibold text-[#43B6A4] mb-1">
-                <span>KB-NGUTHAN-01 · CỔ LẬP LĨNH</span>
+                <span>KB-NGUTHAN-01 · CỔ VUÔNG ĐỨNG</span>
                 <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
               <p className="text-[#B8AA96]">
-                Cổ đứng cao 4-5cm ôm khít cổ, có 1 khuy cài cổ cố định. Đây là đặc trưng cốt lõi bất biến, thể hiện phong thái đoan chính.
+                Cổ vuông đứng kín đáo, giữ phom nhận diện truyền thống theo quy ước prototype.
               </p>
             </div>
           )}
@@ -350,10 +350,10 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
             <div>
               <div className="flex items-center justify-between font-semibold text-[#E6C88B] mb-1">
                 <span>KB-RULE-01 · QUY THỨC HỮU NHẬM</span>
-                <span className="text-[10px] text-[#E6C88B] font-mono">BẤT BIẾN · CẤM TẢ NHẬM</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">BẤT BIẾN · HỮU NHẬM</span>
               </div>
               <p className="text-[#B8AA96]">
-                Vạt trái đè lên vạt phải, khuy áo cài bên phải. Tuyệt đối cấm cài vạt sang trái (Tả nhậm - quy thức y phục tang ma).
+                Vạt trái đè lên vạt phải, khuy áo cài bên phải. Đây là quy ước cấu trúc cố định của prototype.
               </p>
             </div>
           )}
@@ -373,11 +373,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
           {activePin === 'ao_tac_sleeve' && (
             <div>
               <div className="flex items-center justify-between font-semibold text-[#43B6A4] mb-1">
-                <span>KB-TAC-01 · TAY THỤNG CHỮ NHẬT</span>
+                <span>KB-TAC-01 · TAY THỤNG RỘNG DÀI</span>
                 <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
               <p className="text-[#B8AA96]">
-                Ống tay áo thụng rộng hình chữ nhật, khi thả xuôi dài bằng hoặc qua ngón tay. Đây là nhận diện cốt lõi của Áo Tấc lễ phục.
+                Ống tay áo thụng rộng buông dài theo gấu áo. Đây là nhận diện cốt lõi của lễ phục Áo Tấc, không may thu hẹp thành tay chẽn.
               </p>
             </div>
           )}
@@ -401,7 +401,7 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 <span className="text-[10px] text-[#43B6A4] font-mono">BẤT BIẾN</span>
               </div>
               <p className="text-[#B8AA96]">
-                Nẹp cổ to bản chạy dọc song song từ cổ xuống ngực tạo thành hình chữ nhật đặc trưng, có dải dây buộc ở ngực. Bất biến.
+                Nẹp cổ dạng đối khâm hình chữ nhật cài ở trục chính giữa. Đặc điểm nhận diện cốt lõi của Áo Nhật Bình.
               </p>
             </div>
           )}
@@ -409,11 +409,11 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
           {activePin === 'nhatbinh_cuff' && (
             <div>
               <div className="flex items-center justify-between font-semibold text-[#E6C88B] mb-1">
-                <span>KB-NHATBINH-02 · CỔ TAY NGŨ SẮC</span>
-                <span className="text-[10px] text-[#E6C88B] font-mono">BIỂU TƯỢNG NGŨ HÀNH</span>
+                <span>KB-NHATBINH-02 · DẢI NGŨ HÀNH THEO PHẨM CẤP</span>
+                <span className="text-[10px] text-[#E6C88B] font-mono">THAM CHIẾU THEO CẤP BẬC</span>
               </div>
               <p className="text-[#B8AA96]">
-                Dải màu ngũ hành/ngũ thường ở viền tay áo mang tính nhận diện biểu tượng. Bất biến, không đảo lộn lung tung.
+                Dải màu viền tay áo xuất hiện trên nhiều phẩm cấp hậu phi nhưng có ngoại lệ ở Hoàng hậu. Vùng tham chiếu linh hoạt.
               </p>
             </div>
           )}

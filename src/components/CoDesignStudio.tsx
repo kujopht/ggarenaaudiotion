@@ -45,7 +45,7 @@ const GarmentSketchIcon: React.FC<{ garment: GarmentKey; isSelected: boolean }> 
   if (garment === 'ngu_than') {
     return (
       <svg width="40" height="40" viewBox="0 0 44 44" fill="none" className="shrink-0">
-        {/* Collar standing 4-5cm */}
+        {/* Standing collar */}
         <rect x="18" y="6" width="8" height="5" rx="1" stroke={strokeColor} strokeWidth="1.5" />
         {/* Left overlap seam (Hữu nhậm to right) */}
         <path d="M22,11 Q24,18 29,22 L31,38 L13,38 L15,22 Q20,18 22,11 Z" stroke={strokeColor} strokeWidth="1.5" fill={isSelected ? '#C9A66B15' : 'none'} />
@@ -91,24 +91,24 @@ const GARMENTS = [
     key: 'ngu_than' as GarmentKey,
     name: 'Áo Ngũ Thân Tay Chẽn',
     dynasty: 'Thường phục triều Nguyễn',
-    seal: 'LẬP LĨNH · HỮU NHẬM',
-    desc: 'Cổ đứng 4-5cm ôm khít, vạt Hữu nhậm cài sang phải, tay chẽn gọn gàng năng động.',
+    seal: 'CỔ ĐỨNG · HỮU NHẬM',
+    desc: 'Cổ vuông đứng, tay chẽn, kết cấu 5 thân',
     badgeColor: 'border-[#C9A66B]/50 text-[#E6C88B] bg-[#C9A66B]/15',
   },
   {
     key: 'ao_tac' as GarmentKey,
     name: 'Áo Tấc Lễ Phục',
     dynasty: 'Đại lễ phục triều Nguyễn',
-    seal: 'TAY THỤNG · DUSTER COAT',
-    desc: 'Ống tay thụng hình chữ nhật buông quá ngón tay trang trọng; có thể mở khuy làm áo khoác ngoài.',
+    seal: 'TAY THỤNG · LỄ PHỤC',
+    desc: 'Lễ phục ngũ thân với tay thụng rộng và dài',
     badgeColor: 'border-[#43B6A4]/50 text-[#43B6A4] bg-[#43B6A4]/15',
   },
   {
     key: 'nhat_binh' as GarmentKey,
     name: 'Áo Nhật Bình',
     dynasty: 'Cung tần & Mệnh phụ',
-    seal: 'ĐỐI KHÂM · NGŨ SẮC',
-    desc: 'Nẹp cổ chữ nhật đối khâm hoa văn, dải màu ngũ sắc ở viền tay; phối cùng chân váy xếp ly hiện đại.',
+    seal: 'ĐỐI KHÂM · THEO PHẨM CẤP',
+    desc: 'Nẹp cổ đối khâm hình chữ nhật, hoa văn và chi tiết tay thay đổi theo phẩm cấp',
     badgeColor: 'border-[#B8342B]/50 text-[#F5A39D] bg-[#B8342B]/15',
   },
 ];
@@ -409,19 +409,19 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                         <div className="px-3 py-2.5 bg-[#140F0E]/75 border-t border-[#C9A66B]/15 text-xs text-[#B8AA96] space-y-1.5 animate-in fade-in duration-150">
                           {g.key === 'ngu_than' && (
                             <>
-                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> 5 thân vải (2 thân trước, 2 thân sau, 1 thân con bên trong), 5 khuy cài tượng trưng ngũ thường (Nhân, Lễ, Nghĩa, Trí, Tín).</p>
-                              <p><strong className="text-[#E6C88B]">Bất biến:</strong> Cổ lập lĩnh ôm khít cổ, vạt Hữu nhậm cài sang phải (tuyệt đối không cài sang trái).</p>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Kết cấu 5 thân (2 thân trước, 2 thân sau, 1 thân con bên trong), cài 5 khuy bên phải (Hữu nhậm).</p>
+                              <p><strong className="text-[#E6C88B]">Đặc điểm cốt lõi:</strong> Cổ vuông đứng kín đáo, vạt Hữu nhậm cài khuy bên phải theo quy ước prototype.</p>
                             </>
                           )}
                           {g.key === 'ao_tac' && (
                             <>
-                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Tay thụng hình chữ nhật rộng buông dài quá ngón tay, dùng trong các đại lễ trang trọng triều Nguyễn.</p>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Lễ phục ngũ thân với đôi tay thụng rộng buông dài bằng gấu áo, cài khuy bên phải.</p>
                               <p><strong className="text-[#E6C88B]">Khả biến đương đại:</strong> Cho phép mở khuy làm áo khoác duster coat hiện đại, phối quần tây ống rộng.</p>
                             </>
                           )}
                           {g.key === 'nhat_binh' && (
                             <>
-                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Nẹp cổ chữ nhật đối khâm hoa văn chạy dọc đối xứng, dải màu ngũ sắc ở viền tay tượng trưng ngũ hành.</p>
+                              <p><strong className="text-[#E6C88B]">Quy thức cấu trúc:</strong> Nẹp cổ đối khâm hình chữ nhật cài ở trục chính giữa; dải màu tay áo thay đổi theo phẩm cấp (ngoại lệ Hoàng hậu).</p>
                               <p><strong className="text-[#E6C88B]">Khả biến đương đại:</strong> Phối cùng chân váy xếp ly dài hiện đại hoặc layer áo quây / áo hai dây bên trong.</p>
                             </>
                           )}

@@ -86,7 +86,7 @@ export const ManifestoSection: React.FC<ManifestoSectionProps> = ({ onOpenCKB })
                 <span>REDLINE 01: Vi Phạm Quy Thức Hữu Nhậm [KB-RULE-01]</span>
               </div>
               <p className="text-rose-800 text-[11px] mt-1 leading-relaxed">
-                Cài vạt sang trái (Tả nhậm) là quy thức riêng biệt của y phục tang ma cho người đã khuất. Tuyệt đối không được bình thường hóa trên y phục người sống.
+                Vạt trái đè lên vạt phải (Hữu nhậm) là quy ước cấu trúc cố định của prototype. Cài vạt sang trái bị coi là xung đột cấu trúc với Áo Ngũ Thân và Áo Tấc.
               </p>
             </div>
 
@@ -96,7 +96,7 @@ export const ManifestoSection: React.FC<ManifestoSectionProps> = ({ onOpenCKB })
                 <span>REDLINE 02: Cấm Kỵ Hoàng Quyền Rồng 5 Móng [KB-RULE-03]</span>
               </div>
               <p className="text-rose-800 text-[11px] mt-1 leading-relaxed">
-                Họa tiết Rồng 5 móng chỉ dành riêng cho Hoàng đế thời Nguyễn. Tuyệt đối không đưa vào trang phục dân dụng, dạo phố, casual. Thay thế bằng rồng 4 móng hoặc mây sấm bát bửu.
+                Họa tiết Rồng 5 móng gắn liền với quyền uy hoàng đế triều Nguyễn. Lab thiết lập ranh giới prototype không đưa rồng 5 móng vào thời trang dạo phố dân dụng.
               </p>
             </div>
 

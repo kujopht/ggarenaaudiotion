@@ -83,7 +83,7 @@ export function evaluateWhatIfDeterministic(
       verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        `Thay đổi này xung đột với quy tắc prototype ${rule01.id} (${rule01.title}). ${rule01.information_tier.prototype_rule} Tuy nhiên, nguồn lịch sử của rule này trong bản thử nghiệm hiện chưa được xác minh độc lập. Trong tập quán y phục Á Đông, tả nhậm là quy thức cài áo thường liên quan y phục tang ma của người quá cố, khuyến cáo tránh dùng trên trang phục thường nhật.`,
+        `Thay đổi này xung đột với quy tắc prototype ${rule01.id} (${rule01.title}). ${rule01.information_tier.prototype_rule} Tuy nhiên, nguồn lịch sử của rule này trong bản thử nghiệm hiện chưa được xác minh độc lập. Trong tập quán y phục Á Đông, tả nhậm là quy thức cài áo thường liên quan y phục tang ma theo quan niệm dân gian truyền khẩu (chưa được dự án kiểm chứng bằng thư tịch chính thức), khuyến cáo tránh dùng trên trang phục thường nhật.`,
       violates_invariants: true,
       violated_evidence_ids: [rule01.id],
       applicable_evidence_ids: [rule01.id],
@@ -158,37 +158,37 @@ export function evaluateWhatIfDeterministic(
   const isCuffFiveColorsProposal =
     !hasNegation(q) &&
     (effectiveGarment === 'nhat_binh' || q.includes('nhật bình')) &&
-    (q.includes('cổ tay') || q.includes('viền tay') || q.includes('ngũ sắc') || q.includes('dải màu ngũ hành')) &&
+    (q.includes('cổ tay') || q.includes('viền tay') || q.includes('ngũ sắc') || q.includes('dải màu ngũ hành') || q.includes('dải màu')) &&
     (q.includes('đổi') || q.includes('thay') || q.includes('bỏ') || q.includes('đảo') || q.includes('màu') || q.includes('viền'));
 
   if (isCuffFiveColorsProposal) {
-    const auditConf = deriveAuditConfidence([ruleNhatBinh02.id], true);
+    const auditConf = deriveAuditConfidence([ruleNhatBinh02.id], false);
     return {
       query: rawQuery,
       target_garment: 'nhat_binh',
-      proposed_change: 'Bỏ hoặc thay đổi màu dải ngũ sắc ở cổ tay Áo Nhật Bình',
+      proposed_change: 'Bỏ hoặc thay đổi màu dải ngũ hành ở viền tay Áo Nhật Bình',
       status: 'Supported with Caution',
       uncertainty_flag: true,
-      prototype_compliance: auditConf.prototype_compliance,
-      historical_confidence: auditConf.historical_confidence,
+      prototype_compliance: 'compliant',
+      historical_confidence: 'needs_review',
       verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        `Thay đổi này xung đột với quy tắc prototype ${ruleNhatBinh02.id} (${ruleNhatBinh02.title}). ${ruleNhatBinh02.core_rule} Tuy nhiên, nguồn lịch sử của quy tắc này trong bản thử nghiệm hiện chưa được xác minh độc lập.`,
-      violates_invariants: true,
-      violated_evidence_ids: [ruleNhatBinh02.id],
+        `Tư liệu Tạp chí Văn hóa Nghệ thuật ghi nhận dải ngũ hành viền tay xuất hiện trên nhiều phẩm cấp Nhật Bình triều Nguyễn nhưng có ngoại lệ ở bậc Hoàng hậu. Do chưa xác định phẩm cấp cụ thể của người mặc, thay đổi này không bị coi là xung đột quy tắc bất biến. Nếu muốn bản phối tham chiếu chính xác một phẩm cấp cung đình, khuyến nghị xác định rõ phẩm cấp trước khi thiết kế.`,
+      violates_invariants: false,
+      violated_evidence_ids: [],
       applicable_evidence_ids: [ruleNhatBinh02.id],
       cautions_and_redlines: [
-        `LƯU Ý NHẬN DIỆN [${ruleNhatBinh02.id}]: ${ruleNhatBinh02.core_rule} (Nguồn tham chiếu hiện chưa được xác minh độc lập trong bản thử nghiệm).`,
+        `LƯU Ý THAM CHIẾU [${ruleNhatBinh02.id}]: Dải ngũ hành thay đổi theo phẩm cấp (Hoàng hậu là ngoại lệ). Bản phối tự do có thể gia giảm nhưng cần lưu ý nếu muốn hướng tới phẩm cấp cụ thể.`,
       ],
       stylist_counter_proposal: {
-        title: 'Giữ Thứ Tự Ngũ Sắc Nhưng Chuyển Sang Bảng Màu Muted Hoặc Pastel Tinh Tế',
+        title: 'Giữ Gợi Nhắc Dải Ngũ Hành Tone Muted Hoặc Phối Màu Đơn Sắc Tinh Tế',
         solution:
-          'Vẫn giữ đúng 5 dải màu theo đúng trật tự ngũ hành, nhưng gia giảm độ bão hòa (desaturated) sang tông màu nhã nhặn hiện đại (muted tones) hoặc dệt chìm bằng sợi tơ mờ trên nền cổ tay áo.',
+          'Giữ một gợi nhắc dải ngũ hành nếu muốn tham chiếu nhóm Nhật Bình ngoài Hoàng hậu, hoặc dùng xử lý tone muted / tone-sur-tone khi chưa xác định phẩm cấp cụ thể.',
         heritage_safeguard:
-          'Bảo toàn trật tự dải màu nhận diện của Nhật Bình theo quy ước prototype.',
+          'Bảo tồn tính linh hoạt theo phẩm cấp lịch sử thay vì áp đặt cứng nhắc quy tắc ngũ sắc cho mọi kiểu Nhật Bình.',
         contemporary_edge:
-          'Hài hòa thị giác với các phong cách tối giản và pastel hiện đại.',
+          'Tạo nét thanh lịch, tối giản phù hợp thẩm mỹ đương đại mà vẫn lưu lại dấu ấn cung đình.',
         materials_and_cuts: 'Chất liệu lụa tơ tằm dệt chìm hoặc chỉ thêu phối màu chuyển tiếp tinh tế.',
       },
     };
@@ -301,7 +301,7 @@ export function evaluateWhatIfDeterministic(
   // --------------------------------------------------------------------------
   let explanation =
     outfitNote +
-    'Yêu cầu thử nghiệm này chưa có đủ dữ liệu quy tắc đối sánh trong bộ suy luận dự phòng ngoại tuyến. Chế độ dự phòng chỉ thẩm định các Invariant/Mutable cốt lõi đã được số hóa cứng (Hữu nhậm, Cổ Lập Lĩnh, Cổ tay ngũ sắc, Rồng 5 móng, Áo Tấc duster coat). Không phát hiện xung đột với các quy tắc hiện có trong CKB. Bộ quy tắc hiện tại chưa có đủ dữ liệu để kết luận sâu hơn đối với các chi tiết nằm ngoài tập quy tắc đã số hóa.';
+    'Yêu cầu thử nghiệm này chưa có đủ dữ liệu quy tắc đối sánh trong bộ suy luận dự phòng ngoại tuyến. Chế độ dự phòng chỉ thẩm định các Invariant/Mutable cốt lõi đã được số hóa (Hữu nhậm, Cổ đứng, Dải ngũ hành theo phẩm cấp, Rồng 5 móng, Áo Tấc duster coat). Không phát hiện xung đột với các quy tắc hiện có trong CKB. Bộ quy tắc hiện tại chưa có đủ dữ liệu để kết luận sâu hơn đối với các chi tiết nằm ngoài tập quy tắc đã số hóa.';
 
   if (effectiveGarment === 'nhat_binh' && (q.includes('vạt') || q.includes('hữu nhậm') || q.includes('tả nhậm'))) {
     explanation =
@@ -569,7 +569,7 @@ export function generateDeterministicProposals(
         visual_details: {
           collar_style: 'Nẹp cổ to bản hình chữ nhật đối khâm, thêu hoa văn ngũ phúc',
           lapel_side: 'Đối khâm (hai vạt song song), có dải lụa buộc cố định trước ngực',
-          sleeve_style: 'Tay thụng viền ngũ sắc ngũ hành (Kim - Mộc - Thủy - Hỏa - Thổ)',
+          sleeve_style: 'Tay thụng viền dải ngũ hành theo phẩm cấp tham chiếu (ngoại lệ ở bậc Hoàng hậu)',
           cut_length: 'Vạt dài qua đầu gối, xẻ tà hai bên hông quý phái',
           fabric_materials: ['Gấm Sa thêu chỉ tơ', 'Lót lụa tơ tằm dệt hoa'],
           layering_pieces: ['Áo lót cánh màu trắng hoặc vàng nhạt'],
@@ -581,7 +581,7 @@ export function generateDeterministicProposals(
         audit: buildProposalAudit(
           ['KB-NHATBINH-01', 'KB-NHATBINH-02'],
           [],
-          'Thiết kế Nhật Bình mẫu mực theo quy ước prototype, tuân thủ nghiêm ngặt 2 Invariants bất biến cốt lõi KB-NHATBINH-01 và KB-NHATBINH-02. Nguồn lịch sử tham chiếu hiện chưa được xác minh độc lập.'
+          'Thiết kế Nhật Bình bám sát tham chiếu theo quy ước prototype, bảo toàn nẹp cổ đối khâm bất biến KB-NHATBINH-01 và dải ngũ hành tham chiếu theo phẩm cấp KB-NHATBINH-02 (lưu ý ngoại lệ Hoàng hậu). Nguồn tham chiếu ở mức needs_review.'
         ),
         stylist_notes: {
           philosophy: 'Gìn giữ vẻ đẹp đài các, chuẩn mực của y phục cung tần mệnh phụ triều Nguyễn.',
@@ -599,7 +599,7 @@ export function generateDeterministicProposals(
         visual_details: {
           collar_style: 'Nẹp cổ to bản đối khâm hình chữ nhật chuẩn mực, dây buộc ngực lụa đen',
           lapel_side: 'Đối khâm mặc mở tà tạo phom cardigan quý phái đương đại',
-          sleeve_style: 'Tay thụng giữ trọn dải màu viền cổ tay ngũ sắc nguyên bản',
+          sleeve_style: 'Tay thụng phối dải viền ngũ hành tone muted theo phẩm cấp tham chiếu',
           cut_length: 'Áo lửng ngang hông (crop-length jacket) hoặc ngang đùi',
           fabric_materials: ['Vải dạ Tweed dệt sợi kim tuyến mảnh', 'Nẹp cổ lụa taffeta thêu chìm'],
           layering_pieces: ['Áo cúp ngực hoặc áo tank top lụa trắng ngà bên trong'],
@@ -617,7 +617,7 @@ export function generateDeterministicProposals(
               application: 'Thay thế quần lụa bằng chân váy xếp ly và cách tân chất liệu vải áo theo điều khoản Mutable KB-NHATBINH-03',
             },
           ],
-          'Ứng dụng điều khoản KB-NHATBINH-03 xuất sắc: Giữ trọn 2 nhận diện bất biến (Nẹp đối khâm & Tay ngũ sắc) trong khi phối cùng chân váy xếp ly hiện đại. Phù hợp quy tắc prototype.'
+          'Ứng dụng điều khoản KB-NHATBINH-03 linh hoạt: Bảo toàn nẹp cổ đối khâm bất biến KB-NHATBINH-01, chi tiết dải viền tay KB-NHATBINH-02 và phối cùng chân váy xếp ly hiện đại. Phù hợp quy tắc prototype.'
         ),
         stylist_notes: {
           philosophy: 'Tái định nghĩa Nhật Bình thành một chiếc áo khoác Haute Couture hiện đại, duyên dáng và kiêu sa.',
