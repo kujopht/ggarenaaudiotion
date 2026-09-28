@@ -41,6 +41,31 @@ if (apiKey) {
 // Cultural Knowledge Base (CKB) text dynamically generated from single source of truth (Requirement 1)
 const getCKBSystemGrounding = () => buildCKBSystemGrounding();
 
+// Resilient Gemini generator with automatic fallback across supported model tiers
+async function generateWithGemini(prompt: string, responseSchema: any) {
+  if (!ai) return null;
+  const candidateModels = ['gemini-3.8-flash', 'gemini-3.1-flash-lite'];
+  for (const model of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model,
+        contents: prompt,
+        config: {
+          systemInstruction: getCKBSystemGrounding(),
+          responseMimeType: 'application/json',
+          responseSchema,
+        },
+      });
+      if (response && response.text) {
+        return response;
+      }
+    } catch (err: any) {
+      console.warn(`[Gemini Engine] Model ${model} unavailable (${err?.status || err?.message || 'high demand'}). Cascading to fallback model...`);
+    }
+  }
+  return null;
+}
+
 // Outfit creation API
 app.post('/api/remix/generate', async (req: Request, res: Response) => {
   try {
@@ -77,110 +102,115 @@ YÊU CẦU BẮT BUỘC VỀ THẨM ĐỊNH DI SẢN:
 Trả về kết quả chuẩn định dạng JSON.
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: getCKBSystemGrounding(),
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            proposals: {
-              type: Type.ARRAY,
-              items: {
+    const proposalSchema = {
+      type: Type.OBJECT,
+      properties: {
+        proposals: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              id: { type: Type.STRING },
+              plan_type: { type: Type.STRING, description: "heritage_anchored hoặc contemporary_remix" },
+              title: { type: Type.STRING },
+              concept_tag: { type: Type.STRING },
+              garment_type: { type: Type.STRING },
+              dial_level: { type: Type.INTEGER },
+              visual_details: {
                 type: Type.OBJECT,
                 properties: {
-                  id: { type: Type.STRING },
-                  plan_type: { type: Type.STRING, description: "heritage_anchored hoặc contemporary_remix" },
-                  title: { type: Type.STRING },
-                  concept_tag: { type: Type.STRING },
-                  garment_type: { type: Type.STRING },
-                  dial_level: { type: Type.INTEGER },
-                  visual_details: {
-                    type: Type.OBJECT,
-                    properties: {
-                      collar_style: { type: Type.STRING },
-                      lapel_side: { type: Type.STRING },
-                      sleeve_style: { type: Type.STRING },
-                      cut_length: { type: Type.STRING },
-                      fabric_materials: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      layering_pieces: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      bottom_garment: { type: Type.STRING },
-                      footwear: { type: Type.STRING },
-                      accessories: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      color_palette: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    },
-                    required: ["collar_style", "lapel_side", "sleeve_style", "cut_length", "fabric_materials", "bottom_garment", "footwear", "color_palette"]
-                  },
-                  audit: {
-                    type: Type.OBJECT,
-                    properties: {
-                      status: { type: Type.STRING, description: "Chỉ được chọn: 'Supported', 'Supported with Caution', hoặc 'Insufficient Evidence'" },
-                      uncertainty_flag: { type: Type.BOOLEAN },
-                      uncertainty_note: { type: Type.STRING },
-                      prototype_compliance: { type: Type.STRING, description: "'compliant', 'conflict', hoặc 'unassessed'" },
-                      historical_confidence: { type: Type.STRING, description: "'verified', 'partially_verified', 'needs_review', 'unverified', hoặc 'mixed'" },
-                      verification_summary: { type: Type.STRING },
-                      evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      invariants_checked: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            evidence_id: { type: Type.STRING },
-                            rule_name: { type: Type.STRING },
-                            passed: { type: Type.BOOLEAN },
-                            detail: { type: Type.STRING },
-                          },
-                          required: ["evidence_id", "rule_name", "passed", "detail"]
-                        }
-                      },
-                      mutables_used: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            evidence_id: { type: Type.STRING },
-                            element: { type: Type.STRING },
-                            application: { type: Type.STRING },
-                          },
-                          required: ["evidence_id", "element", "application"]
-                        }
-                      },
-                      cautions_and_redlines: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      auditor_verdict: { type: Type.STRING },
-                    },
-                    required: ["status", "uncertainty_flag", "evidence_ids", "invariants_checked", "mutables_used", "cautions_and_redlines", "auditor_verdict"]
-                  },
-                  stylist_notes: {
-                    type: Type.OBJECT,
-                    properties: {
-                      philosophy: { type: Type.STRING },
-                      gen_z_tips: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      occasions: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    },
-                    required: ["philosophy", "gen_z_tips", "occasions"]
-                  }
+                  collar_style: { type: Type.STRING },
+                  lapel_side: { type: Type.STRING },
+                  sleeve_style: { type: Type.STRING },
+                  cut_length: { type: Type.STRING },
+                  fabric_materials: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  layering_pieces: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  bottom_garment: { type: Type.STRING },
+                  footwear: { type: Type.STRING },
+                  accessories: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  color_palette: { type: Type.ARRAY, items: { type: Type.STRING } },
                 },
-                required: ["id", "plan_type", "title", "concept_tag", "garment_type", "dial_level", "visual_details", "audit", "stylist_notes"]
+                required: ["collar_style", "lapel_side", "sleeve_style", "cut_length", "fabric_materials", "bottom_garment", "footwear", "color_palette"]
+              },
+              audit: {
+                type: Type.OBJECT,
+                properties: {
+                  status: { type: Type.STRING, description: "Chỉ được chọn: 'Supported', 'Supported with Caution', hoặc 'Insufficient Evidence'" },
+                  uncertainty_flag: { type: Type.BOOLEAN },
+                  uncertainty_note: { type: Type.STRING },
+                  prototype_compliance: { type: Type.STRING, description: "'compliant', 'conflict', hoặc 'unassessed'" },
+                  historical_confidence: { type: Type.STRING, description: "'verified', 'partially_verified', 'needs_review', 'unverified', hoặc 'mixed'" },
+                  verification_summary: { type: Type.STRING },
+                  evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  invariants_checked: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        evidence_id: { type: Type.STRING },
+                        rule_name: { type: Type.STRING },
+                        passed: { type: Type.BOOLEAN },
+                        detail: { type: Type.STRING },
+                      },
+                      required: ["evidence_id", "rule_name", "passed", "detail"]
+                    }
+                  },
+                  mutables_used: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        evidence_id: { type: Type.STRING },
+                        element: { type: Type.STRING },
+                        application: { type: Type.STRING },
+                      },
+                      required: ["evidence_id", "element", "application"]
+                    }
+                  },
+                  cautions_and_redlines: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  auditor_verdict: { type: Type.STRING },
+                },
+                required: ["status", "uncertainty_flag", "evidence_ids", "invariants_checked", "mutables_used", "cautions_and_redlines", "auditor_verdict"]
+              },
+              stylist_notes: {
+                type: Type.OBJECT,
+                properties: {
+                  philosophy: { type: Type.STRING },
+                  gen_z_tips: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  occasions: { type: Type.ARRAY, items: { type: Type.STRING } },
+                },
+                required: ["philosophy", "gen_z_tips", "occasions"]
               }
-            }
-          },
-          required: ["proposals"]
+            },
+            required: ["id", "plan_type", "title", "concept_tag", "garment_type", "dial_level", "visual_details", "audit", "stylist_notes"]
+          }
         }
-      }
-    });
+      },
+      required: ["proposals"]
+    };
 
-    const parsed = JSON.parse(response.text || '{}');
-    const processed = processGeminiProposalResponse(
-      parsed,
-      (garment || 'ngu_than') as any,
-      { context, style, dial_level }
-    );
-    return res.json(processed);
+    const response = await generateWithGemini(prompt, proposalSchema);
+
+    if (response?.text) {
+      const parsed = JSON.parse(response.text || '{}');
+      const processed = processGeminiProposalResponse(
+        parsed,
+        (garment || 'ngu_than') as any,
+        { context, style, dial_level }
+      );
+      return res.json(processed);
+    }
+
+    // Seamless fallback to deterministic engine if all models busy
+    console.warn('[AI Studio Backend] Notice: High demand on cloud models, serving deterministic cultural engine.');
+    return res.json({
+      success: true,
+      proposals: generateDeterministicProposals(garment || 'ngu_than', context || 'streetwear', style || 'modern_minimal', dial_level || 3),
+      source: 'deterministic_engine_fallback',
+      warning: 'High demand spike on cloud AI; served seamlessly by deterministic cultural engine.',
+    });
   } catch (err: any) {
-    console.error('Error generating remix outfit:', err);
+    console.warn('[AI Studio Backend] Notice: Generating remix outfit switched to deterministic engine:', err?.message || err);
     // Graceful fallback to deterministic engine
     const { garment, context, style, dial_level } = req.body;
     return res.json({
@@ -226,64 +256,61 @@ Kích hoạt trường what_if_evaluation:
 Trả về kết quả chuẩn định dạng JSON.
 `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: getCKBSystemGrounding(),
-        responseMimeType: 'application/json',
-        responseSchema: {
+    const whatIfSchema = {
+      type: Type.OBJECT,
+      properties: {
+        evaluation: {
           type: Type.OBJECT,
           properties: {
-            evaluation: {
+            query: { type: Type.STRING },
+            target_garment: { type: Type.STRING },
+            proposed_change: { type: Type.STRING },
+            status: { type: Type.STRING, description: "'Supported', 'Supported with Caution', hoặc 'Insufficient Evidence'" },
+            uncertainty_flag: { type: Type.BOOLEAN },
+            impact_analysis: { type: Type.STRING },
+            prototype_compliance: { type: Type.STRING, description: "'compliant', 'conflict', hoặc 'unassessed'" },
+            historical_confidence: { type: Type.STRING, description: "'verified', 'partially_verified', 'needs_review', 'unverified', hoặc 'mixed'" },
+            verification_summary: { type: Type.STRING },
+            violates_invariants: { type: Type.BOOLEAN },
+            violated_evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
+            applicable_evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
+            cautions_and_redlines: { type: Type.ARRAY, items: { type: Type.STRING } },
+            stylist_counter_proposal: {
               type: Type.OBJECT,
               properties: {
-                query: { type: Type.STRING },
-                target_garment: { type: Type.STRING },
-                proposed_change: { type: Type.STRING },
-                status: { type: Type.STRING, description: "'Supported', 'Supported with Caution', hoặc 'Insufficient Evidence'" },
-                uncertainty_flag: { type: Type.BOOLEAN },
-                impact_analysis: { type: Type.STRING },
-                prototype_compliance: { type: Type.STRING, description: "'compliant', 'conflict', hoặc 'unassessed'" },
-                historical_confidence: { type: Type.STRING, description: "'verified', 'partially_verified', 'needs_review', 'unverified', hoặc 'mixed'" },
-                verification_summary: { type: Type.STRING },
-                violates_invariants: { type: Type.BOOLEAN },
-                violated_evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
-                applicable_evidence_ids: { type: Type.ARRAY, items: { type: Type.STRING } },
-                cautions_and_redlines: { type: Type.ARRAY, items: { type: Type.STRING } },
-                stylist_counter_proposal: {
-                  type: Type.OBJECT,
-                  properties: {
-                    title: { type: Type.STRING },
-                    solution: { type: Type.STRING },
-                    heritage_safeguard: { type: Type.STRING },
-                    contemporary_edge: { type: Type.STRING },
-                    materials_and_cuts: { type: Type.STRING },
-                  },
-                  required: ["title", "solution", "heritage_safeguard", "contemporary_edge", "materials_and_cuts"]
-                }
+                title: { type: Type.STRING },
+                solution: { type: Type.STRING },
+                heritage_safeguard: { type: Type.STRING },
+                contemporary_edge: { type: Type.STRING },
+                materials_and_cuts: { type: Type.STRING },
               },
-              required: ["query", "target_garment", "proposed_change", "status", "uncertainty_flag", "impact_analysis", "violates_invariants", "violated_evidence_ids", "applicable_evidence_ids", "cautions_and_redlines", "stylist_counter_proposal"]
+              required: ["title", "solution", "heritage_safeguard", "contemporary_edge", "materials_and_cuts"]
             }
           },
-          required: ["evaluation"]
+          required: ["query", "target_garment", "proposed_change", "status", "uncertainty_flag", "impact_analysis", "violates_invariants", "violated_evidence_ids", "applicable_evidence_ids", "cautions_and_redlines", "stylist_counter_proposal"]
         }
-      }
-    });
+      },
+      required: ["evaluation"]
+    };
 
-    const parsed = JSON.parse(response.text || '{}');
-    if (parsed.evaluation) {
-      const normalizedEvaluation = normalizeGeminiWhatIfEvaluation(parsed.evaluation, effectiveGarment);
-      return res.json({ success: true, evaluation: normalizedEvaluation, source: 'gemini' });
+    const response = await generateWithGemini(prompt, whatIfSchema);
+
+    if (response?.text) {
+      const parsed = JSON.parse(response.text || '{}');
+      if (parsed.evaluation) {
+        const normalizedEvaluation = normalizeGeminiWhatIfEvaluation(parsed.evaluation, effectiveGarment);
+        return res.json({ success: true, evaluation: normalizedEvaluation, source: 'gemini' });
+      }
     }
 
+    console.warn('[AI Studio Backend] Notice: What-if evaluation served via deterministic cultural engine.');
     return res.json({
       success: true,
       evaluation: evaluateWhatIfDeterministic(effectiveGarment, query, current_outfit),
       source: 'deterministic_engine',
     });
   } catch (err: any) {
-    console.error('Error evaluating What-If:', err);
+    console.warn('[AI Studio Backend] Notice: What-if evaluation switched to deterministic engine:', err?.message || err);
     const { garment, query, current_outfit } = req.body;
     const effectiveGarment = current_outfit?.garment_type || garment || 'ngu_than';
     return res.json({
