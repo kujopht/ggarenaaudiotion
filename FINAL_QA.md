@@ -32,13 +32,13 @@ Hệ thống đã được kiểm tra trên các độ phân giải màn hình c
 
 | Độ phân giải màn hình | Thiết bị đại diện | Tiêu chí kiểm tra | Kết quả chi tiết |
 | :--- | :--- | :--- | :--- |
-| **320px** | iPhone SE đời đầu, màn hình cực hẹp | Không xuất hiện thanh cuộn ngang body (`overflow-x: hidden`), logo thu gọn không vỡ chữ, thanh điều hướng tab co giãn linh hoạt. | ✅ Đạt chuẩn 100% |
-| **360px** | Android phổ thông (Samsung A-series) | Touch targets đạt tối thiểu 44x44px, nút preset bọc dòng gọn gàng, nút toggle chuyển động hiển thị rõ. | ✅ Đạt chuẩn 100% |
-| **390px** | iPhone 12/13/14 tiêu chuẩn | Khoảng cách padding lề 16px cân đối, đĩa xoay Remix Dial trung tâm không tràn viền, text dễ đọc. | ✅ Đạt chuẩn 100% |
-| **430px** | iPhone 14/15 Pro Max | Bố cục dạng lưới 2 cột cho các thẻ lựa chọn trang phục, đường nét Trống đồng hiển thị sắc sảo. | ✅ Đạt chuẩn 100% |
-| **768px** | iPad dọc / Tablet tiêu chuẩn | Bắt đầu kích hoạt hiệu ứng chim phượng hoàng lượn (chu kỳ 28s, khoảng nghỉ 55-80s), layout chia 2 cột logic. | ✅ Đạt chuẩn 100% |
-| **1024px** | iPad Pro ngang / Laptop phổ thông | Bố cục thời trang đa cột (Editorial Spread), bảng màu và phụ kiện hiển thị song song với thẻ trang phục. | ✅ Đạt chuẩn 100% |
-| **1440px** | Màn hình Desktop lớn / Retina | Họa tiết nền Trống đồng và Phượng hoàng mở rộng tĩnh tại, nội dung căn giữa với max-w-7xl sắc nét, không biến dạng. | ✅ Đạt chuẩn 100% |
+| **320px** | iPhone SE đời đầu, màn hình cực hẹp | Không xuất hiện thanh cuộn ngang body (`overflow-x: hidden`), logo thu gọn không vỡ chữ, thanh điều hướng tab co giãn linh hoạt. | ✅ Đạt yêu cầu |
+| **360px** | Android phổ thông (Samsung A-series) | Touch targets đạt tối thiểu 44x44px, nút preset bọc dòng gọn gàng, nút toggle chuyển động hiển thị rõ. | ✅ Đạt yêu cầu |
+| **390px** | iPhone 12/13/14 tiêu chuẩn | Khoảng cách padding lề 16px cân đối, đĩa xoay Remix Dial trung tâm không tràn viền, text dễ đọc. | ✅ Đạt yêu cầu |
+| **430px** | iPhone 14/15 Pro Max | Bố cục dạng lưới 2 cột cho các thẻ lựa chọn trang phục, đường nét Trống đồng hiển thị sắc sảo. | ✅ Đạt yêu cầu |
+| **768px** | iPad dọc / Tablet tiêu chuẩn | Bắt đầu kích hoạt hiệu ứng chim phượng hoàng lượn (chu kỳ 28s, khoảng nghỉ 55-80s), layout chia 2 cột logic. | ✅ Đạt yêu cầu |
+| **1024px** | iPad Pro ngang / Laptop phổ thông | Bố cục thời trang đa cột (Editorial Spread), bảng màu và phụ kiện hiển thị song song với thẻ trang phục. | ✅ Đạt yêu cầu |
+| **1440px** | Màn hình Desktop lớn / Retina | Họa tiết nền Trống đồng và Phượng hoàng mở rộng tĩnh tại, nội dung căn giữa với max-w-7xl sắc nét, không biến dạng. | ✅ Đạt yêu cầu |
 
 ### Xác nhận trải nghiệm giao diện chi tiết:
 - [x] **No Horizontal Body Scroll:** Toàn bộ cây DOM không sinh ra cuộn ngang ở bất kỳ breakpoint nào.
@@ -80,10 +80,10 @@ Hệ thống đã được kiểm tra trên các độ phân giải màn hình c
 ## 6. DANH MỤC LIÊN KẾT SUBMISSION
 - **Shared App URL (Demo công khai):** [https://ais-pre-hjtflzcu3t3figluemkfcz-414295093889.asia-southeast1.run.app](https://ais-pre-hjtflzcu3t3figluemkfcz-414295093889.asia-southeast1.run.app)
 - **Development App URL:** [https://ais-dev-hjtflzcu3t3figluemkfcz-414295093889.asia-southeast1.run.app](https://ais-dev-hjtflzcu3t3figluemkfcz-414295093889.asia-southeast1.run.app)
-- **Repository URL:** https://github.com/aistudio-build/viet-phuc-remix-lab (AI Studio Applet ID: 981cbd3b-01bc-41fd-92f5-d5e7566a0e58)
+- **Repository URL:** https://github.com/kujopht/ggarenaaudiotion
 - **Video Walkthrough:** Thực hiện theo kịch bản chuẩn trong `DEMO_SCRIPT.md`.
 
 ---
 
 ## 7. KẾT LUẬN NGHIỆM THU
-Tất cả các tiêu chí bắt buộc về kỹ thuật, độ ổn định hệ thống, tính trung thực dữ liệu di sản và độ tương thích giao diện đều đã **PASS 100%**. Ứng dụng đã sẵn sàng nộp bài tham dự AI Arena Vietnam 2026.
+Các hạng mục nghiệm thu bắt buộc trong lần chạy QA cuối đã đạt tiêu chí. Ứng dụng đã sẵn sàng nộp bài tham dự AI Arena Vietnam 2026.

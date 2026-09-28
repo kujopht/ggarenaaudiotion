@@ -21,7 +21,7 @@ Việt Phục Remix Lab là nền tảng web tương tác thời gian thực, k�
 - **Cơ chế 2 bản phối song hành (2-Look Co-Design):** Luôn sinh ra đồng thời Bản phối A (Heritage Anchored - Tôn trọng truyền thống) và Bản phối B (Contemporary Edge - Phá cách đương đại) để người dùng so sánh trực quan.
 - **Thẩm định văn hóa minh bạch (Cultural Audit):** Phân tách độc lập 2 tầng đánh giá — Chuẩn mực mẫu thiết kế (*Prototype Compliance*: `compliant` / `conflict`) và Độ tin cậy lịch sử (*Historical Confidence*: `verified` / `needs_review` / `unverified`).
 - **Phòng thử nghiệm giả định (What-If Lab):** Đánh giá mọi ý tưởng can thiệp qua hành trình 3 chặng (*Trước* → *Thay đổi* → *Kết quả*), cung cấp giải pháp thay thế của stylist (*Stylist Counter-Proposal*).
-- **Công cụ dự phòng xác định (Deterministic Engine):** Tự động bảo toàn trải nghiệm 100% khi mất kết nối mạng hoặc không có API key.
+- **Công cụ dự phòng xác định (Deterministic Engine):** Tự động duy trì luồng trải nghiệm cốt lõi khi Gemini API tạm thời không khả dụng hoặc không có API key.
 
 ---
 
@@ -69,12 +69,12 @@ Việt Phục Remix Lab là nền tảng web tương tác thời gian thực, k�
 5. **Tách bạch Prototype Compliance và Historical Confidence:** Đột phá về phương pháp luận đánh giá văn hóa, không đánh đồng sự vi phạm thiết kế với sự thiếu hụt tài liệu khảo cổ.
 6. **Mã bằng chứng (Evidence ID) & Minh bạch nguồn:** Mọi đánh giá đều gắn với mã `KB-RULE-01`, `KB-NGUTHAN-01`, `KB-NHATBINH-01`... kèm tên tác giả, cơ quan nghiên cứu và liên kết nguồn gốc.
 7. **Source Transparency Badge:** Giao diện công khai minh bạch nguồn dữ liệu của từng bản phối (`Gemini trực tiếp`, `Bản phân tích dự phòng`, `Nguồn chưa xác định`).
-8. **Deterministic Fallback Engine:** Đảm bảo hệ thống hoạt động liền mạch 100% ngay cả khi ngoại tuyến hoặc không có kết nối API.
-9. **Responsive PoC chuẩn mực:** Hoạt động hoàn hảo trên mọi kích thước màn hình từ 320px đến 1440px mà không bị tràn khung hay gãy bố cục.
+8. **Deterministic Fallback Engine:** Duy trì luồng trải nghiệm cốt lõi khi Gemini API tạm thời không khả dụng hoặc không có API key.
+9. **Responsive PoC:** Được thiết kế và kiểm tra trên các viewport từ 320px đến 1440px, duy trì bố cục ổn định và không phát sinh cuộn ngang.
 
 ---
 
 ## 9. Liên kết nghiệm thu & Trình diễn
 - **VIDEO_URL:** *(Đang cập nhật link video demo 90-120s theo DEMO_SCRIPT.md)*
 - **DEMO_URL:** https://ais-pre-hjtflzcu3t3figluemkfcz-414295093889.asia-southeast1.run.app
-- **REPOSITORY_URL:** https://github.com/aistudio-build/viet-phuc-remix-lab (Workspace AI Studio Applet ID: 981cbd3b-01bc-41fd-92f5-d5e7566a0e58)
+- **REPOSITORY_URL:** https://github.com/kujopht/ggarenaaudiotion

@@ -24,7 +24,7 @@
 - **Hình ảnh trên màn hình:** Cuộn xuống khu vực **Xưởng phối đồ (Co-Design Studio)**. Trỏ chuột vào đĩa xoay **Remix Dial** ở trung tâm.
 - **Hành động:** Kéo thanh trượt hoặc xoay đĩa Remix Dial từ mức 1 lên mức 3, rồi mức 4. Vành trống đồng phản hồi mượt mà cùng số hiển thị.
 - **Lời thoại (Voiceover):**  
-  *"Đó là lý do tụi mình tạo nên Việt Phục Remix Lab. Trái tim của ứng dụng là chiếc đĩa xoay Remix Dial này — cho phép bạn tự do điều chỉnh mức độ sáng tạo: từ Mức 1 tôn trọng nguyên bản đến Mức 5 phá cách thể nghiệm đương đại cùng Google Gemini."*
+  *"Đó là lý do tụi mình tạo nên Việt Phục Remix Lab. Trái tim của ứng dụng là chiếc đĩa xoay Remix Dial này — cho phép bạn tự do điều chỉnh mức độ sáng tạo: từ Mức 1 bám sát tham chiếu đến Mức 5 phá cách thể nghiệm đương đại cùng Google Gemini."*
 
 ---
 
@@ -52,7 +52,7 @@
   - Trỏ vào mã quy tắc **KB-RULE-01 (Quy thức Hữu nhậm)** và **KB-NGUTHAN-01**.
   - Trỏ vào nhãn nguồn minh bạch: **Gemini trực tiếp** hoặc **Bản phân tích dự phòng**.
 - **Lời thoại (Voiceover):**  
-  *"Điểm đặc biệt nhất: Mọi thiết kế đều được đối soát qua Cơ sở tri thức Văn hóa CKB. Tụi mình phân tách rõ: Chuẩn mực mẫu thiết kế đạt chuẩn, còn dữ liệu lịch sử được ghi nhận rõ ràng mức độ xác minh kèm mã trích dẫn, từ Bảo tàng Lịch sử Quốc gia đến Tạp chí Văn hóa Nghệ thuật. Không hề có chuyện AI bịa đặt nguồn gốc!"*
+  *"Điểm đặc biệt nhất: Mọi thiết kế đều được đối soát qua Cơ sở tri thức Văn hóa CKB. Tụi mình phân tách rõ: Chuẩn mực mẫu thiết kế đạt chuẩn, còn dữ liệu lịch sử được ghi nhận rõ ràng mức độ xác minh kèm mã trích dẫn. Mỗi kết luận đều hiển thị mã bằng chứng và trạng thái xác minh để người dùng biết đâu là nguồn đã đối soát, đâu là phần vẫn cần rà soát."*
 
 ---
 
@@ -66,7 +66,7 @@
   - Trỏ chuột vào phần **Stylist Counter-Proposal (Đề xuất thay thế của Stylist)**.
 - **Lời thoại (Voiceover):**  
   *"Nếu bạn muốn thử một ý tưởng táo bạo hơn? Hãy vào phòng What-If Lab! Mình thử hỏi: 'What if cài khuy sang bên trái vạt tả nhậm?'.  
-  Hệ thống lập tức cảnh báo xung đột với quy tắc KB-RULE-01 vì tả nhậm là trang phục của người đã khuất. Nhưng AI không hề chặn sự sáng tạo, mà gợi ý ngay giải pháp thay thế: dùng đường viền may lé giả hoặc cúc kép đối xứng để người thuận tay trái thao tác dễ dàng mà vạt áo vẫn chuẩn hữu nhậm!"*
+  Hệ thống cảnh báo thay đổi này xung đột với quy ước prototype về hướng cài áo tham chiếu. Đồng thời, mức độ chắc chắn của bằng chứng lịch sử được hiển thị riêng thay vì bị đánh đồng với xung đột thiết kế. Dù vậy, hệ thống không hề chặn đứng sự sáng tạo, mà gợi ý ngay giải pháp thay thế (Counter-Proposal): dùng đường viền may lé giả hoặc cúc kép đối xứng để người thuận tay trái thao tác dễ dàng mà vạt áo vẫn chuẩn hữu nhậm!"*
 
 ---
 
@@ -77,7 +77,7 @@
   - Trỏ chuột vào các điểm ghim tương tác: Nẹp cổ chữ nhật đối khâm (KB-NHATBINH-01).
   - Trỏ chuột vào điểm ghim viền tay áo: Chú thích **Dải ngũ hành tham chiếu theo phẩm cấp**.
 - **Lời thoại (Voiceover):**  
-  *"Chuyển qua Áo Nhật Bình, bạn có thể tra cứu từng điểm ghim giải phẫu áo. Ứng dụng ghi chú rất trung thực: dải ngũ hành ở cổ tay là quy thức tham chiếu theo phẩm cấp quý tộc thời Nguyễn, và có ngoại lệ rõ ràng — áo của Hoàng hậu không dùng dải màu này theo tư liệu hiện vật bảo tàng."*
+  *"Chuyển qua Áo Nhật Bình, bạn có thể tra cứu từng điểm ghim giải phẫu áo. Ứng dụng ghi chú rất trung thực: dải ngũ hành ở cổ tay là quy thức tham chiếu theo phẩm cấp quý tộc thời Nguyễn, và theo nguồn tham khảo hiện tại, Nhật Bình của Hoàng hậu là một ngoại lệ không dùng dải màu này."*
 
 ---
 
