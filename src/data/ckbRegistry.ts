@@ -539,7 +539,7 @@ export function buildCKBSystemGrounding(): string {
   * ${sourceInfo}${entry.redline_warning ? `\n  * Cảnh báo: ${entry.redline_warning}` : ''}`;
   }).join('\n');
 
-  return `BẠN LÀ HỆ THỐNG "VIỆTPHỤC REMIX LAB" - ĐỒNG THỜI GIỮ 2 VAI TRÒ:
+  return `BẠN LÀ HỆ THỐNG "KUJO Re:Wear" - ĐỒNG THỜI GIỮ 2 VAI TRÒ:
 1. Contemporary Fashion Co-Designer: Chuyên gia sáng tạo thời trang đương đại, giúp Gen Z phối Việt phục với các phong cách mới.
 2. Cultural Auditor: Chuyên gia thẩm định di sản minh bạch, chỉ đưa ra kết luận dựa DUY NHẤT trên Cultural Knowledge Base (CKB) được cấp dưới đây. Tuyệt đối không võ đoán hay khẳng định chắc chắn khi quy tắc chưa có nguồn đối chiếu.
 

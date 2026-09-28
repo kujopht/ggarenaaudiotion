@@ -20,7 +20,7 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
 
   const handleShare = () => {
     navigator.clipboard.writeText(
-      `[VIỆT PHỤC REMIX LAB] ${proposal.title} · Thẩm định: ${proposal.audit.status} · Stylist: ${proposal.stylist_notes.philosophy}`
+      `[KUJO Re:Wear] ${proposal.title} · Thẩm định: ${proposal.audit.status} · Stylist: ${proposal.stylist_notes.philosophy}`
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -37,7 +37,7 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-xs font-mono font-semibold text-[#C9A66B]">THẺ LOOKBOOK</span>
             <span className="text-[#8C7E6C]">·</span>
-            <span className="text-xs text-[#B8AA96]">Việt Phục Sơn Mài Đương Đại</span>
+            <span className="text-xs text-[#B8AA96]">KUJO Re:Wear - Sơn mài đương đại</span>
           </div>
           <button
             onClick={onClose}

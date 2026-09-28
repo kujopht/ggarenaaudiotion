@@ -56,7 +56,7 @@ app.post('/api/remix/generate', async (req: Request, res: Response) => {
     }
 
     const prompt = `
-Người dùng muốn tạo trang phục Việt Phục Remix:
+Người dùng muốn tạo bản phối Việt phục trong KUJO Re:Wear:
 - Garment: ${garment} (ngu_than: Áo Ngũ Thân tay chẽn, ao_tac: Áo Tấc, nhat_binh: Áo Nhật Bình)
 - Context: ${context}
 - Style: ${style}
