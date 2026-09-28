@@ -29,7 +29,7 @@ interface CoDesignStudioProps {
 }
 
 const DIAL_LEVELS = [
-  { level: 1, label: 'Nguyên bản tham chiếu', short: 'Nguyên bản', desc: 'Bảo lưu trọn vẹn chất liệu gấm, lụa tơ tằm cổ truyền và quy thức khuy cài chuẩn mực.' },
+  { level: 1, label: 'Bám sát tham chiếu', short: 'Bám sát', desc: 'Bảo lưu trọn vẹn phom dáng, chất liệu gấm lụa truyền thống và quy thức khuy cài chuẩn mực.' },
   { level: 2, label: 'Tối giản đương đại', short: 'Tối giản', desc: 'Thay bằng linen thô mộc, cotton dệt thoáng mát, phom dáng nhẹ nhàng thường nhật.' },
   { level: 3, label: 'Phố thị đương đại', short: 'Đường phố', desc: 'Phối denim selvedge thô, quần tây ống suông rộng, bốt da chunky trẻ trung.' },
   { level: 4, label: 'May đo cao cấp', short: 'May đo', desc: 'Dáng áo khoác duster coat mở tà bay bổng, phối layer blazer và chân váy xếp ly.' },
@@ -336,8 +336,53 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
           <div className="lacquer-panel rounded-2xl p-4 sm:p-5 space-y-5">
             <h3 className="text-base font-serif font-bold text-[#F2E9D8] pb-3 border-b border-[#C9A66B]/20 flex items-center justify-between">
               <span>Tùy chỉnh bản phối</span>
-              <span className="text-xs font-mono font-normal text-[#B8AA96]">4 bước tạo kiểu</span>
+              <span className="text-xs font-mono font-semibold text-[#E6C88B] bg-[#C9A66B]/15 px-2 py-0.5 rounded border border-[#C9A66B]/30">5 bước tạo kiểu nhanh</span>
             </h3>
+
+            {/* Quick Presets for Demo / Judging Flow (1-Click Setup) */}
+            <div className="space-y-1.5 pb-2 border-b border-[#C9A66B]/15">
+              <span className="text-[11px] font-mono text-[#8C7E6C] uppercase tracking-wider block">
+                Gợi ý nhanh (1-chạm):
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChangeGarment('ngu_than');
+                    onChangeContext('streetwear');
+                    onChangeStyle('indigo_denim');
+                    onChangeDialLevel(3);
+                  }}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#C9A66B]/30 text-[#E6C88B] hover:text-[#F2E9D8] transition-colors cursor-pointer"
+                >
+                  ⚡ Ngũ Thân Indigo (Mức 3)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChangeGarment('ao_tac');
+                    onChangeContext('fashion_week');
+                    onChangeStyle('sartorial_tailored');
+                    onChangeDialLevel(4);
+                  }}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#43B6A4]/30 text-[#43B6A4] hover:text-[#F2E9D8] transition-colors cursor-pointer"
+                >
+                  ⚡ Áo Tấc Duster Coat (Mức 4)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChangeGarment('nhat_binh');
+                    onChangeContext('creative_office');
+                    onChangeStyle('modern_minimal');
+                    onChangeDialLevel(2);
+                  }}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded-lg bg-[#211815]/90 hover:bg-[#2C211D] border border-[#B8342B]/30 text-[#F5A39D] hover:text-[#F2E9D8] transition-colors cursor-pointer"
+                >
+                  ⚡ Nhật Bình Linen (Mức 2)
+                </button>
+              </div>
+            </div>
 
             {/* 1. Chọn loại áo với hình phác họa vector riêng biệt */}
             <div className="space-y-2">
@@ -470,12 +515,12 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
             </div>
 
-            {/* 3. Mức độ Remix (Dial) với vành trang trí vàng đồng */}
+            {/* 4. Mức độ Remix (Dial) với vành trang trí vàng đồng */}
             <div className="space-y-3 pt-2 border-t border-[#C9A66B]/15">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5 text-[#C9A66B]" />
-                  <span>4. Mức độ biến tấu ({dialLevel}/5)</span>
+                  <span>4. Chọn mức Remix ({dialLevel}/5)</span>
                 </label>
                 <span className="text-xs font-semibold text-[#E6C88B] font-mono bg-[#C9A66B]/15 border border-[#C9A66B]/30 px-2 py-0.5 rounded">
                   {DIAL_LEVELS[dialLevel - 1].short}
@@ -556,7 +601,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
             )}
 
-            {/* Primary Action Button (>= 44px) */}
+            {/* Step 5: Primary Action Button (>= 44px) */}
             <button
               onClick={handleGenerateOutfits}
               disabled={loading}
@@ -570,7 +615,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               ) : (
                 <>
                   <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
-                  <span>Tạo bản phối</span>
+                  <span>5. Tạo 2 bản phối</span>
                 </>
               )}
             </button>
@@ -596,7 +641,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   >
                     <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#E6C88B]' : 'bg-[#6E5D53]'}`} />
                     <span className="truncate">
-                      {idx === 0 ? 'Bản phối A: Bám sát di sản' : `Bản phối B: Phá cách (Mức ${prop.dial_level})`}
+                      {idx === 0 ? 'Bản phối A: Bám sát tham chiếu' : 'Bản phối B: Phá cách đương đại'}
                     </span>
                   </button>
                 );
@@ -707,6 +752,47 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     <Share2 className="w-3.5 h-3.5 text-[#C9A66B]" />
                     <span>Thẻ Lookbook</span>
                   </button>
+                </div>
+              </div>
+
+              {/* Scannable At-a-Glance Spec Bar: Instant 3-second read of key design & heritage attributes */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-[#181311]/75 border border-[#C9A66B]/20 text-xs">
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Cấu trúc / Phom</span>
+                  <span className="font-semibold text-[#F2E9D8] truncate block" title={`${currentProposal.visual_details.collar_style} · ${currentProposal.visual_details.sleeve_style}`}>
+                    {currentProposal.visual_details.collar_style}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Bảng màu chính</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {currentProposal.visual_details.color_palette.slice(0, 3).map((color, i) => {
+                      const hexMatch = color.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
+                      return (
+                        <span
+                          key={i}
+                          className="w-3.5 h-3.5 rounded-full border border-white/20 inline-block shrink-0"
+                          style={{ backgroundColor: hexMatch ? hexMatch[0] : '#C9A66B' }}
+                          title={color}
+                        />
+                      );
+                    })}
+                    <span className="text-[11px] text-[#B8AA96] truncate">
+                      {currentProposal.visual_details.color_palette[0]?.split('(')[0]?.trim() || 'Phối tone'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Phụ kiện & Dưới</span>
+                  <span className="font-semibold text-[#F2E9D8] truncate block" title={`${currentProposal.visual_details.bottom_garment} · ${currentProposal.visual_details.footwear}`}>
+                    {currentProposal.visual_details.bottom_garment}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Dịp mặc đề xuất</span>
+                  <span className="font-semibold text-[#E6C88B] truncate block" title={currentProposal.stylist_notes.occasions?.join(', ') || currentProposal.concept_tag}>
+                    {currentProposal.stylist_notes.occasions?.[0] || currentProposal.concept_tag || 'Dạo phố / Sự kiện'}
+                  </span>
                 </div>
               </div>
 

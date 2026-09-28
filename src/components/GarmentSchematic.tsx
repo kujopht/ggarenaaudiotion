@@ -187,7 +187,7 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 fill="url(#silkPattern)"
               />
 
-              {/* Tay Thụng Chữ Nhật Buông Dài Qua Ngón Tay (KB-TAC-01) */}
+              {/* Tay thụng rộng buông dài theo gấu áo (KB-TAC-01) */}
               <path
                 d="M60,110 L15,135 L10,270 L75,255 L80,180"
                 fill="url(#fabricGradAoTac)"
@@ -269,15 +269,15 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 fill="url(#fabricGradNhatBinh)"
               />
 
-              {/* Cổ tay ngũ sắc (KB-NHATBINH-02) Bất biến */}
-              {/* Left Cuff 5 stripes */}
+              {/* Dải ngũ hành tham chiếu theo phẩm cấp (KB-NHATBINH-02) */}
+              {/* Left Cuff 5 stripes (tham chiếu cấp bậc, ngoại lệ Hoàng hậu) */}
               <rect x="23" y="195" width="45" height="4" fill="#2563EB" transform="rotate(-15 23 195)" />
               <rect x="24" y="200" width="45" height="4" fill="#DC2626" transform="rotate(-15 24 200)" />
               <rect x="25" y="205" width="45" height="4" fill="#FBBF24" transform="rotate(-15 25 205)" />
               <rect x="26" y="210" width="45" height="4" fill="#F8FAFC" transform="rotate(-15 26 210)" />
               <rect x="27" y="215" width="45" height="4" fill="#1E293B" transform="rotate(-15 27 215)" />
 
-              {/* Right Cuff 5 stripes */}
+              {/* Right Cuff 5 stripes (tham chiếu cấp bậc, ngoại lệ Hoàng hậu) */}
               <rect x="252" y="185" width="45" height="4" fill="#2563EB" transform="rotate(15 252 185)" />
               <rect x="251" y="190" width="45" height="4" fill="#DC2626" transform="rotate(15 251 190)" />
               <rect x="250" y="195" width="45" height="4" fill="#FBBF24" transform="rotate(15 250 195)" />
@@ -413,7 +413,7 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
                 <span className="text-[10px] text-[#E6C88B] font-mono">THAM CHIẾU THEO CẤP BẬC</span>
               </div>
               <p className="text-[#B8AA96]">
-                Dải màu viền tay áo xuất hiện trên nhiều phẩm cấp hậu phi nhưng có ngoại lệ ở Hoàng hậu. Vùng tham chiếu linh hoạt.
+                Dải ngũ hành xuất hiện trên nhiều phẩm cấp cung đình nhưng có ngoại lệ Hoàng hậu. Đây là đặc điểm tham chiếu theo cấp bậc, không áp đặt bắt buộc cho mọi phẩm cấp.
               </p>
             </div>
           )}

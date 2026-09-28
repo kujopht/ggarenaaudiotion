@@ -69,29 +69,28 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
     const scheduleNextFlight = (delayMs: number) => {
       nextFlightTimer = setTimeout(() => {
         if (document.hidden) {
-          // If tab is backgrounded, retry in 15s
-          scheduleNextFlight(15000);
+          // If tab is backgrounded, reschedule when visible
           return;
         }
 
-        // Randomize phoenix variant (0 or 1) and vertical altitude (10% to 22%)
+        // Randomize phoenix variant (0 or 1) and gentle vertical altitude lane (12% to 22%)
         setPhoenixVariant((prev) => (prev === 0 ? 1 : 0));
-        setVerticalLane(10 + Math.floor(Math.random() * 12));
+        setVerticalLane(12 + Math.floor(Math.random() * 10));
         setPhoenixVisible(true);
 
         if (hideTimer) clearTimeout(hideTimer);
-        // Majestic flight duration is 22 seconds
+        // Serene majestic flight duration: 28 seconds
         hideTimer = setTimeout(() => {
           setPhoenixVisible(false);
-          // Rest interval between 50 to 75 seconds
-          const restPeriod = 50000 + Math.floor(Math.random() * 25000);
+          // Rest period between 55 to 80 seconds between flights
+          const restPeriod = 55000 + Math.floor(Math.random() * 25000);
           scheduleNextFlight(restPeriod);
-        }, 22500);
+        }, 28500);
       }, delayMs);
     };
 
-    // First flight begins 5 seconds after page arrival
-    scheduleNextFlight(5000);
+    // First flight begins 6 seconds after arrival
+    scheduleNextFlight(6000);
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
@@ -99,7 +98,8 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
         if (hideTimer) clearTimeout(hideTimer);
         if (nextFlightTimer) clearTimeout(nextFlightTimer);
       } else {
-        // Reschedule when user returns
+        // Reschedule when user returns to tab
+        if (nextFlightTimer) clearTimeout(nextFlightTimer);
         scheduleNextFlight(8000);
       }
     };
@@ -122,17 +122,17 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
       {/* 1. Atmospheric Ambient Gradients & Glows */}
       {/* Bronze glow behind Dong Son drum at upper right */}
       <div
-        className="absolute top-0 right-0 w-[500px] sm:w-[700px] lg:w-[850px] h-[500px] sm:h-[700px] lg:h-[850px] opacity-70 pointer-events-none"
+        className="absolute top-0 right-0 w-[500px] sm:w-[700px] lg:w-[850px] h-[500px] sm:h-[700px] lg:h-[850px] opacity-60 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 75% 20%, rgba(201, 166, 107, 0.14) 0%, rgba(201, 166, 107, 0.03) 45%, transparent 70%)',
+          background: 'radial-gradient(circle at 75% 20%, rgba(201, 166, 107, 0.12) 0%, rgba(201, 166, 107, 0.02) 45%, transparent 70%)',
         }}
       />
 
       {/* Subtle warm cinnabar glow on left-mid viewport */}
       <div
-        className="absolute top-[25%] left-0 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] opacity-60 pointer-events-none"
+        className="absolute top-[25%] left-0 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] opacity-50 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 15% 40%, rgba(184, 52, 43, 0.07) 0%, rgba(184, 52, 43, 0.01) 40%, transparent 70%)',
+          background: 'radial-gradient(circle at 15% 40%, rgba(184, 52, 43, 0.06) 0%, rgba(184, 52, 43, 0.01) 40%, transparent 70%)',
         }}
       />
 
@@ -144,8 +144,8 @@ export const HeritageBackground: React.FC<HeritageBackgroundProps> = ({ motionEn
         }}
       />
 
-      {/* 2. Primary Dong Son Bronze Drum Artwork (Top-Right, partially cropped) */}
-      <div className="absolute -top-16 -right-24 sm:-top-16 sm:-right-24 md:-top-12 md:-right-20 lg:-top-6 lg:-right-16 translate-x-[15%] sm:translate-x-[10%] lg:translate-x-[8%] opacity-[0.08] sm:opacity-[0.12] lg:opacity-[0.16] transition-opacity duration-1000">
+      {/* 2. Primary Dong Son Bronze Drum Artwork (Top-Right, partially cropped, light on mobile) */}
+      <div className="absolute -top-16 -right-24 sm:-top-16 sm:-right-24 md:-top-12 md:-right-20 lg:-top-6 lg:-right-16 translate-x-[15%] sm:translate-x-[10%] lg:translate-x-[8%] opacity-[0.05] sm:opacity-[0.09] lg:opacity-[0.14] transition-opacity duration-1000">
         <DongSonBronzeDrum
           size={940}
           isRotating={motionEnabled && !prefersReduced}

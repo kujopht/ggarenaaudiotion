@@ -52,8 +52,8 @@ const PRESET_QUERIES = [
     garmentLabel: 'Áo Nhật Bình',
     query: 'What if bỏ dải màu ngũ sắc ở viền tay áo Nhật Bình để chuyển sang phối màu monochrome tối giản?',
     badge: 'KB-NHATBINH-02',
-    badgeType: 'invariant',
-    hint: 'Đặc điểm nhận diện cần kiểm chứng',
+    badgeType: 'mutable',
+    hint: 'Tham chiếu theo cấp bậc, ngoại lệ Hoàng hậu',
   },
   {
     title: 'Thêu Chim Lạc Thời Đông Sơn',
@@ -501,113 +501,160 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         )}
       </div>
 
-      {/* Results Viewport */}
+      {/* Results Viewport: 3-Stage Decision Journey (Trước -> Thay đổi đề xuất -> Kết quả tham chiếu) */}
       {evaluation && (() => {
         const whatIfSummary = getWhatIfSummaryStatus(evaluation);
         return (
-          <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
-            {/* Top Status Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#C9A66B]/20 gap-3">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#B8AA96]">
-                    Kết quả tham chiếu văn hóa
+          <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-6 animate-in fade-in duration-200">
+            {/* Decision Journey Step Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-[#C9A66B]/20 flex-wrap gap-2">
+              <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-[#C9A66B]" />
+                <span>Hành trình ra quyết định thiết kế (Decision Journey)</span>
+              </span>
+              {renderSourceBadge()}
+            </div>
+
+            {/* Stage 1 & 2: TRƯỚC vs THAY ĐỔI ĐỀ XUẤT */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* STAGE 1: TRƯỚC (Quy thức gốc) */}
+              <div className="p-4 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1.5 backdrop-blur-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
+                    1. Trước · Quy thức gốc
                   </span>
-                  {renderSourceBadge()}
+                  <span className="text-[10px] font-mono text-[#8C7E6C]">
+                    {selectedGarment === 'ngu_than' ? 'ÁO NGŨ THÂN' : selectedGarment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}
+                  </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F2E9D8]">
-                  "{evaluation.query}"
-                </h3>
+                <p className="text-sm text-[#F2E9D8] font-medium">
+                  {effectiveActiveProposal
+                    ? effectiveActiveProposal.title
+                    : selectedGarment === 'ngu_than'
+                    ? 'Áo Ngũ Thân Tay Chẽn (Cổ đứng, vạt Hữu nhậm, 5 thân)'
+                    : selectedGarment === 'ao_tac'
+                    ? 'Áo Tấc Lễ Phục (Tay thụng rộng buông dài theo gấu)'
+                    : 'Áo Nhật Bình (Nẹp cổ đối khâm hình chữ nhật)'}
+                </p>
+                <p className="text-xs text-[#8C7E6C] leading-relaxed">
+                  Quy ước nhận diện prototype cốt lõi làm mốc đối chiếu
+                </p>
               </div>
 
-              {/* Status Badges: Two-Layer Semantics (Requirement 4, 5, 7 & 8) */}
-              <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
-                {/* Layer 1: Prototype Compliance */}
-                {whatIfSummary.isPrototypeConflict ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <AlertOctagon className="w-4 h-4 text-rose-400" />
-                    <span>{whatIfSummary.prototypeLabel}</span>
-                  </div>
-                ) : whatIfSummary.showInsufficientEvidence ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <HelpCircle className="w-4 h-4 text-neutral-400" />
-                    <span>{whatIfSummary.prototypeLabel}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
-                    <span>{whatIfSummary.prototypeLabel}</span>
-                  </div>
-                )}
-
-                {/* Design Caution Badge (only if genuine design caution and NOT already marked conflict) */}
-                {whatIfSummary.hasDesignCaution &&
-                  !whatIfSummary.isPrototypeConflict &&
-                  evaluation.cautions_and_redlines &&
-                  evaluation.cautions_and_redlines.length > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <AlertTriangle className="w-4 h-4 text-amber-400" />
-                      <span>Có điểm cần lưu ý về thiết kế</span>
-                    </div>
-                  )}
-
-                {/* Layer 2: Historical Confidence */}
-                {whatIfSummary.showInsufficientEvidence ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <HelpCircle className="w-4 h-4 text-neutral-400" />
-                    <span>{whatIfSummary.historicalLabel}</span>
-                  </div>
-                ) : evaluation.historical_confidence === 'verified' ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <FileCheck className="w-4 h-4 text-emerald-400" />
-                    <span>{whatIfSummary.historicalLabel}</span>
-                  </div>
-                ) : evaluation.historical_confidence === 'needs_review' ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <Info className="w-4 h-4 text-amber-400" />
-                    <span>{whatIfSummary.historicalLabel}</span>
-                  </div>
-                ) : evaluation.historical_confidence === 'partially_verified' ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-200 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <Layers className="w-4 h-4 text-amber-300" />
-                    <span>{whatIfSummary.historicalLabel}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                    <Info className="w-4 h-4 text-neutral-400" />
-                    <span>{whatIfSummary.historicalLabel}</span>
-                  </div>
-                )}
+              {/* STAGE 2: THAY ĐỔI ĐỀ XUẤT */}
+              <div className="p-4 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1.5 backdrop-blur-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#E6C88B] font-bold">
+                    2. Thay đổi đề xuất
+                  </span>
+                  <span className="text-[10px] font-mono text-[#C9A66B]">
+                    BIẾN THỂ THỬ NGHIỆM
+                  </span>
+                </div>
+                <p className="text-sm text-[#F2E9D8] font-medium italic">
+                  "{evaluation.query}"
+                </p>
+                <p className="text-xs text-[#8C7E6C] leading-relaxed">
+                  Ý tưởng can thiệp kiểu dáng, cấu trúc hoặc chất liệu
+                </p>
               </div>
             </div>
 
-            {/* System & Data Warnings (Technical info in neutral blue-gray) */}
-            {whatIfSummary.systemWarnings && whatIfSummary.systemWarnings.length > 0 && (
-              <div className="p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-xs text-slate-300 space-y-1 backdrop-blur-xs">
-                <div className="font-semibold flex items-center gap-1.5 text-slate-200">
-                  <Info className="w-4 h-4 text-slate-400 shrink-0" />
-                  <span>Thông tin dữ liệu kỹ thuật:</span>
-                </div>
-                <ul className="space-y-0.5 list-disc list-inside text-slate-300/90 pl-1 leading-relaxed">
-                  {whatIfSummary.systemWarnings.map((warn, i) => (
-                    <li key={i}>{warn}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* STAGE 3: KẾT QUẢ THAM CHIẾU */}
+            <div className="space-y-4 pt-2 border-t border-[#C9A66B]/20">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
+                  3. Kết quả tham chiếu & Thẩm định văn hóa
+                </span>
 
-            {/* Uncertainty Flag Banner (Requirement 7: Dynamic semantic title & text) */}
-            {whatIfSummary.hasEvidenceUncertainty && (
-              <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs sm:text-sm text-rose-200 backdrop-blur-xs">
-                <div className="font-semibold flex items-center gap-1.5 mb-1 text-rose-300">
-                  <AlertOctagon className="w-4 h-4 text-rose-400" />
-                  <span>{whatIfSummary.uncertaintyTitle}</span>
+                {/* Status Badges: Two-Layer Semantics (Requirement 4, 5, 7 & 8) */}
+                <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
+                  {/* Layer 1: Prototype Compliance (Red ONLY for real conflicts) */}
+                  {whatIfSummary.isPrototypeConflict ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <AlertOctagon className="w-4 h-4 text-rose-400" />
+                      <span>{whatIfSummary.prototypeLabel}</span>
+                    </div>
+                  ) : whatIfSummary.showInsufficientEvidence ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <HelpCircle className="w-4 h-4 text-neutral-400" />
+                      <span>{whatIfSummary.prototypeLabel}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
+                      <span>{whatIfSummary.prototypeLabel}</span>
+                    </div>
+                  )}
+
+                  {/* Design Caution Badge (only if genuine design caution and NOT already marked conflict) */}
+                  {whatIfSummary.hasDesignCaution &&
+                    !whatIfSummary.isPrototypeConflict &&
+                    evaluation.cautions_and_redlines &&
+                    evaluation.cautions_and_redlines.length > 0 && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                        <AlertTriangle className="w-4 h-4 text-amber-400" />
+                        <span>Có điểm cần lưu ý về thiết kế</span>
+                      </div>
+                    )}
+
+                  {/* Layer 2: Historical Confidence (Never red for source uncertainty alone) */}
+                  {whatIfSummary.showInsufficientEvidence ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <HelpCircle className="w-4 h-4 text-neutral-400" />
+                      <span>{whatIfSummary.historicalLabel}</span>
+                    </div>
+                  ) : evaluation.historical_confidence === 'verified' ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <FileCheck className="w-4 h-4 text-emerald-400" />
+                      <span>{whatIfSummary.historicalLabel}</span>
+                    </div>
+                  ) : evaluation.historical_confidence === 'needs_review' ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <Info className="w-4 h-4 text-amber-400" />
+                      <span>{whatIfSummary.historicalLabel}</span>
+                    </div>
+                  ) : evaluation.historical_confidence === 'partially_verified' ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-200 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <Layers className="w-4 h-4 text-amber-300" />
+                      <span>{whatIfSummary.historicalLabel}</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
+                      <Info className="w-4 h-4 text-neutral-400" />
+                      <span>{whatIfSummary.historicalLabel}</span>
+                    </div>
+                  )}
                 </div>
-                <p className="text-rose-200/90 leading-relaxed text-xs sm:text-sm">
-                  {whatIfSummary.uncertaintyText}
-                </p>
               </div>
-            )}
+
+              {/* System & Data Warnings (Technical info in neutral blue-gray/slate) */}
+              {whatIfSummary.systemWarnings && whatIfSummary.systemWarnings.length > 0 && (
+                <div className="p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-xs text-slate-300 space-y-1 backdrop-blur-xs">
+                  <div className="font-semibold flex items-center gap-1.5 text-slate-200">
+                    <Info className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>Thông tin dữ liệu kỹ thuật:</span>
+                  </div>
+                  <ul className="space-y-0.5 list-disc list-inside text-slate-300/90 pl-1 leading-relaxed">
+                    {whatIfSummary.systemWarnings.map((warn, i) => (
+                      <li key={i}>{warn}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Uncertainty Flag Banner: Uses amber/neutral instead of red */}
+              {whatIfSummary.hasEvidenceUncertainty && (
+                <div className="p-3.5 bg-amber-950/30 border border-amber-700/40 rounded-xl text-xs sm:text-sm text-amber-200 backdrop-blur-xs">
+                  <div className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
+                    <HelpCircle className="w-4 h-4 text-amber-400" />
+                    <span>{whatIfSummary.uncertaintyTitle}</span>
+                  </div>
+                  <p className="text-amber-200/90 leading-relaxed text-xs sm:text-sm">
+                    {whatIfSummary.uncertaintyText}
+                  </p>
+                </div>
+              )}
 
           {/* Redlines & Warnings */}
           {evaluation.cautions_and_redlines.length > 0 && (
@@ -704,8 +751,9 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             </div>
           </div>
         </div>
-      );
-    })()}
-  </div>
+      </div>
+    );
+  })()}
+</div>
 );
 };

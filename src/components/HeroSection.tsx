@@ -24,14 +24,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Editorial Content Container */}
       <div className="w-full grid grid-cols-1 lg:grid-cols-12 items-center gap-6 py-2 md:py-4">
         {/* Main Column: Fashion Editorial Headline & Actions (7 cols desktop, full width mobile) */}
-        <div className="lg:col-span-7 space-y-3.5 sm:space-y-4 max-w-xl p-5 sm:p-7 rounded-2xl bg-gradient-to-r from-[#181311]/90 via-[#181311]/70 to-[#181311]/30 border border-[#C9A66B]/20 backdrop-blur-md shadow-sm">
+        <div className="lg:col-span-7 space-y-3.5 sm:space-y-4.5 max-w-xl py-2 relative">
+          {/* Subtle local soft contrast gradient behind text, avoiding big enclosing card feel */}
+          <div className="absolute -inset-x-3 -inset-y-2 bg-gradient-to-r from-[#120E0D]/90 via-[#120E0D]/65 to-transparent -z-10 rounded-2xl pointer-events-none blur-sm" />
+
           {/* Subtle Editorial Kicker */}
           <div className="flex items-center gap-2 text-xs font-mono tracking-wider text-[#C9A66B]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#B8342B] shrink-0" />
             <span className="uppercase text-[11px] sm:text-xs">Sơn mài & Thời trang Việt đương đại</span>
           </div>
 
-          {/* Big Editorial Headline */}
+          {/* Big Editorial Headline blending seamlessly into background */}
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-[#F2E9D8] tracking-tight leading-[1.12]">
             Việt phục. <br />
             <span className="text-[#C9A66B]">Theo cách của bạn.</span>
@@ -42,7 +45,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             Phối lại nét xưa bằng gu riêng, cùng những gợi ý tham chiếu văn hóa.
           </p>
 
-          {/* Primary Action Buttons */}
+          {/* Primary Action Buttons - Each with its own tactile surface */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1">
             <button
               type="button"
@@ -56,7 +59,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <button
               type="button"
               onClick={onOpenCKB}
-              className="px-4 py-3 bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 text-[#E6C88B] rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[46px] backdrop-blur-sm"
+              className="px-4 py-3 bg-[#261C19]/90 hover:bg-[#322521] border border-[#C9A66B]/35 text-[#E6C88B] rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[46px] shadow-xs"
             >
               <BookOpen className="w-4 h-4 text-[#C9A66B]" />
               <span>Xem quy tắc tham chiếu</span>
@@ -64,21 +67,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           </div>
 
           {/* Compact Footnote Disclaimer */}
-          <p className="text-[11px] text-[#8C7E6C] leading-normal pt-1">
+          <p className="text-[11px] text-[#8C7E6C] leading-normal pt-0.5">
             * Họa tiết nghệ thuật thị giác lấy cảm hứng văn hóa, không thay thế cho mẫu rập may hoặc bảo chứng khảo cổ.
           </p>
         </div>
 
         {/* Right Column: Desktop Open Atmospheric Stage (5 cols, hidden on mobile for clean focus) */}
-        <div className="hidden lg:flex lg:col-span-5 relative h-[240px] items-center justify-end pointer-events-none select-none">
-          <div className="relative flex flex-col items-end justify-center pr-6 text-right space-y-2">
-            {/* Resting Phoenix motif glowing softly in foreground */}
-            <div className="w-28 h-28 opacity-80 drop-shadow-md">
-              <VietnamesePhoenix size={110} />
+        <div className="hidden lg:flex lg:col-span-5 relative h-[220px] items-center justify-end pointer-events-none select-none">
+          <div className="relative flex flex-col items-end justify-center pr-6 text-right space-y-2 opacity-85">
+            {/* Resting Phoenix motif glowing softly in background edge */}
+            <div className="w-24 h-24 opacity-75">
+              <VietnamesePhoenix size={96} />
             </div>
 
             <div>
-              <span className="text-[10px] font-mono tracking-widest uppercase text-[#C9A66B]/70 block">
+              <span className="text-[10px] font-mono tracking-widest uppercase text-[#C9A66B]/75 block">
                 Không Gian Di Sản
               </span>
               <span className="text-xs font-serif italic text-[#B8AA96]/80 block">

@@ -37,37 +37,39 @@
   }
 }
 
-/* Lacquer Glass Design System (Bán trong suốt Sơn Mài & Chiều Sâu) */
+/* Lacquer Glass Design System (Bán trong suốt Sơn Mài & Phân Cấp Chiều Sâu) */
+/* 1. Section Surface: Subtle, breathing background container */
 .lacquer-panel {
-  background: rgba(33, 24, 21, 0.65);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(201, 166, 107, 0.22);
-  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(242, 233, 216, 0.09);
+  background: rgba(28, 20, 18, 0.60);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(201, 166, 107, 0.16);
+  box-shadow: 0 10px 28px -4px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(242, 233, 216, 0.06);
 }
 
 .lacquer-panel-subtle {
-  background: rgba(28, 21, 19, 0.52);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(201, 166, 107, 0.15);
-  box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(242, 233, 216, 0.05);
+  background: rgba(24, 18, 16, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(201, 166, 107, 0.12);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(242, 233, 216, 0.04);
 }
 
+/* 2. Result & Elevated Focal Plane */
 .lacquer-card-elevated {
-  background: rgba(40, 29, 25, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(201, 166, 107, 0.35);
-  box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(242, 233, 216, 0.12);
+  background: rgba(36, 26, 23, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(201, 166, 107, 0.32);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(242, 233, 216, 0.10);
 }
 
 @media (max-width: 640px) {
   .lacquer-panel,
   .lacquer-panel-subtle,
   .lacquer-card-elevated {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 }
 
@@ -91,42 +93,48 @@
   will-change: transform;
 }
 
-/* Majestic Phoenix Flight Across Viewport (22s duration with uniform velocity and serene altitude wave) */
+/* Majestic Phoenix Flight Across Viewport:
+ * - 28s duration (between 26-30s)
+ * - Starts completely off-screen (-240px), ends completely off-screen (calc(100vw + 240px))
+ * - Constant horizontal speed (linear)
+ * - No aggressive scaling (fixed scale: 1.0)
+ * - Gentle y-drift (-1.5vh to +2vh)
+ * - Subtle rotation (-1deg to +1.5deg)
+ * - Slow fade-in at start, slow fade-out at end, peak opacity 0.55
+ */
 @keyframes phoenix-majestic-glide {
   0% {
-    transform: translate3d(-200px, 16vh, 0) scale(0.90) rotate(-1deg);
+    transform: translate3d(-240px, 0vh, 0) scale(1) rotate(-1deg);
     opacity: 0;
   }
-  10% {
-    opacity: 0.38;
+  8% {
+    opacity: 0.35;
   }
   20% {
-    transform: translate3d(calc(-200px + (100vw + 400px) * 0.20), 11vh, 0) scale(0.96) rotate(-2deg);
-    opacity: 0.48;
+    opacity: 0.50;
   }
-  40% {
-    transform: translate3d(calc(-200px + (100vw + 400px) * 0.40), 17vh, 0) scale(1.03) rotate(2deg);
+  38% {
+    transform: translate3d(calc(-240px + (100vw + 480px) * 0.38), 1.8vh, 0) scale(1) rotate(1deg);
+    opacity: 0.55;
+  }
+  62% {
+    transform: translate3d(calc(-240px + (100vw + 480px) * 0.62), -1.2vh, 0) scale(1) rotate(-1deg);
     opacity: 0.52;
   }
-  60% {
-    transform: translate3d(calc(-200px + (100vw + 400px) * 0.60), 12vh, 0) scale(1.00) rotate(-1.5deg);
-    opacity: 0.48;
-  }
   80% {
-    transform: translate3d(calc(-200px + (100vw + 400px) * 0.80), 15vh, 0) scale(0.95) rotate(1.5deg);
     opacity: 0.40;
   }
   92% {
-    opacity: 0.20;
+    opacity: 0.16;
   }
   100% {
-    transform: translate3d(calc(100vw + 200px), 18vh, 0) scale(0.90) rotate(2deg);
+    transform: translate3d(calc(100vw + 240px), 0vh, 0) scale(1) rotate(0.5deg);
     opacity: 0;
   }
 }
 
 .animate-phoenix-majestic-glide {
-  animation: phoenix-majestic-glide 22s linear forwards;
+  animation: phoenix-majestic-glide 28s linear forwards;
   will-change: transform, opacity;
 }
 
