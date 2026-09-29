@@ -120,7 +120,9 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   GOOGLE GEMINI API ENGINE                  │
-│                      (gemini-3.8-flash)                     │
+│  - Primary model: gemini-3.8-flash                          │
+│  - Availability fallback: gemini-3.1-flash-lite             │
+│  - Final offline/API fallback: deterministic cultural engine│
 └─────────────────────────────────────────────────────────────┘
 ```
 
