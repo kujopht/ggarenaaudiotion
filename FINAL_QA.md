@@ -4,7 +4,7 @@
 ---
 
 ## 1. TỔNG QUAN BÁO CÁO NGHIỆM THU
-- **Ngày nghiệm thu:** 28/09/2026
+- **Ngày nghiệm thu:** 02/10/2026
 - **Môi trường đánh giá:** Node.js v20+, Express, Vite, React 19, TypeScript
 - **Phiên bản mô hình AI:** Google Gemini `gemini-3.8-flash`
 - **Mục tiêu:** Khóa toàn diện chất lượng kỹ thuật, tính trung thực dữ liệu di sản (CKB), trải nghiệm responsive đa thiết bị và an toàn bảo mật trước giờ nộp bài.
@@ -15,9 +15,9 @@
 
 | Hạng mục kiểm thử | Lệnh thực thi | Tiêu chí nghiệm thu | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| **Kiểm thử tự động** | `npm test` | 113/113 test cases pass (unit, flow, validation, responsive browser, What-If & Lookbook suite) | 113 / 113 tests passed | ✅ **PASS** |
+| **Kiểm thử tự động** | `npm test` | 117/117 test cases pass (unit, flow, validation, responsive browser, What-If & Lookbook suite) | 117 / 117 tests passed | ✅ **PASS** |
 | **Kiểm tra cú pháp & Linting** | `npm run lint` | 0 errors, 0 syntax violations | 0 errors | ✅ **PASS** |
-| **Xây dựng bản phân phối (Build)** | `npm run build` | Vite build hoàn tất không cảnh báo lỗi type | Built dist/ in 376ms | ✅ **PASS** |
+| **Xây dựng bản phân phối (Build)** | `npm run build` | Vite build hoàn tất không cảnh báo lỗi type | Build succeeded | ✅ **PASS** |
 | **Khởi động Production Server** | `NODE_ENV=production PORT=3098 npm start` | Server khởi động sạch tại port 3098 | HTTP 200 OK | ✅ **PASS** |
 | **Production GET /** | `curl -sI http://localhost:3098/` | HTTP 200, Content-Type: `text/html; charset=utf-8` | HTTP/1.1 200 OK | ✅ **PASS** |
 | **Generate Fallback (Không Key)** | `POST /api/remix/generate` | Trả về 2 proposals hợp lệ từ `deterministic_engine` | HTTP 200, 2 proposals | ✅ **PASS** |

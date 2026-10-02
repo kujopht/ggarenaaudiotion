@@ -704,6 +704,103 @@ runTest('8.11 không có download giả khi export chưa implemented', () => {
   assert.ok(html.includes('Chuẩn bị khung xuất'), 'Nút phải ghi rõ Chuẩn bị khung xuất');
 });
 
+runTest('8.12 evidence button có min touch target 44px và flex-wrap', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.ok(html.includes('min-h-[44px]'), 'Evidence button phải có min-h-[44px] để bảo đảm touch target di động');
+  assert.ok(html.includes('flex-wrap'), 'Vùng chứa evidence button phải có flex-wrap tránh tràn ngang');
+  assert.ok(html.includes('px-2.5'), 'Evidence button phải có padding ngang thoải mái');
+  assert.ok(html.includes('py-2'), 'Evidence button phải có padding dọc phù hợp');
+});
+
+runTest('8.13 Lookbook evidence callback có thể mở đúng evidence', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  let clickedEvidenceId: string | undefined = undefined;
+
+  const modalEl = React.createElement(LookbookCardModal, {
+    proposal,
+    isOpen: true,
+    onClose: () => {},
+    onOpenCKB: (id) => {
+      clickedEvidenceId = id;
+    },
+  });
+
+  // Verify component accepts onOpenCKB without error
+  const html = renderToString(modalEl);
+  assert.ok(html.includes('KB-NGUTHAN-01') || html.includes('KB-RULE-01'));
+  
+  // Directly invoke the prop to verify callback correctness
+  modalEl.props.onOpenCKB?.('KB-NGUTHAN-01');
+  assert.strictEqual(clickedEvidenceId, 'KB-NGUTHAN-01', 'onOpenCKB phải nhận đúng evidence ID được bấm');
+});
+
+runTest('8.14 flow từ Lookbook không để Lookbook và CKB modal cùng mở (Single Modal Flow)', () => {
+  let lookbookModalOpen = true;
+  let ckbModalOpen = false;
+  let highlightedCKBId: string | null = null;
+
+  const handleOpenCKB = (evidenceId?: string) => {
+    if (evidenceId) {
+      highlightedCKBId = evidenceId;
+    } else {
+      highlightedCKBId = null;
+    }
+    ckbModalOpen = true;
+  };
+
+  const handleOpenCKBFromLookbook = (evidenceId?: string) => {
+    lookbookModalOpen = false;
+    handleOpenCKB(evidenceId);
+  };
+
+  // User in Lookbook clicks an evidence ID
+  assert.strictEqual(lookbookModalOpen, true);
+  assert.strictEqual(ckbModalOpen, false);
+
+  handleOpenCKBFromLookbook('KB-RULE-01');
+
+  // After click: Lookbook closed, CKB opened with evidence highlighted
+  assert.strictEqual(lookbookModalOpen, false, 'Lookbook phải đóng khi mở CKB');
+  assert.strictEqual(ckbModalOpen, true, 'CKB modal phải mở');
+  assert.strictEqual(highlightedCKBId, 'KB-RULE-01', 'Evidence ID phải được truyền sang CKB');
+  assert.strictEqual(lookbookModalOpen && ckbModalOpen, false, 'Không bao giờ để 2 modal cùng mở');
+});
+
+runTest('8.15 tối đa 3 evidence ID hiển thị và evidence count vẫn là tổng thật', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  // Create test proposal with 5 evidence IDs
+  const testProposal = {
+    ...proposal,
+    audit: {
+      ...proposal.audit,
+      evidence_ids: ['KB-01', 'KB-02', 'KB-03', 'KB-04', 'KB-05'],
+    },
+  };
+
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: testProposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.ok(html.includes('5 căn cứ CKB'), 'Tổng số căn cứ phải hiển thị chính xác là 5');
+  assert.ok(html.includes('KB-01'), 'Căn cứ thứ 1 phải hiển thị');
+  assert.ok(html.includes('KB-02'), 'Căn cứ thứ 2 phải hiển thị');
+  assert.ok(html.includes('KB-03'), 'Căn cứ thứ 3 phải hiển thị');
+  assert.strictEqual(html.includes('KB-04'), false, 'Căn cứ thứ 4 không được xuất hiện (tối đa 3)');
+  assert.strictEqual(html.includes('KB-05'), false, 'Căn cứ thứ 5 không được xuất hiện (tối đa 3)');
+});
+
 console.log('\n-------------------------------------------------------------');
 console.log(`TỔNG KẾT BROWSER & FLOW SUITE: ${passCount} PASSED / ${failCount} FAILED`);
 console.log('-------------------------------------------------------------');

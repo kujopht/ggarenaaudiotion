@@ -127,7 +127,7 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Các cơ chế phòng vệ và ổn định đã được kiểm thử tự động (113/113 PASS):
+### Các cơ chế phòng vệ và ổn định đã được kiểm thử tự động (117/117 PASS):
 1. **AbortController & Request ID Sequencing:** Khi người dùng đổi loại áo hoặc chuyển tab liên tục, mọi yêu cầu mạng đang dang dở đều bị hủy ngay lập tức, không bao giờ ghi đè kết quả của yêu cầu mới.
 2. **Stale Response Protection:** Phản hồi từ mạng về muộn sau khi giao diện đã đổi trạng thái sẽ bị loại bỏ an toàn.
 3. **Garment Validation Contract:** Nghiêm cấm trường hợp người dùng chọn Nhật Bình mà AI trả về Ngũ Thân. Khi dữ liệu vi phạm contract, hệ thống tự động kích hoạt **Deterministic Engine Fallback**.
@@ -156,7 +156,7 @@ Hệ thống được thiết kế và kiểm thử chuyên biệt trên toàn b
 npm install
 ```
 
-### Chạy kiểm thử tự động (113 test cases bao phủ logic, browser, What-If & Lookbook suite)
+### Chạy kiểm thử tự động (117 test cases bao phủ logic, browser, What-If & Lookbook suite)
 ```bash
 npm test
 ```

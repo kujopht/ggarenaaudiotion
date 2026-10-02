@@ -65,6 +65,11 @@ export default function App() {
     setCkbModalOpen(true);
   };
 
+  const handleOpenCKBFromLookbook = (evidenceId?: string) => {
+    setLookbookModalOpen(false);
+    handleOpenCKB(evidenceId);
+  };
+
   const handleOpenLookbook = (proposal: OutfitProposal) => {
     setActiveLookbookProposal(proposal);
     setLookbookModalOpen(true);
@@ -189,7 +194,7 @@ export default function App() {
         isOpen={lookbookModalOpen}
         onClose={() => setLookbookModalOpen(false)}
         proposal={activeLookbookProposal}
-        onOpenCKB={(id) => handleOpenCKB(id)}
+        onOpenCKB={handleOpenCKBFromLookbook}
       />
     </div>
   );

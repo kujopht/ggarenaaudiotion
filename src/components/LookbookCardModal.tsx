@@ -320,14 +320,16 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
                 </div>
 
                 {/* Evidence count & up to 3 evidence IDs */}
-                <div className="flex items-center justify-between text-[10px] text-[#8C7E6C] font-mono pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-[10px] text-[#8C7E6C] font-mono pt-1">
                   <span>{`${evidenceCount} căn cứ CKB`}</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     {previewEvidenceIds.map((id) => (
                       <button
                         key={id}
+                        type="button"
                         onClick={() => onOpenCKB?.(id)}
-                        className="px-1.5 py-0.5 bg-[#1F1714] text-[#E6C88B] border border-[#C9A66B]/30 rounded hover:bg-[#2A1F1B] cursor-pointer"
+                        className="min-h-[44px] px-2.5 py-2 inline-flex items-center justify-center bg-[#1F1714] text-[#E6C88B] hover:text-[#FFF] border border-[#C9A66B]/40 hover:border-[#C9A66B] rounded-lg hover:bg-[#2A1F1B] transition-colors cursor-pointer text-[10px] font-mono"
+                        title={`Xem chi tiết căn cứ ${id}`}
                       >
                         {id}
                       </button>
