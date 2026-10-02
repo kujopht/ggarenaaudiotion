@@ -1899,6 +1899,98 @@ runTest('17.3 Image State Lifecycle: Trạng thái ảnh không cản trở lu�
   assert.strictEqual(stateReady.image_data?.imageUrl, 'https://example.com/editorial-look.jpg');
 });
 
+// -------------------------------------------------------------
+// 18. V2.1A Co-Design Controls & Contest Flow Invariants
+// -------------------------------------------------------------
+runTest('18.1 Color preference state & deterministic engine safety', () => {
+  const colors = ['auto', 'Chàm', 'Đen', 'Ngà', 'Đỏ son'];
+  for (const color of colors) {
+    const proposals = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, color);
+    assert.strictEqual(proposals.length, 2, `Phải sinh đúng 2 proposals với màu ${color}`);
+    assert.strictEqual(proposals[0].plan_type, 'heritage_anchored');
+    assert.strictEqual(proposals[1].plan_type, 'contemporary_remix');
+    assert.ok(proposals[0].visual_details.color_palette.length > 0);
+    assert.ok(proposals[1].visual_details.color_palette.length > 0);
+  }
+});
+
+runTest('18.2 Accessory preference state & deterministic engine safety', () => {
+  const accessories = ['auto', 'Tối giản', 'Túi hiện đại', 'Trang sức', 'Khăn'];
+  for (const acc of accessories) {
+    const proposals = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', acc);
+    assert.strictEqual(proposals.length, 2, `Phải sinh đúng 2 proposals với phụ kiện ${acc}`);
+    assert.strictEqual(proposals[0].plan_type, 'heritage_anchored');
+    assert.strictEqual(proposals[1].plan_type, 'contemporary_remix');
+    assert.ok(proposals[0].visual_details.accessories.length > 0);
+    assert.ok(proposals[1].visual_details.accessories.length > 0);
+  }
+});
+
+runTest('18.3 Generate payload format: Bao gồm cả color_preference và accessory_preference', () => {
+  const payload = {
+    garment: 'nhat_binh',
+    context: 'fashion_week',
+    style: 'neo_indochine',
+    dial_level: 4,
+    custom_notes: 'Dạ tiệc thời trang',
+    color_preference: 'Đỏ son',
+    accessory_preference: 'Trang sức',
+  };
+
+  assert.strictEqual(payload.color_preference, 'Đỏ son');
+  assert.strictEqual(payload.accessory_preference, 'Trang sức');
+  assert.strictEqual(payload.garment, 'nhat_binh');
+
+  // Verify deterministic engine handles full payload parameters
+  const proposals = generateDeterministicProposals(
+    payload.garment,
+    payload.context,
+    payload.style,
+    payload.dial_level,
+    payload.color_preference,
+    payload.accessory_preference
+  );
+  assert.strictEqual(proposals.length, 2);
+  assert.strictEqual(proposals[0].garment_type, 'nhat_binh');
+  assert.strictEqual(proposals[1].garment_type, 'nhat_binh');
+});
+
+runTest('18.4 Existing 2-proposal contract: Invariant Heritage Anchored & Contemporary Remix bảo toàn trọn vẹn', () => {
+  const proposals = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Chàm', 'Túi hiện đại');
+  assert.strictEqual(proposals.length, 2, 'Hệ thống luôn trả về đúng 2 proposals');
+
+  const [propA, propB] = proposals;
+
+  // Plan types
+  assert.strictEqual(propA.plan_type, 'heritage_anchored');
+  assert.strictEqual(propB.plan_type, 'contemporary_remix');
+
+  // Visual details presence
+  const requiredVisualFields = [
+    'collar_style',
+    'lapel_side',
+    'sleeve_style',
+    'cut_length',
+    'fabric_materials',
+    'layering_pieces',
+    'bottom_garment',
+    'footwear',
+    'accessories',
+    'color_palette',
+  ];
+
+  for (const field of requiredVisualFields) {
+    assert.ok((propA.visual_details as any)[field] !== undefined, `propA thiếu field ${field}`);
+    assert.ok((propB.visual_details as any)[field] !== undefined, `propB thiếu field ${field}`);
+  }
+
+  // Audit integrity
+  assert.ok(propA.audit.evidence_ids.length > 0, 'propA phải có evidence_ids');
+  assert.ok(propB.audit.evidence_ids.length > 0, 'propB phải có evidence_ids');
+  assert.ok(propA.audit.prototype_compliance, 'propA phải có prototype_compliance');
+  assert.ok(propB.audit.prototype_compliance, 'propB phải có prototype_compliance');
+});
+
 console.log('\n-------------------------------------------------------------');
 console.log(`TỔNG KẾT KIỂM THỬ: ${passCount} PASSED / ${failCount} FAILED`);
 console.log('-------------------------------------------------------------');

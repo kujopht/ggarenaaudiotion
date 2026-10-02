@@ -40,6 +40,8 @@ export default function App() {
   const [dialLevel, setDialLevel] = useState<number>(3);
   const [context, setContext] = useState<string>('streetwear');
   const [style, setStyle] = useState<string>('indigo_denim');
+  const [colorPreference, setColorPreference] = useState<string>('auto');
+  const [accessoryPreference, setAccessoryPreference] = useState<string>('auto');
   const [customNotes, setCustomNotes] = useState<string>('');
   
   // State lifted to App so proposals and provenance source are retained across tab switches
@@ -136,6 +138,10 @@ export default function App() {
               onChangeContext={setContext}
               style={style}
               onChangeStyle={setStyle}
+              colorPreference={colorPreference}
+              onChangeColorPreference={setColorPreference}
+              accessoryPreference={accessoryPreference}
+              onChangeAccessoryPreference={setAccessoryPreference}
               customNotes={customNotes}
               onChangeCustomNotes={setCustomNotes}
               onOpenCKB={handleOpenCKB}

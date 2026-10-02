@@ -12,6 +12,7 @@ import { FashionEditorialVisual } from '../src/components/FashionEditorialVisual
 import { GarmentSchematic } from '../src/components/GarmentSchematic.js';
 import { AnatomySection } from '../src/components/AnatomySection.js';
 import { CoDesignStudio } from '../src/components/CoDesignStudio.js';
+import { QuickCompareSection } from '../src/components/QuickCompareSection.js';
 import fs from 'node:fs';
 
 console.log('--- BẮT ĐẦU KIỂM THỬ: BROWSER VIEWPORT SIMULATION & MOCK WORKSPACE FLOW ---\n');
@@ -179,7 +180,7 @@ runTest('4.2 WhatIfLab Fallback Badge semantics: Không dùng màu red/rose cho 
 // ----------------------------------------------------------------------------
 // 5. V2.0 Visual-First Fashion Editorial & Structural Reference Validation
 // ----------------------------------------------------------------------------
-runTest('5.1 FashionEditorialVisual: Render ở trạng thái image_unavailable hiển thị croquis và action', () => {
+runTest('5.1 FashionEditorialVisual: Render ở trạng thái image_unavailable không hiển thị CTA phác họa khi provider chưa configured', () => {
   const html = renderToString(
     React.createElement(FashionEditorialVisual, {
       garment: 'ngu_than',
@@ -195,7 +196,7 @@ runTest('5.1 FashionEditorialVisual: Render ở trạng thái image_unavailable 
   );
 
   assert.ok(html.includes('Phác thảo thời trang'), 'Phải có nhãn phác thảo thời trang');
-  assert.ok(html.includes('Phác họa thị giác'), 'Phải có nút kích hoạt phác họa thị giác');
+  assert.strictEqual(html.includes('Phác họa thị giác'), false, 'Không hiển thị nút Phác họa thị giác khi provider chưa configured');
   assert.ok(html.includes('Sơ đồ cấu trúc'), 'Phải có link mở sơ đồ cấu trúc');
 });
 
@@ -281,6 +282,63 @@ runTest('5.5 CoDesignStudio: Render 2 cards cạnh nhau trong grid-cols-1 md:gri
   assert.ok(html.includes('Edit Look'), 'Mỗi card phải có nút Edit Look');
   assert.ok(html.includes('Thẩm định'), 'Mỗi card phải có nút mở Thẩm định');
   assert.ok(html.includes('Lookbook'), 'Mỗi card phải có nút mở Lookbook');
+});
+
+runTest('5.6 FashionEditorialVisual: Render nút Phác họa thị giác khi showImageGenCTA được bật', () => {
+  const html = renderToString(
+    React.createElement(FashionEditorialVisual, {
+      garment: 'ngu_than',
+      planType: 'heritage_anchored',
+      dialLevel: 1,
+      conceptTag: 'HERITAGE_LOOK',
+      colorPalette: ['#1E3A8A', '#C9A66B'],
+      fabricMaterials: ['Lụa Vạn Phúc'],
+      imageData: { status: 'image_unavailable' },
+      onTriggerImageGeneration: () => {},
+      showImageGenCTA: true,
+    })
+  );
+
+  assert.ok(html.includes('Phác họa thị giác'), 'Phải hiển thị nút Phác họa thị giác khi showImageGenCTA = true');
+});
+
+// ----------------------------------------------------------------------------
+// 6. Quick Compare Section Validation
+// ----------------------------------------------------------------------------
+runTest('6.1 QuickCompareSection: Render đối chiếu 6 tiêu chí khi có đúng 2 proposals', () => {
+  const sampleProposals = generateDeterministicProposals('ngu_than', 'streetwear', 'modern_minimal', 3);
+  const html = renderToString(
+    React.createElement(QuickCompareSection, {
+      proposals: sampleProposals,
+      onOpenCKB: () => {},
+    })
+  );
+
+  assert.ok(html.includes('So sánh nhanh'), 'Phải có tiêu đề So sánh nhanh');
+  assert.ok(html.includes('Cấu trúc và phom'), 'Phải có tiêu chí Cấu trúc và phom');
+  assert.ok(html.includes('Chất liệu'), 'Phải có tiêu chí Chất liệu');
+  assert.ok(html.includes('Bảng màu'), 'Phải có tiêu chí Bảng màu');
+  assert.ok(html.includes('Giày và phụ kiện'), 'Phải có tiêu chí Giày và phụ kiện');
+  assert.ok(html.includes('Mức Remix'), 'Phải có tiêu chí Mức Remix');
+  assert.ok(html.includes('Cultural Audit summary'), 'Phải có tiêu chí Cultural Audit summary');
+  assert.ok(html.includes('Bản phối A · Heritage'), 'Phải đối chiếu Bản phối A');
+  assert.ok(html.includes('Bản phối B · Contemporary'), 'Phải đối chiếu Bản phối B');
+});
+
+runTest('6.2 QuickCompareSection: Trả về rỗng khi không có đúng 2 proposals', () => {
+  const emptyHtml = renderToString(
+    React.createElement(QuickCompareSection, {
+      proposals: [],
+    })
+  );
+  assert.strictEqual(emptyHtml, '', 'Phải trả về rỗng khi proposals rỗng');
+
+  const singleHtml = renderToString(
+    React.createElement(QuickCompareSection, {
+      proposals: [generateDeterministicProposals('ngu_than', 'streetwear', 'modern_minimal', 3)[0]],
+    })
+  );
+  assert.strictEqual(singleHtml, '', 'Phải trả về rỗng khi chỉ có 1 proposal');
 });
 
 console.log('\n-------------------------------------------------------------');

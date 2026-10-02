@@ -12,6 +12,7 @@ interface FashionEditorialVisualProps {
   imageData?: LookImageData;
   onTriggerImageGeneration?: () => void;
   onOpenStructuralReference?: () => void;
+  showImageGenCTA?: boolean;
 }
 
 export const FashionEditorialVisual: React.FC<FashionEditorialVisualProps> = ({
@@ -24,6 +25,7 @@ export const FashionEditorialVisual: React.FC<FashionEditorialVisualProps> = ({
   imageData,
   onTriggerImageGeneration,
   onOpenStructuralReference,
+  showImageGenCTA = false,
 }) => {
   const status = imageData?.status || 'image_unavailable';
   const imageUrl = imageData?.imageUrl;
@@ -232,8 +234,8 @@ export const FashionEditorialVisual: React.FC<FashionEditorialVisualProps> = ({
 
             {/* Quick Action bar inside visual */}
             <div className="flex items-center justify-between gap-2 pt-0.5">
-              {/* Trigger Image Generation (Client abstraction) */}
-              {onTriggerImageGeneration && status === 'image_unavailable' && (
+              {/* Trigger Image Generation (Hidden in production until provider is live) */}
+              {showImageGenCTA && onTriggerImageGeneration && status === 'image_unavailable' && (
                 <button
                   type="button"
                   onClick={onTriggerImageGeneration}

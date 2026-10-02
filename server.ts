@@ -69,16 +69,41 @@ async function generateWithGemini(prompt: string, responseSchema: any) {
 // Outfit creation API
 app.post('/api/remix/generate', async (req: Request, res: Response) => {
   try {
-    const { garment, context, style, dial_level, custom_notes } = req.body;
+    const {
+      garment,
+      context,
+      style,
+      dial_level,
+      custom_notes,
+      color_preference,
+      accessory_preference,
+    } = req.body;
 
     if (!ai) {
       // Fallback response if API key is missing
       return res.json({
         success: true,
-        proposals: generateDeterministicProposals(garment, context, style, dial_level),
+        proposals: generateDeterministicProposals(
+          garment,
+          context,
+          style,
+          dial_level,
+          color_preference,
+          accessory_preference
+        ),
         source: 'deterministic_engine',
       });
     }
+
+    const colorPrefText =
+      !color_preference || color_preference === 'auto' || color_preference === 'Tự đề xuất'
+        ? 'Tự do đề xuất bảng màu hài hòa với phom dáng y phục và bối cảnh'
+        : `Ưu tiên tone màu chủ đạo: ${color_preference}`;
+
+    const accessoryPrefText =
+      !accessory_preference || accessory_preference === 'auto' || accessory_preference === 'Tự đề xuất'
+        ? 'Đề xuất phụ kiện tự do, hài hòa với mức độ Remix'
+        : `Định hướng phụ kiện: ${accessory_preference}`;
 
     const prompt = `
 Người dùng muốn tạo bản phối Việt phục trong KUJO Re:Wear:
@@ -86,6 +111,8 @@ Người dùng muốn tạo bản phối Việt phục trong KUJO Re:Wear:
 - Context: ${context}
 - Style: ${style}
 - Dial Level (Mức độ phá cách 1-5): ${dial_level}
+- Màu chủ đạo mong muốn: ${colorPrefText}
+- Định hướng phụ kiện: ${accessoryPrefText}
 - Custom notes: ${custom_notes || 'Không có'}
 
 Hãy tạo đúng 2 phương án thiết kế đa dạng:
@@ -205,17 +232,31 @@ Trả về kết quả chuẩn định dạng JSON.
     console.warn('[AI Studio Backend] Notice: High demand on cloud models, serving deterministic cultural engine.');
     return res.json({
       success: true,
-      proposals: generateDeterministicProposals(garment || 'ngu_than', context || 'streetwear', style || 'modern_minimal', dial_level || 3),
+      proposals: generateDeterministicProposals(
+        garment || 'ngu_than',
+        context || 'streetwear',
+        style || 'modern_minimal',
+        dial_level || 3,
+        color_preference,
+        accessory_preference
+      ),
       source: 'deterministic_engine_fallback',
       warning: 'High demand spike on cloud AI; served seamlessly by deterministic cultural engine.',
     });
   } catch (err: any) {
     console.warn('[AI Studio Backend] Notice: Generating remix outfit switched to deterministic engine:', err?.message || err);
     // Graceful fallback to deterministic engine
-    const { garment, context, style, dial_level } = req.body;
+    const { garment, context, style, dial_level, color_preference, accessory_preference } = req.body;
     return res.json({
       success: true,
-      proposals: generateDeterministicProposals(garment || 'ngu_than', context || 'streetwear', style || 'modern_minimal', dial_level || 3),
+      proposals: generateDeterministicProposals(
+        garment || 'ngu_than',
+        context || 'streetwear',
+        style || 'modern_minimal',
+        dial_level || 3,
+        color_preference,
+        accessory_preference
+      ),
       source: 'deterministic_engine_fallback',
       warning: err.message,
     });

@@ -404,7 +404,9 @@ export function generateDeterministicProposals(
   garment: string,
   context: string,
   style: string,
-  dial: number
+  dial: number,
+  colorPreference?: string,
+  accessoryPreference?: string
 ): OutfitProposal[] {
   const isNguThan = garment === 'ngu_than';
   const isAoTac = garment === 'ao_tac';

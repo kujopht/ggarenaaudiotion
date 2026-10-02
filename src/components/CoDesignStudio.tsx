@@ -4,6 +4,7 @@ import { CulturalAuditPanel } from './CulturalAuditPanel';
 import { formatSourceBadge, getLookSummaryStatus } from '../utils/remixStateHelpers';
 import { DongSonDialRing } from './MotionMotifs';
 import { FashionEditorialVisual } from './FashionEditorialVisual';
+import { QuickCompareSection } from './QuickCompareSection';
 import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info } from 'lucide-react';
 
 interface CoDesignStudioProps {
@@ -20,6 +21,10 @@ interface CoDesignStudioProps {
   onChangeContext: (c: string) => void;
   style: string;
   onChangeStyle: (s: string) => void;
+  colorPreference?: string;
+  onChangeColorPreference?: (c: string) => void;
+  accessoryPreference?: string;
+  onChangeAccessoryPreference?: (a: string) => void;
   customNotes: string;
   onChangeCustomNotes: (n: string) => void;
   onOpenCKB: (evidenceId?: string) => void;
@@ -129,6 +134,22 @@ const STYLE_OPTIONS = [
   { id: 'techwear_utility', label: 'Techwear tiện ích (Vải dù chống nước)' },
 ];
 
+const COLOR_PREFERENCE_OPTIONS = [
+  { id: 'auto', label: 'Tự đề xuất', swatch: '#8C7E6C' },
+  { id: 'Chàm', label: 'Chàm', swatch: '#1E293B' },
+  { id: 'Đen', label: 'Đen', swatch: '#0F172A' },
+  { id: 'Ngà', label: 'Ngà', swatch: '#FDFBF7' },
+  { id: 'Đỏ son', label: 'Đỏ son', swatch: '#B8342B' },
+];
+
+const ACCESSORY_PREFERENCE_OPTIONS = [
+  { id: 'auto', label: 'Tự đề xuất' },
+  { id: 'Tối giản', label: 'Tối giản' },
+  { id: 'Túi hiện đại', label: 'Túi hiện đại' },
+  { id: 'Trang sức', label: 'Trang sức' },
+  { id: 'Khăn', label: 'Khăn' },
+];
+
 export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   proposals,
   selectedPlanIndex,
@@ -143,6 +164,10 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   onChangeContext,
   style,
   onChangeStyle,
+  colorPreference = 'auto',
+  onChangeColorPreference,
+  accessoryPreference = 'auto',
+  onChangeAccessoryPreference,
   customNotes,
   onChangeCustomNotes,
   onOpenCKB,
@@ -265,6 +290,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
           style,
           dial_level: dialLevel,
           custom_notes: customNotes,
+          color_preference: colorPreference,
+          accessory_preference: accessoryPreference,
         }),
       });
 
@@ -571,6 +598,67 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               </div>
             </div>
 
+            {/* 3. Màu chủ đạo & Phụ kiện */}
+            <div className="space-y-3 pt-2 border-t border-[#C9A66B]/15">
+              {/* Color preference */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
+                  Màu chủ đạo
+                </label>
+                <div className="grid grid-cols-5 gap-1 text-xs">
+                  {COLOR_PREFERENCE_OPTIONS.map((c) => {
+                    const isSelected = (colorPreference || 'auto') === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => onChangeColorPreference?.(c.id)}
+                        className={`py-1.5 px-1 rounded-lg border transition-all flex flex-col items-center gap-1 cursor-pointer min-h-[40px] ${
+                          isSelected
+                            ? 'border-[#C9A66B] bg-[#C9A66B]/25 text-[#E6C88B] font-semibold ring-1 ring-[#C9A66B]/40'
+                            : 'border-[#C9A66B]/15 bg-[#181311]/50 text-[#B8AA96] hover:border-[#C9A66B]/30'
+                        }`}
+                        title={c.label}
+                      >
+                        <span
+                          className="w-2.5 h-2.5 rounded-full border border-white/30 shrink-0"
+                          style={{ backgroundColor: c.swatch }}
+                        />
+                        <span className="text-[10px] truncate max-w-full">{c.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Accessory preference */}
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
+                  Phụ kiện
+                </label>
+                <div className="grid grid-cols-5 gap-1 text-xs">
+                  {ACCESSORY_PREFERENCE_OPTIONS.map((a) => {
+                    const isSelected = (accessoryPreference || 'auto') === a.id;
+                    return (
+                      <button
+                        key={a.id}
+                        type="button"
+                        onClick={() => onChangeAccessoryPreference?.(a.id)}
+                        className={`py-1.5 px-0.5 rounded-lg border transition-all flex items-center justify-center text-center cursor-pointer min-h-[40px] ${
+                          isSelected
+                            ? 'border-[#C9A66B] bg-[#C9A66B]/25 text-[#E6C88B] font-semibold ring-1 ring-[#C9A66B]/40'
+                            : 'border-[#C9A66B]/15 bg-[#181311]/50 text-[#B8AA96] hover:border-[#C9A66B]/30'
+                        }`}
+                        title={a.label}
+                      >
+                        <span className="text-[10px] truncate max-w-full leading-tight">{a.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
             {/* 4. Mức độ Remix (Dial) với vành trang trí vàng đồng */}
             <div className="space-y-3 pt-2 border-t border-[#C9A66B]/15">
               <div className="flex items-center justify-between">
@@ -837,39 +925,78 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                       </div>
 
                       {/* 4. Cultural Audit Summary Strip */}
-                      <div className="bg-[#181311]/80 p-2.5 rounded-xl border border-[#C9A66B]/20 space-y-1.5 text-xs backdrop-blur-xs">
+                      <div className="bg-[#181311]/80 p-3 rounded-xl border border-[#C9A66B]/20 space-y-2 text-xs backdrop-blur-xs">
+                        {/* Quick Scan Badges: Prototype compliance, Historical confidence, Evidence count, Caution count */}
                         <div className="flex items-center justify-between gap-2 flex-wrap">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            {summary.badges.map((b, bIdx) => {
-                              if (b.variant === "caution") {
-                                return (
-                                  <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1">
-                                    <AlertTriangle className="w-3 h-3 text-amber-400" />
-                                    {b.label}
-                                  </span>
-                                );
-                              }
-                              if (b.variant === "uncertainty") {
-                                return (
-                                  <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/50 text-[#D4C7B4] flex items-center gap-1">
-                                    <HelpCircle className="w-3 h-3 text-[#B8AA96]" />
-                                    {b.label}
-                                  </span>
-                                );
-                              }
-                              return (
-                                <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] flex items-center gap-1">
-                                  <ShieldCheck className="w-3 h-3 text-[#E6C88B]" />
-                                  {b.label}
-                                </span>
-                              );
-                            })}
+                            {/* Prototype compliance */}
+                            {prop.audit.prototype_compliance === 'compliant' ? (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-emerald-400" />
+                                Tuân thủ Prototype
+                              </span>
+                            ) : prop.audit.prototype_compliance === 'conflict' ? (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                                Xung đột Prototype
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                                <HelpCircle className="w-3 h-3 text-[#B8AA96]" />
+                                Chưa xác định
+                              </span>
+                            )}
+
+                            {/* Historical confidence */}
+                            {prop.audit.historical_confidence === 'verified' && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-[#E6C88B]" />
+                                Sử liệu: Đã kiểm chứng
+                              </span>
+                            )}
+                            {prop.audit.historical_confidence === 'partially_verified' && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#43B6A4]/15 border border-[#43B6A4]/40 text-[#43B6A4] flex items-center gap-1">
+                                <ShieldCheck className="w-3 h-3 text-[#43B6A4]" />
+                                Sử liệu: Đã xác thực một phần
+                              </span>
+                            )}
+                            {prop.audit.historical_confidence === 'needs_review' && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-950/50 border border-amber-600/40 text-amber-200 flex items-center gap-1">
+                                <HelpCircle className="w-3 h-3 text-amber-300" />
+                                Sử liệu: Đang chờ đối soát
+                              </span>
+                            )}
+                            {prop.audit.historical_confidence === 'unverified' && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-950/50 border border-amber-600/40 text-amber-200 flex items-center gap-1">
+                                <HelpCircle className="w-3 h-3 text-amber-300" />
+                                Sử liệu: Chưa đối soát độc lập
+                              </span>
+                            )}
+                            {prop.audit.historical_confidence === 'mixed' && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                                <HelpCircle className="w-3 h-3 text-[#B8AA96]" />
+                                Sử liệu: Nguồn hỗn hợp
+                              </span>
+                            )}
+
+                            {/* Evidence Count */}
+                            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#211815] border border-[#C9A66B]/25 text-[#D4C7B4]">
+                              {prop.audit.evidence_ids.length} CKB IDs
+                            </span>
+
+                            {/* Caution count if any */}
+                            {prop.audit.cautions_and_redlines && prop.audit.cautions_and_redlines.length > 0 && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                {prop.audit.cautions_and_redlines.length} lưu ý
+                              </span>
+                            )}
                           </div>
 
                           <button
                             type="button"
                             onClick={() => onOpenCKB(prop.audit.evidence_ids[0])}
-                            className="text-[11px] font-semibold text-[#E6C88B] hover:text-[#F2E9D8] flex items-center gap-1 cursor-pointer min-h-[26px] ml-auto"
+                            className="text-[11px] font-semibold text-[#E6C88B] hover:text-[#F2E9D8] flex items-center gap-1 cursor-pointer min-h-[26px] ml-auto shrink-0"
                           >
                             <span>Xem CKB</span>
                             <ArrowRight className="w-3 h-3" />
@@ -995,6 +1122,9 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   );
                 })}
               </div>
+
+              {/* Quick Compare Section for the 2 proposals */}
+              <QuickCompareSection proposals={proposals} onOpenCKB={onOpenCKB} />
             </div>
           )}
         </div>
