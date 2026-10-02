@@ -83,7 +83,7 @@ export function evaluateWhatIfDeterministic(
       verification_summary: auditConf.verification_summary,
       impact_analysis:
         outfitNote +
-        `Thay đổi này xung đột với quy tắc prototype ${rule01.id} (${rule01.title}). ${rule01.information_tier.prototype_rule} Tuy nhiên, nguồn lịch sử của rule này trong bản thử nghiệm hiện chưa được xác minh độc lập. Trong tập quán y phục Á Đông, tả nhậm là quy thức cài áo thường liên quan y phục tang ma theo quan niệm dân gian truyền khẩu (chưa được dự án kiểm chứng bằng thư tịch chính thức), khuyến cáo tránh dùng trên trang phục thường nhật.`,
+        `Thay đổi này xung đột với quy tắc prototype ${rule01.id} (${rule01.title}). ${rule01.information_tier.prototype_rule} Cài khuy sang bên trái (tả nhậm) là biến thể xung đột trực tiếp với kết cấu nhận diện bất biến của Áo Ngũ Thân và Áo Tấc. Nguồn lịch sử của quy tắc này (nguồn lịch sử tham chiếu) trong bản thử nghiệm hiện đang ở trạng thái cần rà soát thêm, do đó hệ thống ghi nhận đây là xung đột với quy ước prototype của lab thay vì đưa ra diễn giải lịch sử tuyệt đối.`,
       violates_invariants: true,
       violated_evidence_ids: [rule01.id],
       applicable_evidence_ids: [rule01.id],
@@ -95,7 +95,7 @@ export function evaluateWhatIfDeterministic(
         solution:
           'Vẫn giữ đúng quy thức Hữu nhậm (vạt trái đè vạt phải, khuy bên phải), nhưng ứng dụng hệ thống khóa bấm kim loại từ tính (magnetic snap buttons) hoặc khóa kéo ẩn bên hông phải để người thuận tay trái thao tác đóng mở nhanh trong 1 giây.',
         heritage_safeguard:
-          'Bảo vệ nguyên vẹn cấu trúc Hữu nhậm theo quy ước prototype, tránh nguy cơ đồng nhất với y phục tang lễ.',
+          'Bảo vệ nguyên vẹn kết cấu Hữu nhậm (vạt trái đè lên vạt phải) theo quy ước prototype cốt lõi.',
         contemporary_edge:
           'Ứng dụng công nghệ phụ liệu may mặc công thái học hiện đại cho người thuận tay trái.',
         materials_and_cuts: 'Raw denim hoặc linen cao cấp đính khuy nam châm chìm bên phải.',
@@ -296,6 +296,128 @@ export function evaluateWhatIfDeterministic(
   }
 
   // --------------------------------------------------------------------------
+  // Rule 6: Áo Ngũ Thân Denim & Vùng Khả Biến - KB-NGUTHAN-03
+  // --------------------------------------------------------------------------
+  const ruleNguThan03 = getCKBEntry('KB-NGUTHAN-03')!;
+  const isNguThanDenimProposal =
+    !hasNegation(q) &&
+    effectiveGarment === 'ngu_than' &&
+    (q.includes('denim') || q.includes('vải bò') || (q.includes('vạt lửng') && !q.includes('cổ')));
+
+  if (isNguThanDenimProposal) {
+    const auditConf = deriveAuditConfidence([ruleNguThan03.id], false);
+    return {
+      query: rawQuery,
+      target_garment: 'ngu_than',
+      proposed_change: 'Đổi chất liệu sang denim hiện đại kết hợp vạt lửng',
+      status: 'Supported with Caution',
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
+      impact_analysis:
+        outfitNote +
+        `Phù hợp với vùng biến tấu (Mutable) theo quy ước prototype ${ruleNguThan03.id} (${ruleNguThan03.title}). Cho phép thử nghiệm chất liệu denim hoặc cotton dệt chéo hiện đại và rút ngắn vạt áo trong vùng Mutable, đồng thời giữ nghiêm Invariants (Hữu nhậm & Cổ lập lĩnh). Nguồn của biến tấu này là quy ước nội bộ của lab thử nghiệm.`,
+      violates_invariants: false,
+      violated_evidence_ids: [],
+      applicable_evidence_ids: [ruleNguThan03.id],
+      cautions_and_redlines: [],
+      stylist_counter_proposal: {
+        title: 'Áo Ngũ Thân Raw Selvedge Denim Với Đường May Đôi Twin-Needle',
+        solution:
+          'Khai thác raw selvedge denim 11oz giữ phom đoan chính, may đường chỉ đôi tương phản tôn vinh cấu trúc 5 thân, phối cùng quần tây cạp cao ống rộng.',
+        heritage_safeguard:
+          'Bảo lưu nghiêm ngặt kết cấu vạt Hữu nhậm và cổ Lập lĩnh nhận diện.',
+        contemporary_edge:
+          'Đưa di sản vào tủ đồ streetwear hiện đại năng động của giới trẻ.',
+        materials_and_cuts: 'Raw denim 11oz, cotton hữu cơ thoáng khí.',
+      },
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // Rule 7: Áo Nhật Bình Mặc Mở Vạt Phối Chân Váy Xếp Ly - KB-NHATBINH-03
+  // --------------------------------------------------------------------------
+  const ruleNhatBinh03 = getCKBEntry('KB-NHATBINH-03')!;
+  const isNhatBinhSkirtProposal =
+    !hasNegation(q) &&
+    (effectiveGarment === 'nhat_binh' || q.includes('nhật bình')) &&
+    (q.includes('chân váy') || q.includes('xếp ly') || (q.includes('mở vạt') && !q.includes('áo tấc')) || (q.includes('mở tà') && !q.includes('áo tấc')));
+
+  if (isNhatBinhSkirtProposal) {
+    const auditConf = deriveAuditConfidence([ruleNhatBinh03.id], false);
+    return {
+      query: rawQuery,
+      target_garment: 'nhat_binh',
+      proposed_change: 'Mặc mở vạt kết hợp cùng chân váy xếp ly hiện đại thay cho quần lụa',
+      status: 'Supported with Caution',
+      uncertainty_flag: true,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
+      impact_analysis:
+        outfitNote +
+        `Phù hợp với vùng biến tấu (Mutable) theo quy ước prototype ${ruleNhatBinh03.id} (${ruleNhatBinh03.title}). Cho phép mặc mở tà tạo phom cardigan quý phái và phối cùng chân váy xếp ly midi thay cho quần lụa trắng truyền thống. Nguồn của biến tấu này là quy ước sáng tạo nội bộ của lab thử nghiệm.`,
+      violates_invariants: false,
+      violated_evidence_ids: [],
+      applicable_evidence_ids: [ruleNhatBinh03.id],
+      cautions_and_redlines: [],
+      stylist_counter_proposal: {
+        title: 'Áo Nhật Bình Tweed Cardigan Phối Chân Váy Midi Xếp Ly Kem',
+        solution:
+          'Mặc mở buông vạt phối chân váy xếp ly màu kem tuyết và áo lụa trắng ngà bên trong, tạo dáng áo khoác Haute Couture hiện đại kiêu sa.',
+        heritage_safeguard:
+          'Bảo toàn nguyên vẹn nẹp cổ đối khâm hình chữ nhật đặc trưng của Nhật Bình.',
+        contemporary_edge:
+          'Phong cách Neo-Chic sang trọng cho các tuần lễ thời trang và dạ tiệc đương đại.',
+        materials_and_cuts: 'Dạ tweed mỏng dệt sợi kim tuyến mảnh, nẹp cổ lụa taffeta.',
+      },
+    };
+  }
+
+  // --------------------------------------------------------------------------
+  // Rule 8: Áo Nhật Bình Bỏ Nẹp Cổ Đối Khâm - KB-NHATBINH-01 (Invariant)
+  // --------------------------------------------------------------------------
+  const ruleNhatBinh01 = getCKBEntry('KB-NHATBINH-01')!;
+  const isNhatBinhRemoveCollarProposal =
+    !hasNegation(q) &&
+    (effectiveGarment === 'nhat_binh' || q.includes('nhật bình')) &&
+    (q.includes('bỏ nẹp cổ') || q.includes('bỏ đối khâm') || q.includes('thay nẹp cổ') || (q.includes('nẹp cổ') && (q.includes('bỏ') || q.includes('thay') || q.includes('đổi') || q.includes('khoét'))));
+
+  if (isNhatBinhRemoveCollarProposal) {
+    const auditConf = deriveAuditConfidence([ruleNhatBinh01.id], true);
+    return {
+      query: rawQuery,
+      target_garment: 'nhat_binh',
+      proposed_change: 'Bỏ nẹp cổ đối khâm truyền thống',
+      status: 'Supported with Caution',
+      uncertainty_flag: false,
+      prototype_compliance: auditConf.prototype_compliance,
+      historical_confidence: auditConf.historical_confidence,
+      verification_summary: auditConf.verification_summary,
+      impact_analysis:
+        outfitNote +
+        `Thay đổi này xung đột nghiêm trọng với quy tắc Invariant bất biến ${ruleNhatBinh01.id} (${ruleNhatBinh01.title}). Nẹp cổ đối khâm to bản hình chữ nhật cài giữa là nhận diện bất biến duy nhất của Nhật Bình. Khảo sát hiện vật áo Đoan Huy Hoàng thái hậu tại Bảo tàng Cổ vật Cung đình Huế (BTH/TB.Đd.17) xác nhận đặc trưng cấu trúc này.`,
+      violates_invariants: true,
+      violated_evidence_ids: [ruleNhatBinh01.id],
+      applicable_evidence_ids: [ruleNhatBinh01.id],
+      cautions_and_redlines: [
+        `XUNG ĐỘT QUY TẮC BẤT BIẾN [${ruleNhatBinh01.id}]: ${ruleNhatBinh01.core_rule}`,
+      ],
+      stylist_counter_proposal: {
+        title: 'Giữ Nẹp Cổ Chữ Nhật Đối Khâm Nhưng Tiết Chế Hoa Văn Monochromatic',
+        solution:
+          'Thay vì bỏ nẹp cổ, giữ chuẩn phom nẹp cổ đối khâm chữ nhật nhưng dùng chất liệu lụa đơn sắc hoặc thêu chìm tone-sur-tone tinh tế, mang lại diện mạo tối giản mà không làm mất nhận diện di sản.',
+        heritage_safeguard:
+          'Bảo lưu tuyệt đối nẹp cổ đối khâm hình chữ nhật bất biến.',
+        contemporary_edge:
+          'Thẩm mỹ Minimalism thời thượng cho trang phục dạo phố.',
+        materials_and_cuts: 'Lụa taffeta dệt trơn hoặc lụa Hà Đông dệt vân chìm.',
+      },
+    };
+  }
+
+  // --------------------------------------------------------------------------
   // Branch 6: Fallback for all other queries, Negations, or Unrecognized Intents
   // Clearly explains the limitation of deterministic fallback without falsely fabricating taboos!
   // --------------------------------------------------------------------------
@@ -437,6 +559,22 @@ function applyRemixAccessoryPreference(baseAccessories: string[], pref?: string)
   }
 }
 
+function applyRemixTitle(baseTitle: string, pref?: string, garment?: string): string {
+  if (!pref || pref === 'auto' || pref === 'Tự đề xuất') {
+    return baseTitle;
+  }
+  if (garment === 'ngu_than') {
+    return baseTitle.replace('Indigo', pref);
+  }
+  if (garment === 'nhat_binh') {
+    return baseTitle.replace(/Ngà$/, pref);
+  }
+  if (garment === 'ao_tac') {
+    return baseTitle.replace('Áo Tấc', `Áo Tấc ${pref}`);
+  }
+  return baseTitle;
+}
+
 /**
  * Generate deterministic fallback proposals for 100% CKB reliability
  */
@@ -489,7 +627,7 @@ export function generateDeterministicProposals(
       {
         id: 'prop-nguthan-remix',
         plan_type: 'contemporary_remix',
-        title: 'Áo Ngũ Thân Indigo Denim Minimalist Cut',
+        title: applyRemixTitle('Áo Ngũ Thân Indigo Denim Minimalist Cut', colorPreference, 'ngu_than'),
         concept_tag: `Streetwear Hybrid · Dial Level ${dial || 3}`,
         garment_type: 'ngu_than',
         dial_level: dial || 3,
@@ -561,7 +699,7 @@ export function generateDeterministicProposals(
       {
         id: 'prop-aotac-remix',
         plan_type: 'contemporary_remix',
-        title: 'Áo Tấc Duster Coat Mở Tà Sartorial Layer',
+        title: applyRemixTitle('Áo Tấc Duster Coat Mở Tà Sartorial Layer', colorPreference, 'ao_tac'),
         concept_tag: `Avant-Garde Layering · Dial Level ${dial || 4}`,
         garment_type: 'ao_tac',
         dial_level: dial || 4,
@@ -634,7 +772,7 @@ export function generateDeterministicProposals(
       {
         id: 'prop-nhatbinh-remix',
         plan_type: 'contemporary_remix',
-        title: 'Áo Nhật Bình Mở Tà Phối Chân Váy Xếp Ly Ngà',
+        title: applyRemixTitle('Áo Nhật Bình Mở Tà Phối Chân Váy Xếp Ly Ngà', colorPreference, 'nhat_binh'),
         concept_tag: `Neo-Chic Editorial · Dial Level ${dial || 3}`,
         garment_type: 'nhat_binh',
         dial_level: dial || 3,

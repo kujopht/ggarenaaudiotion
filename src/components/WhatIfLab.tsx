@@ -1,70 +1,79 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WhatIfEvaluation, GarmentKey, OutfitProposal } from '../types/vietphuc';
-import { formatSourceBadge, handleWhatIfStandaloneGarmentChange, getWhatIfSummaryStatus } from '../utils/remixStateHelpers';
-import { Sparkles, ShieldCheck, AlertTriangle, AlertOctagon, Lightbulb, Compass, ArrowRight, Wand2, X, RotateCcw, HelpCircle, FileCheck, Layers, Info } from 'lucide-react';
+import { formatSourceBadge, handleWhatIfStandaloneGarmentChange } from '../utils/remixStateHelpers';
+import { getCKBEntry } from '../data/ckbRegistry';
+import {
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  AlertOctagon,
+  Lightbulb,
+  Compass,
+  ArrowRight,
+  Wand2,
+  X,
+  RotateCcw,
+  HelpCircle,
+  FileCheck,
+  Layers,
+  Info,
+} from 'lucide-react';
+
+export interface WhatIfPreset {
+  title: string;
+  query: string;
+}
+
+export const WHAT_IF_PRESETS: Record<GarmentKey, WhatIfPreset[]> = {
+  ngu_than: [
+    {
+      title: 'Đổi hướng cài khuy sang trái',
+      query: 'Đổi hướng cài khuy sang bên trái (tả nhậm)',
+    },
+    {
+      title: 'Đổi chất liệu sang denim',
+      query: 'Đổi chất liệu sang denim hiện đại kết hợp vạt lửng',
+    },
+    {
+      title: 'Thêm chi tiết phát sáng hiện đại',
+      query: 'Thêm chi tiết phát sáng hiện đại lên áo ngũ thân',
+    },
+  ],
+  ao_tac: [
+    {
+      title: 'Mở vạt như duster coat',
+      query: 'Mở vạt như duster coat hiện đại',
+    },
+    {
+      title: 'Đổi hướng cài khuy',
+      query: 'Đổi hướng cài khuy sang bên trái thay vì cài khuy bên phải',
+    },
+    {
+      title: 'Thêm chi tiết phát sáng hiện đại',
+      query: 'Thêm chi tiết phát sáng hiện đại lên áo tấc',
+    },
+  ],
+  nhat_binh: [
+    {
+      title: 'Mặc mở vạt với chân váy xếp ly',
+      query: 'Mặc mở vạt với chân váy xếp ly hiện đại thay cho quần lụa',
+    },
+    {
+      title: 'Bỏ nẹp cổ đối khâm',
+      query: 'Bỏ nẹp cổ đối khâm truyền thống',
+    },
+    {
+      title: 'Thêm chi tiết phát sáng hiện đại',
+      query: 'Thêm chi tiết phát sáng hiện đại lên áo nhật bình',
+    },
+  ],
+};
 
 interface WhatIfLabProps {
   currentGarment: GarmentKey;
   activeProposal: OutfitProposal | null;
   onOpenCKB?: (evidenceId?: string) => void;
 }
-
-const PRESET_QUERIES = [
-  {
-    title: 'Cài vạt sang trái (Tả nhậm)',
-    garment: 'ngu_than' as GarmentKey,
-    garmentLabel: 'Áo Ngũ Thân',
-    query: 'What if đổi vạt áo và cài khuy sang bên trái (Tả nhậm) để người thuận tay trái dễ mặc?',
-    badge: 'KB-RULE-01',
-    badgeType: 'redline',
-    hint: 'Lưu ý quy thức prototype',
-  },
-  {
-    title: 'Thêu Rồng 5 móng dạo phố',
-    garment: 'ao_tac' as GarmentKey,
-    garmentLabel: 'Áo Tấc',
-    query: 'What if thêu họa tiết Rồng 5 móng ánh kim lên tà áo Tấc đi dự tiệc cưới và dạo phố?',
-    badge: 'KB-RULE-03',
-    badgeType: 'redline',
-    hint: 'Biểu tượng hoàng quyền cần đối soát',
-  },
-  {
-    title: 'Đổi cổ Lập Lĩnh thành Cổ Vest V',
-    garment: 'ngu_than' as GarmentKey,
-    garmentLabel: 'Áo Ngũ Thân',
-    query: 'What if đổi cổ áo lập lĩnh của áo Ngũ thân thành cổ vest khoét sâu thoáng mát?',
-    badge: 'KB-NGUTHAN-01',
-    badgeType: 'invariant',
-    hint: 'Đặc điểm nhận diện prototype',
-  },
-  {
-    title: 'Áo Tấc Mở Khuy Làm Duster Coat',
-    garment: 'ao_tac' as GarmentKey,
-    garmentLabel: 'Áo Tấc',
-    query: 'What if cởi mở toàn bộ khuy áo Tấc mặc buông làm áo khoác duster coat phối với quần tây và boots?',
-    badge: 'KB-TAC-03',
-    badgeType: 'mutable',
-    hint: 'Vùng biến tấu của prototype',
-  },
-  {
-    title: 'Bỏ Dải Ngũ Sắc Ở Cổ Tay Nhật Bình',
-    garment: 'nhat_binh' as GarmentKey,
-    garmentLabel: 'Áo Nhật Bình',
-    query: 'What if bỏ dải màu ngũ sắc ở viền tay áo Nhật Bình để chuyển sang phối màu monochrome tối giản?',
-    badge: 'KB-NHATBINH-02',
-    badgeType: 'mutable',
-    hint: 'Tham chiếu theo cấp bậc, ngoại lệ Hoàng hậu',
-  },
-  {
-    title: 'Thêu Chim Lạc Thời Đông Sơn',
-    garment: 'ngu_than' as GarmentKey,
-    garmentLabel: 'Áo Ngũ Thân',
-    query: 'What if thêu hình chim Lạc trống đồng thời Đông Sơn và rồng thời Lý lên tà áo ngũ thân?',
-    badge: 'NGOÀI DỮ LIỆU',
-    badgeType: 'insufficient',
-    hint: 'Chưa có trong dữ liệu tham chiếu',
-  },
-];
 
 export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   currentGarment,
@@ -155,9 +164,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     setErrorMsg(null);
   };
 
-  // When changing garment dropdown in standalone mode:
-  // Clears evaluation, evaluationSource, errorMsg, aborts in-flight request,
-  // does not auto-call Gemini and does not affect Studio proposals!
   const handleSelectGarmentInStandalone = (newGarment: GarmentKey) => {
     if (newGarment === selectedGarment) return;
     if (abortControllerRef.current) {
@@ -183,7 +189,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
   };
 
   const handleRunWhatIf = async (queryText: string, targetGarment: GarmentKey = selectedGarment) => {
-    // Prevent duplicate requests inside handler
     if (loading) return;
     if (!queryText.trim()) return;
 
@@ -201,7 +206,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     setLoading(true);
     setErrorMsg(null);
     setQueryInput(queryText);
-    // Clear previous evaluation immediately while running
     setEvaluation(null);
     setEvaluationSource(null);
 
@@ -213,7 +217,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         body: JSON.stringify({
           garment: garmentAtRequestTime,
           query: queryText,
-          // Only send current_outfit if not detached and activeProposal exists
           current_outfit: outfitAtRequestTime || undefined,
         }),
       });
@@ -224,7 +227,6 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
 
       const data = await res.json();
 
-      // Check if request was aborted, garment changed, or active proposal changed
       if (
         controller.signal.aborted ||
         reqId !== activeReqIdRef.current ||
@@ -255,6 +257,8 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
     }
   };
 
+  const currentPresets = WHAT_IF_PRESETS[selectedGarment] || WHAT_IF_PRESETS.ngu_than;
+
   // Safe format source badge display (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
     const info = formatSourceBadge(evaluationSource);
@@ -279,6 +283,13 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
       </span>
     );
   };
+
+  // Compute union of valid evidence IDs that exist in CKB
+  const allEvidenceIds = evaluation
+    ? Array.from(new Set([...evaluation.violated_evidence_ids, ...evaluation.applicable_evidence_ids])).filter(
+        (id) => getCKBEntry(id) !== undefined
+      )
+    : [];
 
   return (
     <div className="space-y-6">
@@ -322,7 +333,7 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleDetachToStandalone}
-              className="text-xs sm:text-sm font-medium text-[#B8AA96] hover:text-[#F5A39D] bg-[#181311]/70 border border-[#C9A66B]/20 hover:border-[#B8342B]/60 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer min-h-[42px] backdrop-blur-xs"
+              className="text-xs sm:text-sm font-medium text-[#B8AA96] hover:text-[#F5A39D] bg-[#181311]/70 border border-[#C9A66B]/20 hover:border-[#B8342B]/60 px-3.5 py-2 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer min-h-[44px] backdrop-blur-xs"
             >
               <X className="w-3.5 h-3.5" />
               <span>Bỏ chọn (Chuyển sang thử tự do)</span>
@@ -338,11 +349,10 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             <span>Bạn đang thử nghiệm độc lập. Bạn có thể chọn bất kỳ loại áo nào bên dưới.</span>
           </div>
 
-          {/* Re-attach button if studio proposal exists */}
           {activeProposal && isDetached && (
             <button
               onClick={handleReattachStudioProposal}
-              className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] bg-[#C9A66B]/15 hover:bg-[#C9A66B]/25 border border-[#C9A66B]/40 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[40px] backdrop-blur-xs"
+              className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] bg-[#C9A66B]/15 hover:bg-[#C9A66B]/25 border border-[#C9A66B]/40 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[44px] backdrop-blur-xs"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Dùng lại bản phối từ Xưởng ({activeProposal.title})</span>
@@ -351,84 +361,40 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         </div>
       )}
 
-      {/* Preset Fast-Test Scenarios */}
+      {/* Preset Quick Experiments by Garment (Requirement 2) */}
       <div className="lacquer-panel rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-[#F2E9D8] flex items-center gap-2">
             <Compass className="w-4 h-4 text-[#C9A66B]" />
-            <span>Kịch bản thử nghiệm phổ biến (Bấm để thử ngay)</span>
+            <span>Thử nghiệm nhanh theo cổ phục (Quick Experiments)</span>
           </span>
           <span className="text-xs text-[#8C7E6C] font-mono">
-            {effectiveActiveProposal ? `Đang lọc cho ${effectiveActiveProposal.garment_type === 'ngu_than' ? 'Áo Ngũ Thân' : effectiveActiveProposal.garment_type === 'ao_tac' ? 'Áo Tấc' : 'Áo Nhật Bình'}` : '6 kịch bản mẫu'}
+            3 kịch bản cho {selectedGarment === 'ngu_than' ? 'Áo Ngũ Thân' : selectedGarment === 'ao_tac' ? 'Áo Tấc' : 'Áo Nhật Bình'}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {PRESET_QUERIES.map((item, idx) => {
-            const isConflict = Boolean(effectiveActiveProposal && item.garment !== effectiveActiveProposal.garment_type);
-
-            return (
-              <button
-                key={idx}
-                disabled={isConflict || loading}
-                onClick={() => {
-                  if (loading || isConflict) return;
-                  if (!effectiveActiveProposal) {
-                    if (item.garment !== selectedGarment) {
-                      handleSelectGarmentInStandalone(item.garment);
-                    }
-                  }
-                  handleRunWhatIf(item.query, effectiveActiveProposal ? effectiveActiveProposal.garment_type : item.garment);
-                }}
-                className={`text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between min-h-[110px] ${
-                  isConflict
-                    ? 'opacity-40 cursor-not-allowed bg-[#181311]/40 border-[#C9A66B]/10'
-                    : loading
-                    ? 'opacity-60 cursor-wait bg-[#181311]/50 border-[#C9A66B]/20'
-                    : 'bg-[#181311]/50 border-[#C9A66B]/15 hover:border-[#C9A66B]/50 hover:bg-[#211815]/75 cursor-pointer group backdrop-blur-xs'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <span className={`text-xs sm:text-sm font-bold ${isConflict ? 'text-[#6E5D53]' : 'text-[#F2E9D8] group-hover:text-[#E6C88B]'}`}>
-                      {item.title}
-                    </span>
-                    <span
-                      className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border ${
-                        item.badgeType === 'redline'
-                          ? 'border-[#B8342B]/50 text-[#F5A39D] bg-[#B8342B]/15'
-                          : item.badgeType === 'invariant'
-                          ? 'border-[#43B6A4]/50 text-[#43B6A4] bg-[#43B6A4]/15'
-                          : item.badgeType === 'mutable'
-                          ? 'border-[#C9A66B]/50 text-[#E6C88B] bg-[#C9A66B]/15'
-                          : 'border-[#3A2B25] text-[#8C7E6C] bg-[#261C19]'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  </div>
-                  <p className={`text-xs leading-relaxed line-clamp-2 ${isConflict ? 'text-[#6E5D53]' : 'text-[#B8AA96]'}`}>
-                    "{item.query}"
-                  </p>
-                </div>
-
-                <div className="mt-2.5 pt-2 border-t border-[#C9A66B]/15 flex items-center justify-between text-xs">
-                  {isConflict ? (
-                    <span className="text-[#6E5D53] italic text-[11px]">
-                      Dành cho {item.garmentLabel} (khác loại áo đang chọn)
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-[#8C7E6C]">{item.hint}</span>
-                      <span className="text-[#C9A66B] font-semibold group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                        Thử ngay →
-                      </span>
-                    </>
-                  )}
-                </div>
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {currentPresets.map((preset, idx) => (
+            <button
+              key={idx}
+              disabled={loading}
+              onClick={() => {
+                setQueryInput(preset.query);
+                handleRunWhatIf(preset.query, selectedGarment);
+              }}
+              className="text-left p-3.5 rounded-xl border border-[#C9A66B]/20 bg-[#181311]/60 hover:bg-[#261C19]/80 hover:border-[#C9A66B]/50 transition-all flex flex-col justify-between min-h-[48px] group cursor-pointer backdrop-blur-xs"
+            >
+              <div className="space-y-1">
+                <span className="text-xs sm:text-sm font-bold text-[#F2E9D8] group-hover:text-[#E6C88B] flex items-center justify-between">
+                  <span>{preset.title}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#C9A66B] group-hover:translate-x-0.5 transition-transform" />
+                </span>
+                <p className="text-xs text-[#B8AA96] line-clamp-2">
+                  "{preset.query}"
+                </p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -449,20 +415,19 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
             >
               <option value="ngu_than">Áo Ngũ Thân tay chẽn</option>
               <option value="ao_tac">Áo Tấc lễ phục</option>
-              <option value="nhat_binh">Áo Nhật Bình hoàng tộc</option>
+              <option value="nhat_binh">Áo Nhật Bình</option>
             </select>
           </div>
 
           <div className="flex-1">
             <label className="text-xs font-semibold uppercase tracking-wider text-[#B8AA96] block mb-1.5">
-              Nhập câu hỏi thử nghiệm của bạn (What If...?)
+              Ý tưởng can thiệp của bạn
             </label>
             <input
               type="text"
               value={queryInput}
-              disabled={loading}
               onChange={(e) => setQueryInput(e.target.value)}
-              placeholder="VD: What if đổi vải áo sang dạ tweed và cắt tà áo ngắn ngang thắt lưng?"
+              placeholder="VD: What if đổi hướng cài khuy sang bên trái, hoặc thêu họa tiết rồng..."
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -501,259 +466,262 @@ export const WhatIfLab: React.FC<WhatIfLabProps> = ({
         )}
       </div>
 
-      {/* Results Viewport: 3-Stage Decision Journey (Trước -> Thay đổi đề xuất -> Kết quả tham chiếu) */}
-      {evaluation && (() => {
-        const whatIfSummary = getWhatIfSummaryStatus(evaluation);
-        return (
-          <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-6 animate-in fade-in duration-200">
-            {/* Decision Journey Step Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#C9A66B]/20 flex-wrap gap-2">
-              <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
-                <Compass className="w-3.5 h-3.5 text-[#C9A66B]" />
-                <span>Hành trình ra quyết định thiết kế (Decision Journey)</span>
+      {/* Results Viewport: 3-Second Readability Layout (Requirement 3 & 4) */}
+      {evaluation && (
+        <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-6 animate-in fade-in duration-200">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between pb-3 border-b border-[#C9A66B]/20 flex-wrap gap-2">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
+              <Compass className="w-3.5 h-3.5 text-[#C9A66B]" />
+              <span>Kết quả phân tích What If</span>
+            </span>
+            {renderSourceBadge()}
+          </div>
+
+          {/* 1. Đề xuất của bạn */}
+          <div className="space-y-1">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold block">
+              Đề xuất của bạn
+            </span>
+            <h3 className="text-base sm:text-lg font-serif font-bold text-[#F2E9D8]">
+              "{evaluation.query}"
+            </h3>
+          </div>
+
+          {/* 2. Trạng thái tổng quát, Prototype Compliance & Historical Confidence */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-[#C9A66B]/20">
+            {/* Trạng thái tổng quát */}
+            <div className="p-3 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C7E6C] font-semibold block">
+                Trạng thái tổng quát
               </span>
-              {renderSourceBadge()}
-            </div>
-
-            {/* Stage 1 & 2: TRƯỚC vs THAY ĐỔI ĐỀ XUẤT */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* STAGE 1: TRƯỚC (Quy thức gốc) */}
-              <div className="p-4 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1.5 backdrop-blur-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
-                    1. Trước · Quy thức gốc
+              <div className="flex items-center gap-1.5">
+                {evaluation.status === 'Supported' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Supported
                   </span>
-                  <span className="text-[10px] font-mono text-[#8C7E6C]">
-                    {selectedGarment === 'ngu_than' ? 'ÁO NGŨ THÂN' : selectedGarment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}
+                ) : evaluation.status === 'Supported with Caution' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-amber-950/60 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    Supported with Caution
                   </span>
-                </div>
-                <p className="text-sm text-[#F2E9D8] font-medium">
-                  {effectiveActiveProposal
-                    ? effectiveActiveProposal.title
-                    : selectedGarment === 'ngu_than'
-                    ? 'Áo Ngũ Thân Tay Chẽn (Cổ đứng, vạt Hữu nhậm, 5 thân)'
-                    : selectedGarment === 'ao_tac'
-                    ? 'Áo Tấc Lễ Phục (Tay thụng rộng buông dài theo gấu)'
-                    : 'Áo Nhật Bình (Nẹp cổ đối khâm hình chữ nhật)'}
-                </p>
-                <p className="text-xs text-[#8C7E6C] leading-relaxed">
-                  Quy ước nhận diện prototype cốt lõi làm mốc đối chiếu
-                </p>
-              </div>
-
-              {/* STAGE 2: THAY ĐỔI ĐỀ XUẤT */}
-              <div className="p-4 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1.5 backdrop-blur-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#E6C88B] font-bold">
-                    2. Thay đổi đề xuất
+                ) : (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#B8AA96]" />
+                    Insufficient Evidence
                   </span>
-                  <span className="text-[10px] font-mono text-[#C9A66B]">
-                    BIẾN THỂ THỬ NGHIỆM
-                  </span>
-                </div>
-                <p className="text-sm text-[#F2E9D8] font-medium italic">
-                  "{evaluation.query}"
-                </p>
-                <p className="text-xs text-[#8C7E6C] leading-relaxed">
-                  Ý tưởng can thiệp kiểu dáng, cấu trúc hoặc chất liệu
-                </p>
+                )}
               </div>
             </div>
 
-            {/* STAGE 3: KẾT QUẢ THAM CHIẾU */}
-            <div className="space-y-4 pt-2 border-t border-[#C9A66B]/20">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
-                  3. Kết quả tham chiếu & Thẩm định văn hóa
+            {/* Prototype Compliance (Tuân thủ / Xung đột / Chưa đánh giá) */}
+            <div className="p-3 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C7E6C] font-semibold block">
+                Prototype Compliance
+              </span>
+              <div className="flex items-center gap-1.5">
+                {evaluation.prototype_compliance === 'compliant' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Tuân thủ Prototype
+                  </span>
+                ) : evaluation.prototype_compliance === 'conflict' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300 flex items-center gap-1">
+                    <AlertOctagon className="w-3.5 h-3.5 text-rose-400" />
+                    Xung đột Prototype
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#B8AA96]" />
+                    Chưa đánh giá Prototype
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Historical Confidence */}
+            <div className="p-3 rounded-xl bg-[#181311]/70 border border-[#C9A66B]/20 space-y-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C7E6C] font-semibold block">
+                Historical Confidence
+              </span>
+              <div className="flex items-center gap-1.5">
+                {evaluation.historical_confidence === 'verified' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Đã kiểm chứng
+                  </span>
+                ) : evaluation.historical_confidence === 'partially_verified' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-amber-950/60 border border-amber-500/40 text-amber-200 flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-amber-300" />
+                    Đã xác thực một phần
+                  </span>
+                ) : evaluation.historical_confidence === 'needs_review' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-amber-950/60 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5 text-amber-400" />
+                    Đang chờ đối soát
+                  </span>
+                ) : evaluation.historical_confidence === 'mixed' ? (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5 text-[#B8AA96]" />
+                    Nguồn hỗn hợp
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold px-2 py-1 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+                    <HelpCircle className="w-3.5 h-3.5 text-[#B8AA96]" />
+                    Chưa đối soát độc lập
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Compact Before - Change - Counter Proposal Flow (Requirement 4) */}
+          {effectiveActiveProposal && (
+            <div className="p-4 rounded-xl bg-[#140F0D]/90 border border-[#C9A66B]/30 space-y-3 backdrop-blur-xs">
+              <span className="text-xs font-mono font-bold uppercase text-[#E6C88B] tracking-wider block">
+                Hành trình đối sánh (Before · Change · Counter Proposal)
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Before: Bản phối hiện tại */}
+                <div className="p-3 rounded-lg bg-[#1F1714]/80 border border-[#C9A66B]/20 space-y-1">
+                  <span className="text-[10px] font-mono text-[#C9A66B] font-bold block">
+                    BẢN PHỐI HIỆN TẠI
+                  </span>
+                  <h5 className="text-xs sm:text-sm font-serif font-bold text-[#F2E9D8] truncate">
+                    {effectiveActiveProposal.title}
+                  </h5>
+                  <p className="text-[11px] text-[#B8AA96] line-clamp-2">
+                    {effectiveActiveProposal.concept_tag} · Dial {effectiveActiveProposal.dial_level}/5
+                  </p>
+                </div>
+
+                {/* Change: Thay đổi đang thử */}
+                <div className="p-3 rounded-lg bg-[#1F1714]/80 border border-[#C9A66B]/20 space-y-1">
+                  <span className="text-[10px] font-mono text-[#E6C88B] font-bold block">
+                    THAY ĐỔI ĐANG THỬ
+                  </span>
+                  <p className="text-xs sm:text-sm text-[#F2E9D8] italic line-clamp-2">
+                    "{evaluation.query}"
+                  </p>
+                </div>
+
+                {/* Counter Proposal: Đề xuất thay thế */}
+                <div className="p-3 rounded-lg bg-[#1F1714]/80 border border-[#43B6A4]/30 space-y-1">
+                  <span className="text-[10px] font-mono text-[#43B6A4] font-bold block">
+                    ĐỀ XUẤT THAY THẾ
+                  </span>
+                  <h5 className="text-xs sm:text-sm font-serif font-bold text-[#F2E9D8] truncate">
+                    {evaluation.stylist_counter_proposal.title}
+                  </h5>
+                  <p className="text-[11px] text-[#B8AA96] line-clamp-2">
+                    {evaluation.stylist_counter_proposal.solution}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Evidence (Requirement 3 & 5) */}
+          <div className="space-y-2 pt-2 border-t border-[#C9A66B]/20">
+            <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold block">
+              Dẫn chứng quy tắc (Evidence)
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              {allEvidenceIds.length > 0 ? (
+                allEvidenceIds.map((id) => (
+                  <button
+                    key={id}
+                    onClick={() => onOpenCKB?.(id)}
+                    className="font-mono text-xs font-semibold px-3 py-2 bg-[#261C19]/80 hover:bg-[#382823] text-[#E6C88B] border border-[#C9A66B]/40 rounded-lg min-h-[44px] flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <span>Căn cứ CKB: {id}</span>
+                    <ArrowRight className="w-3 h-3 text-[#C9A66B]" />
+                  </button>
+                ))
+              ) : (
+                <span className="text-xs text-[#8C7E6C] italic min-h-[44px] flex items-center">
+                  Chưa đủ dữ liệu tham chiếu
                 </span>
+              )}
+            </div>
+          </div>
 
-                {/* Status Badges: Two-Layer Semantics (Requirement 4, 5, 7 & 8) */}
-                <div className="shrink-0 flex items-center gap-1.5 flex-wrap">
-                  {/* Layer 1: Prototype Compliance (Red ONLY for real conflicts) */}
-                  {whatIfSummary.isPrototypeConflict ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/15 border border-rose-500/40 text-rose-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <AlertOctagon className="w-4 h-4 text-rose-400" />
-                      <span>{whatIfSummary.prototypeLabel}</span>
-                    </div>
-                  ) : whatIfSummary.showInsufficientEvidence ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <HelpCircle className="w-4 h-4 text-neutral-400" />
-                      <span>{whatIfSummary.prototypeLabel}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <ShieldCheck className="w-4 h-4 text-[#E6C88B]" />
-                      <span>{whatIfSummary.prototypeLabel}</span>
-                    </div>
-                  )}
+          {/* 4. Phân tích tác động & Phương án thay thế của Stylist (2 cols on Desktop - Requirement 3 & 9) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 border-t border-[#C9A66B]/20">
+            {/* Phân tích tác động */}
+            <div className="p-4 sm:p-5 bg-[#181311]/70 border border-[#C9A66B]/20 rounded-xl space-y-3 backdrop-blur-xs">
+              <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-bold block">
+                Phân tích tác động
+              </span>
+              <p className="text-sm sm:text-base text-[#F2E9D8] leading-relaxed font-serif">
+                {evaluation.impact_analysis}
+              </p>
 
-                  {/* Design Caution Badge (only if genuine design caution and NOT already marked conflict) */}
-                  {whatIfSummary.hasDesignCaution &&
-                    !whatIfSummary.isPrototypeConflict &&
-                    evaluation.cautions_and_redlines &&
-                    evaluation.cautions_and_redlines.length > 0 && (
-                      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                        <AlertTriangle className="w-4 h-4 text-amber-400" />
-                        <span>Có điểm cần lưu ý về thiết kế</span>
-                      </div>
-                    )}
-
-                  {/* Layer 2: Historical Confidence (Never red for source uncertainty alone) */}
-                  {whatIfSummary.showInsufficientEvidence ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <HelpCircle className="w-4 h-4 text-neutral-400" />
-                      <span>{whatIfSummary.historicalLabel}</span>
-                    </div>
-                  ) : evaluation.historical_confidence === 'verified' ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <FileCheck className="w-4 h-4 text-emerald-400" />
-                      <span>{whatIfSummary.historicalLabel}</span>
-                    </div>
-                  ) : evaluation.historical_confidence === 'needs_review' ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <Info className="w-4 h-4 text-amber-400" />
-                      <span>{whatIfSummary.historicalLabel}</span>
-                    </div>
-                  ) : evaluation.historical_confidence === 'partially_verified' ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/40 text-amber-200 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <Layers className="w-4 h-4 text-amber-300" />
-                      <span>{whatIfSummary.historicalLabel}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800/80 border border-neutral-700 text-neutral-300 rounded-lg text-xs font-semibold backdrop-blur-xs">
-                      <Info className="w-4 h-4 text-neutral-400" />
-                      <span>{whatIfSummary.historicalLabel}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* System & Data Warnings (Technical info in neutral blue-gray/slate) */}
-              {whatIfSummary.systemWarnings && whatIfSummary.systemWarnings.length > 0 && (
-                <div className="p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-xs text-slate-300 space-y-1 backdrop-blur-xs">
-                  <div className="font-semibold flex items-center gap-1.5 text-slate-200">
-                    <Info className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>Thông tin dữ liệu kỹ thuật:</span>
+              {evaluation.cautions_and_redlines.length > 0 && (
+                <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded-xl space-y-1 text-xs text-amber-200">
+                  <div className="font-semibold flex items-center gap-1.5 text-amber-300">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Lưu ý theo quy tắc tham chiếu:</span>
                   </div>
-                  <ul className="space-y-0.5 list-disc list-inside text-slate-300/90 pl-1 leading-relaxed">
-                    {whatIfSummary.systemWarnings.map((warn, i) => (
-                      <li key={i}>{warn}</li>
+                  <ul className="list-disc list-inside space-y-0.5 pl-1 text-amber-200/90 leading-relaxed">
+                    {evaluation.cautions_and_redlines.map((c, i) => (
+                      <li key={i}>{c}</li>
                     ))}
                   </ul>
                 </div>
               )}
+            </div>
 
-              {/* Uncertainty Flag Banner: Uses amber/neutral instead of red */}
-              {whatIfSummary.hasEvidenceUncertainty && (
-                <div className="p-3.5 bg-amber-950/30 border border-amber-700/40 rounded-xl text-xs sm:text-sm text-amber-200 backdrop-blur-xs">
-                  <div className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
-                    <HelpCircle className="w-4 h-4 text-amber-400" />
-                    <span>{whatIfSummary.uncertaintyTitle}</span>
-                  </div>
-                  <p className="text-amber-200/90 leading-relaxed text-xs sm:text-sm">
-                    {whatIfSummary.uncertaintyText}
+            {/* Phương án thay thế của Stylist (Stylist Counter-Proposal - Requirement 7) */}
+            <div className="p-4 sm:p-5 lacquer-card-elevated border-2 border-[#C9A66B]/50 rounded-xl space-y-4 backdrop-blur-xs">
+              <div className="flex items-center gap-2.5">
+                <Lightbulb className="w-5 h-5 text-[#E6C88B] shrink-0" />
+                <div>
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
+                    Stylist Counter-Proposal · Phương án thay thế
+                  </span>
+                  <h4 className="text-base sm:text-lg font-serif font-bold text-[#F2E9D8]">
+                    {evaluation.stylist_counter_proposal.title}
+                  </h4>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-2 border-t border-[#C9A66B]/20 text-xs sm:text-sm">
+                <div className="space-y-1">
+                  <span className="font-semibold text-[#F2E9D8] flex items-center gap-1.5">
+                    <ArrowRight className="w-3.5 h-3.5 text-[#C9A66B]" />
+                    Giải pháp thiết kế
+                  </span>
+                  <p className="text-[#B8AA96] leading-relaxed">
+                    {evaluation.stylist_counter_proposal.solution}
                   </p>
                 </div>
-              )}
 
-          {/* Redlines & Warnings */}
-          {evaluation.cautions_and_redlines.length > 0 && (
-            <div className="p-4 bg-amber-950/40 border border-amber-800/60 rounded-xl text-xs sm:text-sm text-amber-200 space-y-1.5 backdrop-blur-xs">
-              <div className="font-semibold flex items-center gap-1.5 text-amber-300">
-                <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <span>Điểm cần lưu ý theo quy tắc tham chiếu:</span>
-              </div>
-              <ul className="space-y-1 list-disc list-inside space-y-1 text-amber-200/90 text-xs sm:text-sm pl-1 leading-relaxed">
-                {evaluation.cautions_and_redlines.map((c, i) => (
-                  <li key={i}>{c}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+                <div className="space-y-1">
+                  <span className="font-semibold text-[#43B6A4] flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#43B6A4]" />
+                    Bảo toàn quy tắc tham chiếu
+                  </span>
+                  <p className="text-[#B8AA96] leading-relaxed">
+                    {evaluation.stylist_counter_proposal.heritage_safeguard}
+                  </p>
+                </div>
 
-          {/* Cultural Impact Analysis */}
-          <div className="p-4 bg-[#181311]/60 border border-[#C9A66B]/20 rounded-xl space-y-1.5 backdrop-blur-xs">
-            <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
-              Phân tích tham chiếu văn hóa
-            </span>
-            <p className="text-sm sm:text-base text-[#F2E9D8] leading-relaxed font-serif">
-              {evaluation.impact_analysis}
-            </p>
-          </div>
-
-          {/* Relevant Evidence Badges */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-[#8C7E6C]">Dẫn chứng quy tắc liên quan:</span>
-            {evaluation.violated_evidence_ids.map((id) => (
-              <button
-                key={id}
-                onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#B8342B]/20 text-[#F5A39D] border border-[#B8342B]/50 rounded-lg hover:bg-[#B8342B]/30 cursor-pointer backdrop-blur-xs"
-              >
-                Cần lưu ý: {id}
-              </button>
-            ))}
-            {evaluation.applicable_evidence_ids.map((id) => (
-              <button
-                key={id}
-                onClick={() => onOpenCKB?.(id)}
-                className="font-mono text-xs font-semibold px-2.5 py-1 bg-[#261C19]/80 text-[#E6C88B] border border-[#C9A66B]/30 rounded-lg hover:bg-[#322521] cursor-pointer backdrop-blur-xs"
-              >
-                Căn cứ: {id}
-              </button>
-            ))}
-          </div>
-
-          {/* Stylist Counter-Proposal (Smart Alternative) */}
-          <div className="p-5 sm:p-6 lacquer-card-elevated border-2 border-[#C9A66B]/50 rounded-xl space-y-4">
-            <div className="flex items-center gap-2.5">
-              <Lightbulb className="w-5 h-5 text-[#E6C88B]" />
-              <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
-                  Stylist Counter-Proposal · Đề xuất thay thế thông minh
-                </span>
-                <h4 className="text-base sm:text-lg font-serif font-bold text-[#F2E9D8]">
-                  {evaluation.stylist_counter_proposal.title}
-                </h4>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-[#C9A66B]/20 text-xs sm:text-sm">
-              <div className="space-y-1.5">
-                <span className="font-semibold text-[#F2E9D8] flex items-center gap-1.5">
-                  <ArrowRight className="w-3.5 h-3.5 text-[#C9A66B]" />
-                  Giải pháp thiết kế
-                </span>
-                <p className="text-[#B8AA96] leading-relaxed text-xs sm:text-sm">
-                  {evaluation.stylist_counter_proposal.solution}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="font-semibold text-[#43B6A4] flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#43B6A4]" />
-                  Bảo toàn quy tắc tham chiếu
-                </span>
-                <p className="text-[#B8AA96] leading-relaxed text-xs sm:text-sm">
-                  {evaluation.stylist_counter_proposal.heritage_safeguard}
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="font-semibold text-[#E6C88B] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#E6C88B]" />
-                  Vật liệu & Cắt may
-                </span>
-                <p className="text-[#B8AA96] leading-relaxed text-xs sm:text-sm">
-                  {evaluation.stylist_counter_proposal.materials_and_cuts}
-                </p>
+                <div className="space-y-1">
+                  <span className="font-semibold text-[#E6C88B] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#E6C88B]" />
+                    Vật liệu & Cắt may
+                  </span>
+                  <p className="text-[#B8AA96] leading-relaxed">
+                    {evaluation.stylist_counter_proposal.materials_and_cuts}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  })()}
-</div>
-);
+      )}
+    </div>
+  );
 };

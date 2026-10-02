@@ -13,6 +13,8 @@ import { GarmentSchematic } from '../src/components/GarmentSchematic.js';
 import { AnatomySection } from '../src/components/AnatomySection.js';
 import { CoDesignStudio } from '../src/components/CoDesignStudio.js';
 import { QuickCompareSection } from '../src/components/QuickCompareSection.js';
+import { WhatIfLab, WHAT_IF_PRESETS } from '../src/components/WhatIfLab.js';
+import { formatSourceBadge } from '../src/utils/remixStateHelpers.js';
 import fs from 'node:fs';
 
 console.log('--- BẮT ĐẦU KIỂM THỬ: BROWSER VIEWPORT SIMULATION & MOCK WORKSPACE FLOW ---\n');
@@ -370,6 +372,133 @@ runTest('6.3 QuickCompareSection: Không coi unassessed là conflict, hiển th�
   assert.ok(html.includes('Chưa đánh giá Prototype'), 'Phải có nhãn Chưa đánh giá Prototype');
   assert.strictEqual(html.includes('Xung đột Prototype'), false, 'Không được coi unassessed là Xung đột Prototype');
   assert.strictEqual(html.includes('bg-rose-950/60'), false, 'Tuyệt đối không dùng màu đỏ cho unassessed');
+});
+
+// ----------------------------------------------------------------------------
+// 7. What If Hero Experience & Reasoning Regression Suite (V2.1B)
+// ----------------------------------------------------------------------------
+runTest('7.1 preset đúng garment: 3 preset theo đúng từng loại cổ phục', () => {
+  // Áo Ngũ Thân
+  const nguThanPresets = WHAT_IF_PRESETS.ngu_than;
+  assert.strictEqual(nguThanPresets.length, 3, 'Ngũ thân phải có đúng 3 preset');
+  assert.strictEqual(nguThanPresets[0].title, 'Đổi hướng cài khuy sang trái');
+  assert.strictEqual(nguThanPresets[1].title, 'Đổi chất liệu sang denim');
+  assert.strictEqual(nguThanPresets[2].title, 'Thêm chi tiết phát sáng hiện đại');
+
+  // Áo Tấc
+  const aoTacPresets = WHAT_IF_PRESETS.ao_tac;
+  assert.strictEqual(aoTacPresets.length, 3, 'Áo Tấc phải có đúng 3 preset');
+  assert.strictEqual(aoTacPresets[0].title, 'Mở vạt như duster coat');
+  assert.strictEqual(aoTacPresets[1].title, 'Đổi hướng cài khuy');
+  assert.strictEqual(aoTacPresets[2].title, 'Thêm chi tiết phát sáng hiện đại');
+
+  // Áo Nhật Bình
+  const nhatBinhPresets = WHAT_IF_PRESETS.nhat_binh;
+  assert.strictEqual(nhatBinhPresets.length, 3, 'Nhật Bình phải có đúng 3 preset');
+  assert.strictEqual(nhatBinhPresets[0].title, 'Mặc mở vạt với chân váy xếp ly');
+  assert.strictEqual(nhatBinhPresets[1].title, 'Bỏ nẹp cổ đối khâm');
+  assert.strictEqual(nhatBinhPresets[2].title, 'Thêm chi tiết phát sáng hiện đại');
+});
+
+runTest('7.2 preset chỉ thay query, không hardcode evaluation', () => {
+  for (const garment of ['ngu_than', 'ao_tac', 'nhat_binh'] as const) {
+    for (const preset of WHAT_IF_PRESETS[garment]) {
+      const keys = Object.keys(preset);
+      assert.deepStrictEqual(keys.sort(), ['query', 'title'].sort(), 'Preset chỉ được có title và query');
+      assert.strictEqual(typeof preset.query, 'string');
+      assert.strictEqual(typeof preset.title, 'string');
+      assert.strictEqual((preset as any).status, undefined, 'Không được hardcode status');
+      assert.strictEqual((preset as any).evaluation, undefined, 'Không được hardcode evaluation');
+    }
+  }
+});
+
+runTest('7.3 active proposal hiện Before - Change - Counter Proposal', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(WhatIfLab, {
+      currentGarment: 'ngu_than',
+      activeProposal: proposal,
+    })
+  );
+
+  assert.ok(html.includes('Đang thử nghiệm trên bản phối đã chọn'), 'Phải hiển thị bản phối đã chọn');
+  assert.ok(html.includes(proposal.title), 'Phải có tiêu đề bản phối');
+});
+
+runTest('7.4 standalone không hiện Before (Bản phối hiện tại)', () => {
+  const html = renderToString(
+    React.createElement(WhatIfLab, {
+      currentGarment: 'ngu_than',
+      activeProposal: null,
+    })
+  );
+
+  assert.ok(html.includes('CHẾ ĐỘ TỰ DO'), 'Phải hiển thị chế độ tự do');
+  assert.strictEqual(html.includes('Đang thử nghiệm trên bản phối đã chọn'), false, 'Không được hiện banner chọn');
+  assert.strictEqual(html.includes('BẢN PHỐI HIỆN TẠI'), false, 'Không được hiện Before box khi standalone');
+});
+
+runTest('7.5 conflict vẫn tách Prototype Compliance và Historical Confidence', () => {
+  const evalResult = evaluateWhatIfDeterministic('ngu_than', 'Đổi vạt áo sang bên trái');
+  assert.strictEqual(evalResult.prototype_compliance, 'conflict', 'Phải ghi nhận conflict prototype');
+  assert.strictEqual(evalResult.historical_confidence, 'needs_review', 'Historical confidence độc lập');
+  assert.notStrictEqual(evalResult.prototype_compliance as any, evalResult.historical_confidence as any);
+});
+
+runTest('7.6 unassessed không hiển thị màu conflict', () => {
+  const unassessedEval = evaluateWhatIfDeterministic('ngu_than', 'Thêm chi tiết phát sáng hiện đại');
+  assert.strictEqual(unassessedEval.prototype_compliance, 'unassessed');
+  assert.strictEqual(unassessedEval.status, 'Insufficient Evidence');
+  assert.strictEqual(unassessedEval.violates_invariants, false);
+});
+
+runTest('7.7 evidence ID hợp lệ mở được CKB', () => {
+  const evalResult = evaluateWhatIfDeterministic('ao_tac', 'Mở vạt như duster coat');
+  assert.ok(evalResult.applicable_evidence_ids.includes('KB-TAC-03'));
+});
+
+runTest('7.8 empty evidence hiển thị Insufficient Evidence', () => {
+  const evalResult = evaluateWhatIfDeterministic('ngu_than', 'Thêm chi tiết phát sáng hiện đại');
+  assert.strictEqual(evalResult.applicable_evidence_ids.length, 0);
+  assert.strictEqual(evalResult.violated_evidence_ids.length, 0);
+  assert.strictEqual(evalResult.status, 'Insufficient Evidence');
+});
+
+runTest('7.9 KB-RULE-01 không xuất hiện claim "đồ tang"', () => {
+  const evalResult = evaluateWhatIfDeterministic('ngu_than', 'Đổi hướng cài khuy sang trái');
+  const fullText = JSON.stringify(evalResult).toLowerCase();
+  assert.strictEqual(fullText.includes('đồ tang'), false, 'Không được có từ đồ tang');
+  assert.strictEqual(fullText.includes('tang ma'), false, 'Không được có từ tang ma');
+  assert.strictEqual(fullText.includes('tang lễ'), false, 'Không được có từ tang lễ');
+});
+
+runTest('7.10 source badge semantics giữ nguyên', () => {
+  assert.strictEqual(formatSourceBadge('gemini').label, 'Gemini trực tiếp');
+  assert.strictEqual(formatSourceBadge('deterministic_engine').label, 'Bản phân tích dự phòng');
+  assert.strictEqual(formatSourceBadge('deterministic_engine_fallback').label, 'Bản phân tích dự phòng');
+  assert.strictEqual(formatSourceBadge(null).label, 'Nguồn chưa xác định');
+  assert.strictEqual(formatSourceBadge('unknown').label, 'Nguồn chưa xác định');
+});
+
+runTest('7.11 title deterministic không mâu thuẫn colorPreference', () => {
+  // Ngu Than with Đen: title must not say Indigo
+  const nguThanDen = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Đen');
+  assert.ok(nguThanDen[1].title.includes('Đen'), 'Title phải có chữ Đen');
+  assert.strictEqual(nguThanDen[1].title.includes('Indigo'), false, 'Title không được giữ Indigo khi chọn Đen');
+
+  // Nhat Binh with Đen: title must not say Ngà
+  const nhatBinhDen = generateDeterministicProposals('nhat_binh', 'fashion_week', 'neo_indochine', 3, 'Đen');
+  assert.ok(nhatBinhDen[1].title.includes('Đen'), 'Title phải có chữ Đen');
+  assert.strictEqual(nhatBinhDen[1].title.includes('Ngà'), false, 'Title không được giữ Ngà khi chọn Đen');
+
+  // Nhat Binh with auto: title retains Ngà
+  const nhatBinhAuto = generateDeterministicProposals('nhat_binh', 'fashion_week', 'neo_indochine', 3, 'auto');
+  assert.ok(nhatBinhAuto[1].title.includes('Ngà'), 'Title auto giữ nguyên Ngà');
+
+  // Heritage Anchored title untouched
+  assert.strictEqual(nguThanDen[0].title, 'Áo Ngũ Thân Tay Chẽn Chàm Lam Cổ Điển');
+  assert.strictEqual(nhatBinhDen[0].title, 'Áo Nhật Bình Hoàng Triều Gấm Thêu Ngũ Sắc');
 });
 
 console.log('\n-------------------------------------------------------------');
