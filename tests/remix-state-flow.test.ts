@@ -1902,31 +1902,73 @@ runTest('17.3 Image State Lifecycle: Trạng thái ảnh không cản trở lu�
 // -------------------------------------------------------------
 // 18. V2.1A Co-Design Controls & Contest Flow Invariants
 // -------------------------------------------------------------
-runTest('18.1 Color preference state & deterministic engine safety', () => {
-  const colors = ['auto', 'Chàm', 'Đen', 'Ngà', 'Đỏ son'];
-  for (const color of colors) {
-    const proposals = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, color);
-    assert.strictEqual(proposals.length, 2, `Phải sinh đúng 2 proposals với màu ${color}`);
-    assert.strictEqual(proposals[0].plan_type, 'heritage_anchored');
-    assert.strictEqual(proposals[1].plan_type, 'contemporary_remix');
-    assert.ok(proposals[0].visual_details.color_palette.length > 0);
-    assert.ok(proposals[1].visual_details.color_palette.length > 0);
-  }
+runTest('18.1 colorPreference auto không làm thay đổi deterministic default', () => {
+  const defaultProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3);
+  const autoProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'auto');
+  assert.deepStrictEqual(
+    autoProps[1].visual_details.color_palette,
+    defaultProps[1].visual_details.color_palette,
+    'colorPreference auto phải giữ nguyên palette mặc định của Contemporary Remix'
+  );
 });
 
-runTest('18.2 Accessory preference state & deterministic engine safety', () => {
-  const accessories = ['auto', 'Tối giản', 'Túi hiện đại', 'Trang sức', 'Khăn'];
-  for (const acc of accessories) {
-    const proposals = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', acc);
-    assert.strictEqual(proposals.length, 2, `Phải sinh đúng 2 proposals với phụ kiện ${acc}`);
-    assert.strictEqual(proposals[0].plan_type, 'heritage_anchored');
-    assert.strictEqual(proposals[1].plan_type, 'contemporary_remix');
-    assert.ok(proposals[0].visual_details.accessories.length > 0);
-    assert.ok(proposals[1].visual_details.accessories.length > 0);
-  }
+runTest('18.2 Chàm, Đen, Ngà, Đỏ son thay đổi Contemporary Remix palette', () => {
+  const chamProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Chàm');
+  assert.ok(chamProps[1].visual_details.color_palette[0].includes('Chàm'), 'Chàm phải xuất hiện ở vị trí chủ đạo Contemporary Remix');
+
+  const denProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Đen');
+  assert.ok(denProps[1].visual_details.color_palette[0].includes('Đen'), 'Đen phải xuất hiện ở vị trí chủ đạo Contemporary Remix');
+
+  const ngaProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Ngà');
+  assert.ok(ngaProps[1].visual_details.color_palette[0].includes('Ngà'), 'Ngà phải xuất hiện ở vị trí chủ đạo Contemporary Remix');
+
+  const doSonProps = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Đỏ son');
+  assert.ok(doSonProps[1].visual_details.color_palette[0].includes('Đỏ Son'), 'Đỏ son phải xuất hiện ở vị trí chủ đạo Contemporary Remix');
 });
 
-runTest('18.3 Generate payload format: Bao gồm cả color_preference và accessory_preference', () => {
+runTest('18.3 accessoryPreference auto không làm thay đổi default', () => {
+  const defaultProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2);
+  const autoProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', 'auto');
+  assert.deepStrictEqual(
+    autoProps[1].visual_details.accessories,
+    defaultProps[1].visual_details.accessories,
+    'accessoryPreference auto phải giữ nguyên phụ kiện mặc định'
+  );
+});
+
+runTest('18.4 Tối giản, Túi hiện đại, Trang sức, Khăn phản ánh vào Contemporary Remix accessories', () => {
+  const toiGianProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', 'Tối giản');
+  assert.ok(toiGianProps[1].visual_details.accessories.some((a) => a.includes('tối giản') || a.includes('thanh mảnh')));
+
+  const tuiProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', 'Túi hiện đại');
+  assert.ok(tuiProps[1].visual_details.accessories.some((a) => a.includes('Túi')));
+
+  const trangSucProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', 'Trang sức');
+  assert.ok(trangSucProps[1].visual_details.accessories.some((a) => a.includes('Trâm') || a.includes('ngọc')));
+
+  const khanProps = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2, 'auto', 'Khăn');
+  assert.ok(khanProps[1].visual_details.accessories.some((a) => a.includes('Khăn')));
+});
+
+runTest('18.5 Heritage Anchored không bị thay đổi tùy tiện bởi preference hiện đại', () => {
+  const baseline = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3);
+  const withModernPrefs = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Đỏ son', 'Túi hiện đại');
+
+  // Heritage Anchored (proposal 0) must remain strictly unchanged
+  assert.deepStrictEqual(
+    withModernPrefs[0].visual_details.color_palette,
+    baseline[0].visual_details.color_palette,
+    'Heritage Anchored color_palette không được thay đổi bởi modern preferences'
+  );
+  assert.deepStrictEqual(
+    withModernPrefs[0].visual_details.accessories,
+    baseline[0].visual_details.accessories,
+    'Heritage Anchored accessories không được thay đổi bởi modern preferences'
+  );
+  assert.strictEqual(withModernPrefs[0].plan_type, 'heritage_anchored');
+});
+
+runTest('18.6 Generate payload format: Bao gồm cả color_preference và accessory_preference', () => {
   const payload = {
     garment: 'nhat_binh',
     context: 'fashion_week',
@@ -1955,7 +1997,7 @@ runTest('18.3 Generate payload format: Bao gồm cả color_preference và acces
   assert.strictEqual(proposals[1].garment_type, 'nhat_binh');
 });
 
-runTest('18.4 Existing 2-proposal contract: Invariant Heritage Anchored & Contemporary Remix bảo toàn trọn vẹn', () => {
+runTest('18.7 Existing 2-proposal contract: Invariant Heritage Anchored & Contemporary Remix bảo toàn trọn vẹn', () => {
   const proposals = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3, 'Chàm', 'Túi hiện đại');
   assert.strictEqual(proposals.length, 2, 'Hệ thống luôn trả về đúng 2 proposals');
 

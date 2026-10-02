@@ -398,6 +398,46 @@ function buildProposalAudit(
 }
 
 /**
+ * Helpers to honor user color & accessory preferences on contemporary_remix proposals
+ * without modifying heritage anchored standards or historical claims.
+ */
+function applyRemixColorPreference(basePalette: string[], pref?: string): string[] {
+  if (!pref || pref === 'auto' || pref === 'Tự đề xuất') {
+    return basePalette;
+  }
+  switch (pref) {
+    case 'Chàm':
+      return ['#172554 (Chàm Đậm)', basePalette[1] || '#F1F5F9 (Trắng Ngà)', basePalette[2] || '#475569 (Xám Kaki)'];
+    case 'Đen':
+      return ['#0F172A (Đen Mực)', basePalette[1] || '#F1F5F9 (Trắng Ngà)', basePalette[2] || '#334155 (Xám Khói)'];
+    case 'Ngà':
+      return ['#FDFBF7 (Trắng Ngà)', basePalette[1] || '#D97706 (Hổ Phách)', basePalette[2] || '#475569 (Xám Kaki)'];
+    case 'Đỏ son':
+      return ['#B8342B (Đỏ Son)', basePalette[1] || '#F1F5F9 (Trắng Ngà)', basePalette[2] || '#C9A66B (Ánh Kim)'];
+    default:
+      return basePalette;
+  }
+}
+
+function applyRemixAccessoryPreference(baseAccessories: string[], pref?: string): string[] {
+  if (!pref || pref === 'auto' || pref === 'Tự đề xuất') {
+    return baseAccessories;
+  }
+  switch (pref) {
+    case 'Tối giản':
+      return ['Khăn quàng tối giản', 'Đồng hồ mặt số cổ điển thanh mảnh'];
+    case 'Túi hiện đại':
+      return ['Túi đeo chéo da thuộc tối giản', 'Túi tote canvas cao cấp'];
+    case 'Trang sức':
+      return ['Trâm cài áo mạ bạc chạm hoa văn', 'Vòng tay ngọc tối giản'];
+    case 'Khăn':
+      return ['Khăn lụa tơ quàng cổ', 'Khăn xếp cách tân tối giản'];
+    default:
+      return baseAccessories;
+  }
+}
+
+/**
  * Generate deterministic fallback proposals for 100% CKB reliability
  */
 export function generateDeterministicProposals(
@@ -462,8 +502,8 @@ export function generateDeterministicProposals(
           layering_pieces: ['Áo thun trắng organic cotton cổ tròn bên trong'],
           bottom_garment: 'Quần tây cạp cao ống suông rộng (Wide-leg pleated trousers)',
           footwear: 'Chunky leather loafers hoặc platform Derby shoes',
-          accessories: ['Túi đeo chéo da thuộc tối giản', 'Kính mắt gọng vuông đen'],
-          color_palette: ['#172554 (Indigo Xanh Thẫm)', '#F1F5F9 (Trắng Ngà)', '#475569 (Xám Kaki)'],
+          accessories: applyRemixAccessoryPreference(['Túi đeo chéo da thuộc tối giản', 'Kính mắt gọng vuông đen'], accessoryPreference),
+          color_palette: applyRemixColorPreference(['#172554 (Indigo Xanh Thẫm)', '#F1F5F9 (Trắng Ngà)', '#475569 (Xám Kaki)'], colorPreference),
         },
         audit: buildProposalAudit(
           ['KB-RULE-01', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02', 'KB-NGUTHAN-03'],
@@ -534,8 +574,8 @@ export function generateDeterministicProposals(
           layering_pieces: ['Áo cổ lọ đen mỏng ôm sát (Turtleneck knitwear)'],
           bottom_garment: 'Quần tây ống suông xếp ly cạp cao (Tailored Wide Trousers)',
           footwear: 'Chelsea boots da bóng mũi nhọn hoặc chunky sole boots',
-          accessories: ['Kính râm gọng oval kim loại', 'Túi clutch cầm tay tối giản'],
-          color_palette: ['#0F172A (Đen Mực)', '#B45309 (Hổ Phách Sậm)', '#94A3B8 (Xám Bạc)'],
+          accessories: applyRemixAccessoryPreference(['Kính râm gọng oval kim loại', 'Túi clutch cầm tay tối giản'], accessoryPreference),
+          color_palette: applyRemixColorPreference(['#0F172A (Đen Mực)', '#B45309 (Hổ Phách Sậm)', '#94A3B8 (Xám Bạc)'], colorPreference),
         },
         audit: buildProposalAudit(
           ['KB-TAC-01', 'KB-TAC-02', 'KB-TAC-03'],
@@ -607,8 +647,8 @@ export function generateDeterministicProposals(
           layering_pieces: ['Áo cúp ngực hoặc áo tank top lụa trắng ngà bên trong'],
           bottom_garment: 'Chân váy xếp ly dáng dài (Pleated Midi Skirt) màu kem tuyết',
           footwear: 'Giày Mary Jane da bóng đế cao hoặc bốt cổ lửng',
-          accessories: ['Vòng cổ ngọc trai nước ngọt mini', 'Túi xách tay quai ngọc'],
-          color_palette: ['#881337 (Đỏ Đô Velvet)', '#FFFBEB (Kem Tuyết)', '#312E81 (Chàm Tím)'],
+          accessories: applyRemixAccessoryPreference(['Vòng cổ ngọc trai nước ngọt mini', 'Túi xách tay quai ngọc'], accessoryPreference),
+          color_palette: applyRemixColorPreference(['#881337 (Đỏ Đô Velvet)', '#FFFBEB (Kem Tuyết)', '#312E81 (Chàm Tím)'], colorPreference),
         },
         audit: buildProposalAudit(
           ['KB-NHATBINH-01', 'KB-NHATBINH-02', 'KB-NHATBINH-03'],

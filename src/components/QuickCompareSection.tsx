@@ -35,15 +35,20 @@ export const QuickCompareSection: React.FC<QuickCompareSectionProps> = ({
     return (
       <div className="space-y-1.5">
         <div className="flex items-center gap-1.5 flex-wrap">
-          {isCompliant ? (
+          {prop.audit.prototype_compliance === 'compliant' ? (
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 flex items-center gap-1">
               <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
               Tuân thủ Prototype
             </span>
-          ) : (
+          ) : prop.audit.prototype_compliance === 'conflict' ? (
             <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-950/60 border border-rose-500/40 text-rose-300 flex items-center gap-1">
               <AlertTriangle className="w-2.5 h-2.5 text-rose-400" />
               Xung đột Prototype
+            </span>
+          ) : (
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-600/40 text-[#D4C7B4] flex items-center gap-1">
+              <HelpCircle className="w-2.5 h-2.5 text-[#B8AA96]" />
+              Chưa đánh giá Prototype
             </span>
           )}
 

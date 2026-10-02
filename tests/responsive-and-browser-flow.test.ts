@@ -341,6 +341,37 @@ runTest('6.2 QuickCompareSection: Trả về rỗng khi không có đúng 2 prop
   assert.strictEqual(singleHtml, '', 'Phải trả về rỗng khi chỉ có 1 proposal');
 });
 
+runTest('6.3 QuickCompareSection: Không coi unassessed là conflict, hiển thị đúng Chưa đánh giá và không dùng màu đỏ', () => {
+  const sampleProposals = generateDeterministicProposals('ngu_than', 'streetwear', 'modern_minimal', 3);
+  const unassessedProposals = [
+    {
+      ...sampleProposals[0],
+      audit: {
+        ...sampleProposals[0].audit,
+        prototype_compliance: 'unassessed' as const,
+      },
+    },
+    {
+      ...sampleProposals[1],
+      audit: {
+        ...sampleProposals[1].audit,
+        prototype_compliance: 'unassessed' as const,
+      },
+    },
+  ];
+
+  const html = renderToString(
+    React.createElement(QuickCompareSection, {
+      proposals: unassessedProposals,
+      onOpenCKB: () => {},
+    })
+  );
+
+  assert.ok(html.includes('Chưa đánh giá Prototype'), 'Phải có nhãn Chưa đánh giá Prototype');
+  assert.strictEqual(html.includes('Xung đột Prototype'), false, 'Không được coi unassessed là Xung đột Prototype');
+  assert.strictEqual(html.includes('bg-rose-950/60'), false, 'Tuyệt đối không dùng màu đỏ cho unassessed');
+});
+
 console.log('\n-------------------------------------------------------------');
 console.log(`TỔNG KẾT BROWSER & FLOW SUITE: ${passCount} PASSED / ${failCount} FAILED`);
 console.log('-------------------------------------------------------------');

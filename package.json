@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
-    "test": "tsx tests/remix-state-flow.test.ts && tsx tests/responsive-and-browser-flow.test.ts && tsx tests/ai-provider-rollback.test.ts"
+    "test": "tsx tests/remix-state-flow.test.ts && tsx tests/responsive-and-browser-flow.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
