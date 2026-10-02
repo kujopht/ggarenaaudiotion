@@ -15,6 +15,8 @@ import { CoDesignStudio } from '../src/components/CoDesignStudio.js';
 import { QuickCompareSection } from '../src/components/QuickCompareSection.js';
 import { WhatIfLab, WHAT_IF_PRESETS } from '../src/components/WhatIfLab.js';
 import { formatSourceBadge } from '../src/utils/remixStateHelpers.js';
+import { LookbookCardModal } from '../src/components/LookbookCardModal.js';
+import { exportLookbookCard, formatLookbookShareText } from '../src/utils/lookbookExport.js';
 import fs from 'node:fs';
 
 console.log('--- BẮT ĐẦU KIỂM THỬ: BROWSER VIEWPORT SIMULATION & MOCK WORKSPACE FLOW ---\n');
@@ -499,6 +501,207 @@ runTest('7.11 title deterministic không mâu thuẫn colorPreference', () => {
   // Heritage Anchored title untouched
   assert.strictEqual(nguThanDen[0].title, 'Áo Ngũ Thân Tay Chẽn Chàm Lam Cổ Điển');
   assert.strictEqual(nhatBinhDen[0].title, 'Áo Nhật Bình Hoàng Triều Gấm Thêu Ngũ Sắc');
+});
+
+// ----------------------------------------------------------------------------
+// 8. Lookbook Shareable Cultural Fashion Card Suite (V2.2)
+// ----------------------------------------------------------------------------
+runTest('8.1 Lookbook render đúng proposal: branding, title, concept, materials', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.ok(html.includes('KUJO Re:Wear'), 'Phải có branding KUJO Re:Wear');
+  assert.ok(html.includes(proposal.title), 'Phải có tên look');
+  assert.ok(html.includes(proposal.concept_tag), 'Phải có concept tag');
+  assert.ok(html.includes('THẺ LOOKBOOK CHIA SẺ'), 'Phải có tiêu đề modal Thẻ Lookbook Chia Sẻ');
+  assert.ok(html.includes(proposal.visual_details.bottom_garment), 'Phải có trang phục dưới');
+});
+
+runTest('8.2 Heritage Anchored và Contemporary Remix label đúng trên Lookbook card', () => {
+  const [heritageProp, remixProp] = generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2);
+
+  const htmlHeritage = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: heritageProp,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+  assert.ok(htmlHeritage.includes('Heritage Anchored'), 'Bản phối gốc phải có nhãn Heritage Anchored');
+
+  const htmlRemix = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: remixProp,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+  assert.ok(htmlRemix.includes('Contemporary Remix'), 'Bản phối remix phải có nhãn Contemporary Remix');
+});
+
+runTest('8.3 prototype compliance đủ 3 trạng thái trên Lookbook card', () => {
+  const baseProp = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+
+  // Compliant
+  const htmlCompliant = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: { ...baseProp, audit: { ...baseProp.audit, prototype_compliance: 'compliant' } },
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+  assert.ok(htmlCompliant.includes('Tuân thủ'), 'Phải hiển thị Tuân thủ');
+
+  // Conflict
+  const htmlConflict = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: { ...baseProp, audit: { ...baseProp.audit, prototype_compliance: 'conflict' } },
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+  assert.ok(htmlConflict.includes('Xung đột'), 'Phải hiển thị Xung đột');
+
+  // Unassessed
+  const htmlUnassessed = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: { ...baseProp, audit: { ...baseProp.audit, prototype_compliance: 'unassessed' } },
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+  assert.ok(htmlUnassessed.includes('Chưa đánh giá'), 'Phải hiển thị Chưa đánh giá');
+  assert.strictEqual(htmlUnassessed.includes('Xung đột'), false, 'Không được hiển thị Xung đột khi unassessed');
+});
+
+runTest('8.4 historical confidence mapping đúng trên Lookbook card', () => {
+  const baseProp = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+
+  const map = {
+    verified: 'Đã kiểm chứng',
+    partially_verified: 'Đã xác thực một phần',
+    needs_review: 'Đang chờ đối soát',
+    unverified: 'Chưa đối soát độc lập',
+    mixed: 'Nguồn hỗn hợp',
+  } as const;
+
+  for (const [confKey, expectedLabel] of Object.entries(map)) {
+    const html = renderToString(
+      React.createElement(LookbookCardModal, {
+        proposal: { ...baseProp, audit: { ...baseProp.audit, historical_confidence: confKey as any } },
+        isOpen: true,
+        onClose: () => {},
+      })
+    );
+    assert.ok(html.includes(expectedLabel), `Historical confidence ${confKey} phải map sang ${expectedLabel}`);
+  }
+});
+
+runTest('8.5 evidence count đúng và hiển thị tối đa 3 evidence IDs', () => {
+  const baseProp = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal: baseProp,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.ok(html.includes(`${baseProp.audit.evidence_ids.length} căn cứ CKB`), 'Phải hiển thị đúng số lượng căn cứ CKB');
+  for (const id of baseProp.audit.evidence_ids.slice(0, 3)) {
+    assert.ok(html.includes(id), `Phải hiển thị mã căn cứ ${id}`);
+  }
+});
+
+runTest('8.6 4:5 preview render và tỉ lệ chuẩn', () => {
+  const proposal = generateDeterministicProposals('nhat_binh', 'fashion_week', 'neo_indochine', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.ok(html.includes('aspect-[4/5]'), 'Mặc định phải render container tỉ lệ 4:5');
+  assert.ok(html.includes('4:5 Social'), 'Phải có nút chọn 4:5 Social');
+  assert.ok(html.includes('9:16 Story'), 'Phải có nút chọn 9:16 Story');
+});
+
+runTest('8.7 9:16 preview render & exportLookbookCard abstraction', () => {
+  const proposal = generateDeterministicProposals('nhat_binh', 'fashion_week', 'neo_indochine', 3)[1];
+  const expStory = exportLookbookCard(proposal, 'story_9_16');
+  assert.strictEqual(expStory.status, 'prepared');
+  assert.strictEqual(expStory.format, 'story_9_16');
+  assert.ok(expStory.message.includes('9:16 Story'));
+
+  const expSocial = exportLookbookCard(proposal, 'social_4_5');
+  assert.strictEqual(expSocial.status, 'prepared');
+  assert.strictEqual(expSocial.format, 'social_4_5');
+  assert.ok(expSocial.message.includes('4:5 Social Post'));
+});
+
+runTest('8.8 copy text chứa KUJO Re:Wear và evidence IDs', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const shareText = formatLookbookShareText(proposal);
+
+  assert.ok(shareText.includes('KUJO Re:Wear'), 'Nội dung chia sẻ phải có KUJO Re:Wear');
+  assert.ok(shareText.includes(proposal.title), 'Nội dung chia sẻ phải có tên bản phối');
+  assert.ok(shareText.includes('Áo Ngũ Thân'), 'Nội dung chia sẻ phải có tên cổ phục');
+  assert.ok(shareText.includes('Dẫn chứng CKB:'), 'Nội dung chia sẻ phải có dòng Dẫn chứng CKB');
+  for (const id of proposal.audit.evidence_ids) {
+    assert.ok(shareText.includes(id), `Nội dung chia sẻ phải có evidence ID ${id}`);
+  }
+});
+
+runTest('8.9 clipboard failure không crash: formatLookbookShareText an toàn với mọi proposal', () => {
+  const props = [
+    generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[0],
+    generateDeterministicProposals('ao_tac', 'festival', 'modern_minimal', 2)[1],
+    generateDeterministicProposals('nhat_binh', 'fashion_week', 'neo_indochine', 4)[1],
+  ];
+
+  for (const p of props) {
+    assert.doesNotThrow(() => {
+      const text = formatLookbookShareText(p);
+      assert.ok(text.length > 50);
+    });
+  }
+});
+
+runTest('8.10 không có Heritage Score trên Lookbook card', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.strictEqual(html.includes('Heritage Score'), false, 'Không được có nhãn Heritage Score');
+  assert.strictEqual(html.includes('Điểm di sản'), false, 'Không được có nhãn Điểm di sản');
+  assert.strictEqual(html.includes('heritage_score'), false, 'Không được có biến heritage_score');
+});
+
+runTest('8.11 không có download giả khi export chưa implemented', () => {
+  const proposal = generateDeterministicProposals('ngu_than', 'streetwear', 'indigo_denim', 3)[1];
+  const html = renderToString(
+    React.createElement(LookbookCardModal, {
+      proposal,
+      isOpen: true,
+      onClose: () => {},
+    })
+  );
+
+  assert.strictEqual(html.includes('download='), false, 'Không được có download link giả');
+  assert.ok(html.includes('Chuẩn bị khung xuất'), 'Nút phải ghi rõ Chuẩn bị khung xuất');
 });
 
 console.log('\n-------------------------------------------------------------');

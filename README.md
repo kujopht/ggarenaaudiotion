@@ -23,8 +23,8 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
 ### 🏛️ Trụ cột Trung thực Văn hóa (Single Source of Truth)
 
 1. **Phân tách 2 lớp đánh giá độc lập**:
-   - **Chuẩn mực mẫu thiết kế (Prototype Compliance):** `compliant` (hợp lệ) hoặc `conflict` (vi phạm quy ước nhận diện trang phục). Màu đỏ chỉ xuất hiện khi có vi phạm prototype thật sự.
-   - **Độ tin cậy lịch sử (Historical Confidence):** `verified` (đã đối soát nguồn thư tịch/bảo tàng), `needs_review` (nguồn đang rà soát thêm), hoặc `unverified` (đề xuất phòng lab chưa có chứng cứ khảo cổ). Tuyệt đối không dùng màu đỏ cho sự thiếu hụt nguồn đơn thuần.
+   - **Chuẩn mực mẫu thiết kế (Prototype Compliance):** Gồm đủ 3 trạng thái chuẩn mực: `compliant` (tuân thủ quy ước prototype), `conflict` (xung đột quy ước bất biến của prototype, màu đỏ chỉ xuất hiện khi có xung đột thực tế), và `unassessed` (chưa đủ căn cứ để kết luận theo prototype khi câu hỏi nằm ngoài tập quy tắc đã số hóa, hiển thị màu trung tính slate/neutral).
+   - **Độ tin cậy lịch sử (Historical Confidence):** `verified` (đã đối soát nguồn thư tịch/bảo tàng), `partially_verified` (đã xác thực một phần), `needs_review` (nguồn đang rà soát thêm), `unverified` (đề xuất phòng lab chưa có chứng cứ khảo cổ), hoặc `mixed` (nguồn hỗn hợp). Tuyệt đối không dùng màu đỏ cho sự thiếu hụt nguồn đơn thuần.
 2. **Minh bạch 3 tầng thông tin (Information Tier Separation)**:
    - *Tầng 1 - Dữ liệu lịch sử có nguồn dẫn:* Trích xuất từ các công trình nghiên cứu (*Tạp chí Văn hóa Nghệ thuật*), khảo cứu hiện vật tại Bảo tàng Lịch sử Quốc gia và Bảo tàng Cổ vật Cung đình Huế.
    - *Tầng 2 - Quy tắc nội bộ prototype:* Quy ước cấu trúc dùng để vận hành logic thuật toán trong ứng dụng.
@@ -46,11 +46,12 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
    - **Bản phối A: Bám sát tham chiếu:** Tôn trọng tối đa phom dáng truyền thống.
    - **Bản phối B: Phá cách đương đại:** Phối layer táo bạo với phụ kiện hiện đại.
 5. **Đọc lướt trong 3 giây (At-a-Glance Strip):** Cấu trúc phom dáng, dải màu thực tế (Color Swatches), phụ kiện đề xuất, dịp mặc, nhãn thẩm định CKB và căn cứ nguồn.
-6. **Thẻ Lookbook:** Bấm "Thẻ Lookbook" để xuất thẻ thị giác phục vụ chia sẻ xã hội.
+6. **Thẻ Lookbook (Shareable Fashion Card):** Bấm "Thẻ Lookbook" để mở thẻ thị giác tỉ lệ chuẩn (4:5 Social Post hoặc 9:16 Story), hiển thị đầy đủ thông số phối đồ, thẩm định văn hóa 2 lớp độc lập (không tạo điểm số ảo Heritage Score), và sao chép nội dung chia sẻ chỉ với 1 click.
 
 ### Kịch bản 2: Phòng thử nghiệm giả định (What-If Lab — Decision Journey)
-1. Chuyển sang tab **"Thử thay đổi (What If)"** trực tiếp từ bản phối đang chọn hoặc bấm các kịch bản mẫu:
-   - **Thử nghiệm vi phạm (Prototype Conflict):** *"What if đổi vạt áo và cài khuy sang bên trái (Tả nhậm)?"* → Hệ thống báo vi phạm quy tắc `KB-RULE-01`, giải thích căn cứ và đưa ra **Stylist Counter-Proposal** (dùng đường may lé hoặc cúc kép để người thuận tay trái thao tác dễ dàng mà không đổi hướng vạt).
+1. Chuyển sang tab **"Thử thay đổi (What If)"** trực tiếp từ bản phối đang chọn hoặc bấm các kịch bản mẫu **Quick Experiments**:
+   - **Thử nghiệm nhanh (Quick Experiments):** Một lần bấm preset sẽ gửi query đó qua engine thẩm định hiện tại (Gemini hoặc deterministic engine) để đánh giá trung thực, không hardcode kết quả.
+   - **Thử nghiệm vi phạm (Prototype Conflict):** *"What if đổi hướng cài khuy sang bên trái (Tả nhậm)?"* → Hệ thống báo xung đột quy tắc `KB-RULE-01`, giải thích căn cứ và đưa ra **Stylist Counter-Proposal** (dùng cúc bấm kim loại công thái học hoặc cúc từ tính để người thuận tay trái thao tác dễ dàng mà không đổi hướng vạt).
    - **Thử nghiệm khả biến an toàn (Safe Mutable):** *"What if cởi mở toàn bộ khuy áo Tấc mặc buông làm áo khoác duster coat?"* → Hệ thống duyệt `KB-TAC-03` là vùng biến tấu sáng tạo hợp lệ.
    - **Thử nghiệm đối soát cấp bậc:** *"What if bỏ dải màu ngũ sắc ở viền tay áo Nhật Bình?"* → Hệ thống đối chiếu `KB-NHATBINH-02`, lưu ý ngoại lệ phẩm cấp Hoàng hậu và khuyến nghị phối màu tone-sur-tone.
 2. **Hành trình ra quyết định (Decision Journey 3 Chặng):**
@@ -126,7 +127,7 @@ Hệ thống kết hợp giữa **Cơ sở tri thức văn hóa (Cultural Knowle
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Các cơ chế phòng vệ và ổn định đã được kiểm thử tự động (102/102 PASS):
+### Các cơ chế phòng vệ và ổn định đã được kiểm thử tự động (113/113 PASS):
 1. **AbortController & Request ID Sequencing:** Khi người dùng đổi loại áo hoặc chuyển tab liên tục, mọi yêu cầu mạng đang dang dở đều bị hủy ngay lập tức, không bao giờ ghi đè kết quả của yêu cầu mới.
 2. **Stale Response Protection:** Phản hồi từ mạng về muộn sau khi giao diện đã đổi trạng thái sẽ bị loại bỏ an toàn.
 3. **Garment Validation Contract:** Nghiêm cấm trường hợp người dùng chọn Nhật Bình mà AI trả về Ngũ Thân. Khi dữ liệu vi phạm contract, hệ thống tự động kích hoạt **Deterministic Engine Fallback**.
@@ -155,7 +156,7 @@ Hệ thống được thiết kế và kiểm thử chuyên biệt trên toàn b
 npm install
 ```
 
-### Chạy kiểm thử tự động (102 test cases bao phủ logic, browser & What-If suite)
+### Chạy kiểm thử tự động (113 test cases bao phủ logic, browser, What-If & Lookbook suite)
 ```bash
 npm test
 ```

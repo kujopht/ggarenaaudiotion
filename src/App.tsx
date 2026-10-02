@@ -189,6 +189,7 @@ export default function App() {
         isOpen={lookbookModalOpen}
         onClose={() => setLookbookModalOpen(false)}
         proposal={activeLookbookProposal}
+        onOpenCKB={(id) => handleOpenCKB(id)}
       />
     </div>
   );

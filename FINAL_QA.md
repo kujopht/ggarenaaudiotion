@@ -15,7 +15,7 @@
 
 | Hạng mục kiểm thử | Lệnh thực thi | Tiêu chí nghiệm thu | Kết quả thực tế | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| **Kiểm thử tự động** | `npm test` | 102/102 test cases pass (unit, flow, validation, responsive browser & What-If suite) | 102 / 102 tests passed | ✅ **PASS** |
+| **Kiểm thử tự động** | `npm test` | 113/113 test cases pass (unit, flow, validation, responsive browser, What-If & Lookbook suite) | 113 / 113 tests passed | ✅ **PASS** |
 | **Kiểm tra cú pháp & Linting** | `npm run lint` | 0 errors, 0 syntax violations | 0 errors | ✅ **PASS** |
 | **Xây dựng bản phân phối (Build)** | `npm run build` | Vite build hoàn tất không cảnh báo lỗi type | Built dist/ in 376ms | ✅ **PASS** |
 | **Khởi động Production Server** | `NODE_ENV=production PORT=3098 npm start` | Server khởi động sạch tại port 3098 | HTTP 200 OK | ✅ **PASS** |
