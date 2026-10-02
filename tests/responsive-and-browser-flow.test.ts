@@ -8,6 +8,10 @@ import { evaluateWhatIfDeterministic, generateDeterministicProposals } from '../
 import { OutfitProposal } from '../src/types/vietphuc.js';
 import { CKBExplorerModal } from '../src/components/CKBExplorerModal.js';
 import { CKBRegistryView } from '../src/components/CKBRegistryView.js';
+import { FashionEditorialVisual } from '../src/components/FashionEditorialVisual.js';
+import { GarmentSchematic } from '../src/components/GarmentSchematic.js';
+import { AnatomySection } from '../src/components/AnatomySection.js';
+import { CoDesignStudio } from '../src/components/CoDesignStudio.js';
 import fs from 'node:fs';
 
 console.log('--- BẮT ĐẦU KIỂM THỬ: BROWSER VIEWPORT SIMULATION & MOCK WORKSPACE FLOW ---\n');
@@ -170,6 +174,113 @@ runTest('4.2 WhatIfLab Fallback Badge semantics: Không dùng màu red/rose cho 
   assert.ok(!fallbackBlock.includes('text-rose'), 'Fallback badge KHÔNG ĐƯỢC dùng text-rose');
   assert.ok(!fallbackBlock.includes('bg-rose'), 'Fallback badge KHÔNG ĐƯỢC dùng bg-rose');
   assert.ok(fallbackBlock.includes('slate') || fallbackBlock.includes('neutral'), 'Fallback badge phải dùng slate hoặc neutral đồng bộ với CoDesignStudio');
+});
+
+// ----------------------------------------------------------------------------
+// 5. V2.0 Visual-First Fashion Editorial & Structural Reference Validation
+// ----------------------------------------------------------------------------
+runTest('5.1 FashionEditorialVisual: Render ở trạng thái image_unavailable hiển thị croquis và action', () => {
+  const html = renderToString(
+    React.createElement(FashionEditorialVisual, {
+      garment: 'ngu_than',
+      planType: 'heritage_anchored',
+      dialLevel: 1,
+      conceptTag: 'HERITAGE_LOOK',
+      colorPalette: ['#1E3A8A', '#C9A66B'],
+      fabricMaterials: ['Lụa Vạn Phúc'],
+      imageData: { status: 'image_unavailable' },
+      onTriggerImageGeneration: () => {},
+      onOpenStructuralReference: () => {},
+    })
+  );
+
+  assert.ok(html.includes('Phác thảo thời trang'), 'Phải có nhãn phác thảo thời trang');
+  assert.ok(html.includes('Phác họa thị giác'), 'Phải có nút kích hoạt phác họa thị giác');
+  assert.ok(html.includes('Sơ đồ cấu trúc'), 'Phải có link mở sơ đồ cấu trúc');
+});
+
+runTest('5.2 FashionEditorialVisual: Render ở trạng thái image_generating hiển thị thông báo đang phác họa', () => {
+  const html = renderToString(
+    React.createElement(FashionEditorialVisual, {
+      garment: 'ao_tac',
+      planType: 'contemporary_remix',
+      dialLevel: 3,
+      conceptTag: 'CONTEMPORARY_LOOK',
+      colorPalette: ['#111111', '#065F46'],
+      fabricMaterials: ['Dạ tweed'],
+      imageData: { status: 'image_generating' },
+    })
+  );
+
+  assert.ok(html.includes('Đang phác họa thị giác AI...'), 'Phải hiển thị thông báo đang tạo ảnh thị giác');
+});
+
+runTest('5.3 FashionEditorialVisual: Render ở trạng thái image_ready hiển thị ảnh với thẻ img', () => {
+  const html = renderToString(
+    React.createElement(FashionEditorialVisual, {
+      garment: 'nhat_binh',
+      planType: 'heritage_anchored',
+      dialLevel: 1,
+      conceptTag: 'ROYAL_LOOK',
+      colorPalette: ['#991B1B', '#C9A66B'],
+      fabricMaterials: ['Gấm tơ'],
+      imageData: { status: 'image_ready', imageUrl: 'https://example.com/editorial-preview.jpg' },
+    })
+  );
+
+  assert.ok(html.includes('<img'), 'Phải hiển thị thẻ img');
+  assert.ok(html.includes('src="https://example.com/editorial-preview.jpg"'), 'Phải bind đúng URL ảnh');
+});
+
+runTest('5.4 GarmentSchematic & AnatomySection: Có nhãn Interactive Structural Reference phân biệt rõ với render thời trang', () => {
+  const schematicHtml = renderToString(
+    React.createElement(GarmentSchematic, {
+      garment: 'ngu_than',
+      dialLevel: 2,
+    })
+  );
+  assert.ok(schematicHtml.includes('Interactive Structural Reference'), 'GarmentSchematic phải có nhãn Interactive Structural Reference');
+
+  const anatomyHtml = renderToString(
+    React.createElement(AnatomySection, {
+      onOpenCKB: () => {},
+    })
+  );
+  assert.ok(anatomyHtml.includes('Interactive Structural Reference'), 'AnatomySection phải chứa nhãn Interactive Structural Reference');
+});
+
+runTest('5.5 CoDesignStudio: Render 2 cards cạnh nhau trong grid-cols-1 md:grid-cols-2', () => {
+  const sampleProposals = generateDeterministicProposals('ngu_than', 'streetwear', 'modern_minimal', 3);
+  const html = renderToString(
+    React.createElement(CoDesignStudio, {
+      proposals: sampleProposals,
+      selectedPlanIndex: 0,
+      onSelectPlanIndex: () => {},
+      onUpdateProposals: () => {},
+      proposalSource: 'deterministic_engine',
+      selectedGarment: 'ngu_than',
+      onChangeGarment: () => {},
+      dialLevel: 3,
+      onChangeDialLevel: () => {},
+      context: 'streetwear',
+      onChangeContext: () => {},
+      style: 'modern_minimal',
+      onChangeStyle: () => {},
+      customNotes: '',
+      onChangeCustomNotes: () => {},
+      onOpenCKB: () => {},
+      onOpenLookbookCard: () => {},
+      onNavigateToWhatIf: () => {},
+      motionEnabled: true,
+    })
+  );
+
+  assert.ok(html.includes('grid-cols-1 md:grid-cols-2'), 'Phải có grid-cols-1 md:grid-cols-2 cho 2 proposal cards song song');
+  assert.ok(html.includes('BẢN PHỐI A · HERITAGE'), 'Phải render card Bản phối A');
+  assert.ok(html.includes('BẢN PHỐI B · CONTEMPORARY'), 'Phải render card Bản phối B');
+  assert.ok(html.includes('Edit Look'), 'Mỗi card phải có nút Edit Look');
+  assert.ok(html.includes('Thẩm định'), 'Mỗi card phải có nút mở Thẩm định');
+  assert.ok(html.includes('Lookbook'), 'Mỗi card phải có nút mở Lookbook');
 });
 
 console.log('\n-------------------------------------------------------------');

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GarmentKey, OutfitProposal } from '../types/vietphuc';
-import { GarmentSchematic } from './GarmentSchematic';
+import { GarmentKey, OutfitProposal, LookImageData, proposalToDesignState } from '../types/vietphuc';
 import { CulturalAuditPanel } from './CulturalAuditPanel';
 import { formatSourceBadge, getLookSummaryStatus } from '../utils/remixStateHelpers';
 import { DongSonDialRing } from './MotionMotifs';
+import { FashionEditorialVisual } from './FashionEditorialVisual';
 import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info } from 'lucide-react';
 
 interface CoDesignStudioProps {
@@ -25,6 +25,7 @@ interface CoDesignStudioProps {
   onOpenCKB: (evidenceId?: string) => void;
   onOpenLookbookCard: (proposal: OutfitProposal) => void;
   onNavigateToWhatIf: () => void;
+  onNavigateToAnatomy?: () => void;
   motionEnabled?: boolean;
 }
 
@@ -147,6 +148,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   onOpenCKB,
   onOpenLookbookCard,
   onNavigateToWhatIf,
+  onNavigateToAnatomy,
   motionEnabled = true,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -154,6 +156,60 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   const [showAdvancedNotes, setShowAdvancedNotes] = useState<boolean>(false);
   const [expandedGarmentKey, setExpandedGarmentKey] = useState<GarmentKey | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // V2.0 Visual-First Image Generation State & Card Collapses
+  const [lookImages, setLookImages] = useState<Record<string, LookImageData>>({});
+  const [expandedCardDetails, setExpandedCardDetails] = useState<Record<string, boolean>>({});
+
+  const toggleCardDetails = (id: string) => {
+    setExpandedCardDetails((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const handleTriggerImageGeneration = async (proposal: OutfitProposal) => {
+    setLookImages((prev) => ({
+      ...prev,
+      [proposal.id]: { status: 'image_generating' },
+    }));
+
+    try {
+      const designState = proposalToDesignState(proposal);
+      const res = await fetch('/api/remix/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          designState,
+          garment: proposal.garment_type,
+          visualDescription: `${proposal.visual_details.collar_style}, ${proposal.visual_details.sleeve_style}, ${proposal.visual_details.cut_length}`,
+          palette: proposal.visual_details.color_palette,
+          materials: proposal.visual_details.fabric_materials,
+          aspectRatio: '3:4',
+        }),
+      });
+
+      if (!res.ok) throw new Error(`Máy chủ phản hồi mã lỗi ${res.status}`);
+      const data = await res.json();
+      setLookImages((prev) => ({
+        ...prev,
+        [proposal.id]: {
+          status: data.status || 'image_unavailable',
+          imageUrl: data.imageUrl,
+          generationSource: data.generationSource || 'server_foundation',
+          message: data.message,
+        },
+      }));
+    } catch (err: any) {
+      setLookImages((prev) => ({
+        ...prev,
+        [proposal.id]: {
+          status: 'image_unavailable',
+          errorMessage: err.message,
+        },
+      }));
+    }
+  };
 
   // Request lifecycle management refs to invalidate late/stale responses
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -622,35 +678,10 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Hero Lookbook Centerpiece Presentation (8 cols) */}
+        {/* Right Column: Visual-First Dual Proposal Presentation (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Plan Selector Buttons: Look A vs Look B */}
-          {proposals.length > 0 && (
-            <div className="flex items-center gap-2 p-1.5 lacquer-panel-subtle rounded-2xl">
-              {proposals.map((prop, idx) => {
-                const isActive = selectedPlanIndex === idx;
-                return (
-                  <button
-                    key={prop.id}
-                    onClick={() => onSelectPlanIndex(idx)}
-                    className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[44px] ${
-                      isActive
-                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/60 shadow-xs'
-                        : 'bg-[#181311]/50 border border-[#C9A66B]/15 text-[#B8AA96] hover:text-[#F2E9D8]'
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-[#E6C88B]' : 'bg-[#6E5D53]'}`} />
-                    <span className="truncate">
-                      {idx === 0 ? 'Bản phối A: Bám sát tham chiếu' : 'Bản phối B: Phá cách đương đại'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
           {/* Empty State when no proposals generated yet */}
-          {!currentProposal && !loading && (
+          {proposals.length === 0 && !loading && (
             <div className="lacquer-panel border-2 border-dashed border-[#C9A66B]/30 rounded-2xl p-8 sm:p-12 text-center space-y-4">
               <div className="w-14 h-14 rounded-2xl bg-[#261C19]/80 flex items-center justify-center mx-auto text-[#C9A66B] border border-[#C9A66B]/30 shadow-xs">
                 <Shirt className="w-7 h-7" />
@@ -660,7 +691,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   Chưa có bản phối nào cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
                 </h3>
                 <p className="text-sm text-[#B8AA96] leading-relaxed">
-                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm lời khuyên từ stylist và ghi chú tham chiếu văn hóa.
+                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm ảnh phác thảo thời trang, tư vấn stylist và thẩm định di sản CKB.
                 </p>
               </div>
               <button
@@ -668,274 +699,301 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                 className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
               >
                 <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
-                <span>Tạo bản phối ngay</span>
+                <span>Tạo 2 bản phối ngay</span>
               </button>
             </div>
           )}
 
-          {/* Current Outfit Presentation Board (Lookbook Style) */}
-          {currentProposal && (
-            <div className="lacquer-card-elevated rounded-2xl p-5 sm:p-6 space-y-5 animate-in fade-in duration-200">
-              {/* Proposal Header Banner */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#C9A66B]/20 gap-4">
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#C9A66B]">
-                      {currentProposal.concept_tag}
-                    </span>
-                    {/* Safe source provenance badge */}
-                    {renderSourceBadge()}
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] leading-snug">
-                    {currentProposal.title}
-                  </h3>
+          {/* V2.0 Visual-First Design Studio: Dual Proposal Editorial Board */}
+          {proposals.length > 0 && (
+            <div className="space-y-4 animate-in fade-in duration-200">
+              {/* Header Strip with Section Title & Provenance Badge */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#C9A66B]/20 gap-3">
+                <div className="space-y-0.5">
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
+                    BỘ ĐÔI THIẾT KẾ ĐỐI DIỆN · HERITAGE & CONTEMPORARY
+                  </span>
+                  <p className="text-xs text-[#B8AA96]">
+                    Hai phương án đồng thời: Bản phối A bám sát di sản & Bản phối B phá cách đương đại
+                  </p>
+                </div>
+                <div className="self-start sm:self-auto shrink-0">
+                  {renderSourceBadge()}
+                </div>
+              </div>
 
-                  {/* Cultural Reference & Caution Summary Strip directly under Look Title */}
-                  <div className="pt-1.5 flex items-center justify-between gap-3 flex-wrap bg-[#181311]/60 p-2.5 rounded-xl border border-[#C9A66B]/20 backdrop-blur-xs">
-                    <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-                      {summaryStatus.badges.map((badge, idx) => {
-                        if (badge.variant === 'caution') {
-                          return (
-                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1 shrink-0">
-                              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                              {badge.label}
-                            </span>
-                          );
-                        }
-                        if (badge.variant === 'uncertainty') {
-                          return (
-                            <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/50 text-[#D4C7B4] flex items-center gap-1 shrink-0">
-                              <HelpCircle className="w-3.5 h-3.5 text-[#B8AA96]" />
-                              {badge.label}
-                            </span>
-                          );
-                        }
-                        return (
-                          <span key={idx} className="text-xs font-semibold px-2 py-0.5 rounded bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] flex items-center gap-1 shrink-0">
-                            <ShieldCheck className="w-3.5 h-3.5 text-[#E6C88B]" />
-                            {badge.label}
-                          </span>
-                        );
-                      })}
+              {/* Side-by-side Dual Proposal Grid: Desktop 2 cols, Tablet 2 cols, Mobile 1 col (stacked, visual on top) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 items-start">
+                {proposals.map((prop, idx) => {
+                  const isActive = selectedPlanIndex === idx;
+                  const isExpanded = !!expandedCardDetails[prop.id];
+                  const summary = getLookSummaryStatus(prop.audit);
 
-                      <span className="text-xs text-[#B8AA96] truncate" title={summaryStatus.summaryText}>
-                        {summaryStatus.summaryText}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => setDetailTab('audit')}
-                      className="text-xs font-semibold text-[#E6C88B] hover:text-[#F2E9D8] flex items-center gap-1 shrink-0 cursor-pointer min-h-[32px] px-2 py-1 rounded-lg hover:bg-[#261C19] transition-colors"
+                  return (
+                    <div
+                      key={prop.id}
+                      className={`lacquer-card-elevated rounded-2xl p-4 sm:p-5 flex flex-col space-y-4 border transition-all duration-300 relative ${
+                        isActive
+                          ? "border-[#C9A66B] ring-1 ring-[#C9A66B]/40 shadow-lg"
+                          : "border-[#C9A66B]/20 hover:border-[#C9A66B]/40"
+                      }`}
                     >
-                      <span>Xem giải thích</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
+                      {/* 1. Header: Plan Type Badge, Selection Status, Title, Concept Tag */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`text-[10px] sm:text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                              idx === 0
+                                ? "bg-[#C9A66B]/15 border-[#C9A66B]/40 text-[#E6C88B]"
+                                : "bg-[#B8342B]/20 border-[#B8342B]/50 text-[#F5A39D]"
+                            }`}
+                          >
+                            {idx === 0 ? "BẢN PHỐI A · HERITAGE" : `BẢN PHỐI B · CONTEMPORARY (LV${prop.dial_level})`}
+                          </span>
 
-                {/* Direct Action Buttons near Result */}
-                <div className="flex items-center gap-2 shrink-0 flex-wrap self-start sm:self-center">
-                  {/* Button to test modifications on this active look */}
-                  <button
-                    onClick={onNavigateToWhatIf}
-                    className="px-3.5 py-2 text-xs sm:text-sm font-semibold text-[#F2E9D8] bg-[#B8342B] hover:bg-[#A32D25] rounded-xl flex items-center gap-2 transition-colors whitespace-nowrap min-h-[40px] shadow-xs cursor-pointer"
-                    title="Chuyển sang tab Thử thay đổi để khám phá các kịch bản What-If trên bản phối này"
-                  >
-                    <span>Thử thay đổi cho bản phối này</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                          <button
+                            type="button"
+                            onClick={() => onSelectPlanIndex(idx)}
+                            className={`text-xs font-semibold px-2.5 py-1 rounded-full border transition-all flex items-center gap-1.5 cursor-pointer min-h-[30px] ${
+                              isActive
+                                ? "bg-[#E6C88B]/20 border-[#E6C88B] text-[#F2E9D8]"
+                                : "bg-[#181311]/60 border-[#C9A66B]/20 text-[#8C7E6C] hover:text-[#B8AA96]"
+                            }`}
+                            title="Chọn bản phối này làm bản phối trọng tâm"
+                          >
+                            <span className={`w-2 h-2 rounded-full ${isActive ? "bg-[#E6C88B] animate-pulse" : "bg-[#6E5D53]"}`} />
+                            <span>{isActive ? "Đang chọn" : "Chọn look này"}</span>
+                          </button>
+                        </div>
 
-                  <button
-                    onClick={() => onOpenLookbookCard(currentProposal)}
-                    className="px-3 py-2 text-xs sm:text-sm font-medium text-[#F2E9D8] bg-[#261C19]/80 border border-[#C9A66B]/30 hover:bg-[#322521] rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap min-h-[40px] cursor-pointer backdrop-blur-xs"
-                  >
-                    <Share2 className="w-3.5 h-3.5 text-[#C9A66B]" />
-                    <span>Thẻ Lookbook</span>
-                  </button>
-                </div>
-              </div>
+                        <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F2E9D8] leading-snug line-clamp-2" title={prop.title}>
+                          {prop.title}
+                        </h3>
 
-              {/* Scannable At-a-Glance Spec Bar: Instant 3-second read of key design & heritage attributes */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-[#181311]/75 border border-[#C9A66B]/20 text-xs">
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Cấu trúc / Phom</span>
-                  <span className="font-semibold text-[#F2E9D8] truncate block" title={`${currentProposal.visual_details.collar_style} · ${currentProposal.visual_details.sleeve_style}`}>
-                    {currentProposal.visual_details.collar_style}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Bảng màu chính</span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    {currentProposal.visual_details.color_palette.slice(0, 3).map((color, i) => {
-                      const hexMatch = color.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
-                      return (
-                        <span
-                          key={i}
-                          className="w-3.5 h-3.5 rounded-full border border-white/20 inline-block shrink-0"
-                          style={{ backgroundColor: hexMatch ? hexMatch[0] : '#C9A66B' }}
-                          title={color}
-                        />
-                      );
-                    })}
-                    <span className="text-[11px] text-[#B8AA96] truncate">
-                      {currentProposal.visual_details.color_palette[0]?.split('(')[0]?.trim() || 'Phối tone'}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Phụ kiện & Dưới</span>
-                  <span className="font-semibold text-[#F2E9D8] truncate block" title={`${currentProposal.visual_details.bottom_garment} · ${currentProposal.visual_details.footwear}`}>
-                    {currentProposal.visual_details.bottom_garment}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase text-[#8C7E6C] block">Dịp mặc đề xuất</span>
-                  <span className="font-semibold text-[#E6C88B] truncate block" title={currentProposal.stylist_notes.occasions?.join(', ') || currentProposal.concept_tag}>
-                    {currentProposal.stylist_notes.occasions?.[0] || currentProposal.concept_tag || 'Dạo phố / Sự kiện'}
-                  </span>
-                </div>
-              </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono text-[#C9A66B] uppercase tracking-wider">
+                            {prop.concept_tag}
+                          </span>
+                        </div>
+                      </div>
 
-              {/* Garment Visual Canvas Viewport */}
-              <div className="rounded-xl overflow-hidden border border-[#C9A66B]/25">
-                <GarmentSchematic
-                  garment={currentProposal.garment_type}
-                  visualDetails={currentProposal.visual_details}
-                  dialLevel={currentProposal.dial_level}
-                  isOpenFront={currentProposal.garment_type === 'ao_tac' && currentProposal.dial_level >= 3}
-                />
-                <div className="bg-[#181311]/70 px-4 py-2 border-t border-[#C9A66B]/15 text-center text-xs text-[#8C7E6C] backdrop-blur-xs">
-                  Khám phá cấu trúc trang phục · Sơ đồ hình họa tương tác (Minh họa quy thức, không phải bản rập may hoặc ảnh chụp)
-                </div>
-              </div>
+                      {/* 2. Visual Area: Large Editorial Fashion Hero Canvas */}
+                      <FashionEditorialVisual
+                        garment={prop.garment_type}
+                        planType={prop.plan_type}
+                        dialLevel={prop.dial_level}
+                        conceptTag={prop.concept_tag}
+                        colorPalette={prop.visual_details.color_palette}
+                        fabricMaterials={prop.visual_details.fabric_materials}
+                        imageData={lookImages[prop.id]}
+                        onTriggerImageGeneration={() => handleTriggerImageGeneration(prop)}
+                        onOpenStructuralReference={onNavigateToAnatomy}
+                      />
 
-              {/* Detail Tabs Switcher: Styling vs Cultural Reference */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 border-b border-[#C9A66B]/20 pb-2">
-                  <button
-                    onClick={() => setDetailTab('styling')}
-                    className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] ${
-                      detailTab === 'styling'
-                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/50'
-                        : 'text-[#B8AA96] hover:text-[#F2E9D8]'
-                    }`}
-                  >
-                    Chi tiết phối đồ & Stylist
-                  </button>
-
-                  <button
-                    onClick={() => setDetailTab('audit')}
-                    className={`text-xs sm:text-sm font-semibold py-1.5 px-3.5 rounded-lg transition-colors cursor-pointer min-h-[38px] flex items-center gap-1.5 ${
-                      detailTab === 'audit'
-                        ? 'bg-[#2E201B]/90 text-[#E6C88B] border border-[#C9A66B]/50'
-                        : 'text-[#B8AA96] hover:text-[#F2E9D8]'
-                    }`}
-                  >
-                    <span>Tham chiếu văn hóa</span>
-                    <span className={`w-2 h-2 rounded-full ${
-                      currentProposal.audit.status === 'Supported' && !currentProposal.audit.uncertainty_flag
-                        ? 'bg-[#43B6A4]'
-                        : currentProposal.audit.status === 'Supported with Caution'
-                        ? 'bg-[#F59E0B]'
-                        : 'bg-[#B8342B]'
-                    }`} />
-                  </button>
-                </div>
-
-                {/* Tab Content: Styling Architecture */}
-                {detailTab === 'styling' && (
-                  <div className="space-y-4 animate-in fade-in duration-150">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Left: Garment Pieces Specification */}
-                      <div className="bg-[#181311]/60 p-4 rounded-xl border border-[#C9A66B]/20 space-y-3 backdrop-blur-xs">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
-                          Cấu trúc y phục chính
-                        </span>
-
-                        <div className="space-y-2 text-xs sm:text-sm">
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Cổ áo & Khuy cài</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.collar_style}</span>
+                      {/* 3. Scannable Palette & Materials Row */}
+                      <div className="space-y-2 pt-1 border-t border-[#C9A66B]/15 text-xs">
+                        {/* Palette */}
+                        <div>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C7E6C] block mb-1">
+                            Bảng màu chính
+                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {prop.visual_details.color_palette.map((color, i) => {
+                              const hexMatch = color.match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
+                              const hex = hexMatch ? hexMatch[0] : "#C9A66B";
+                              const label = color.replace(hex, "").trim() || hex;
+                              return (
+                                <span
+                                  key={i}
+                                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#181311]/70 border border-[#C9A66B]/20 text-[11px] text-[#D4C7B4]"
+                                >
+                                  <span
+                                    className="w-2.5 h-2.5 rounded-full border border-white/30 shrink-0"
+                                    style={{ backgroundColor: hex }}
+                                  />
+                                  <span className="truncate max-w-[80px]">{label}</span>
+                                </span>
+                              );
+                            })}
                           </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Quy thức vạt áo</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.lapel_side}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Dáng tay áo</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.sleeve_style}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Chiều dài tà áo</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.cut_length}</span>
+                        </div>
+
+                        {/* Materials */}
+                        <div>
+                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#8C7E6C] block mb-1">
+                            Chất liệu may mặc
+                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {prop.visual_details.fabric_materials.map((mat, i) => (
+                              <span
+                                key={i}
+                                className="px-2 py-0.5 rounded-md bg-[#241A16]/80 border border-[#C9A66B]/25 text-[11px] text-[#E6C88B] font-medium"
+                              >
+                                {mat}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>
 
-                      {/* Right: Modern Mix & Match Breakdown */}
-                      <div className="bg-[#181311]/60 p-4 rounded-xl border border-[#C9A66B]/20 space-y-3 backdrop-blur-xs">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold block">
-                          Phối cùng phụ kiện & giày
-                        </span>
+                      {/* 4. Cultural Audit Summary Strip */}
+                      <div className="bg-[#181311]/80 p-2.5 rounded-xl border border-[#C9A66B]/20 space-y-1.5 text-xs backdrop-blur-xs">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {summary.badges.map((b, bIdx) => {
+                              if (b.variant === "caution") {
+                                return (
+                                  <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 flex items-center gap-1">
+                                    <AlertTriangle className="w-3 h-3 text-amber-400" />
+                                    {b.label}
+                                  </span>
+                                );
+                              }
+                              if (b.variant === "uncertainty") {
+                                return (
+                                  <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-800/80 border border-slate-600/50 text-[#D4C7B4] flex items-center gap-1">
+                                    <HelpCircle className="w-3 h-3 text-[#B8AA96]" />
+                                    {b.label}
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span key={bIdx} className="text-[11px] font-semibold px-2 py-0.5 rounded bg-[#C9A66B]/15 border border-[#C9A66B]/40 text-[#E6C88B] flex items-center gap-1">
+                                  <ShieldCheck className="w-3 h-3 text-[#E6C88B]" />
+                                  {b.label}
+                                </span>
+                              );
+                            })}
+                          </div>
 
-                        <div className="space-y-2 text-xs sm:text-sm">
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Trang phục dưới (Quần / Váy)</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.bottom_garment}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Giày dép đề xuất</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.footwear}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase">Lớp áo trong</span>
-                            <span className="font-medium text-[#F2E9D8]">{currentProposal.visual_details.layering_pieces?.join(', ') || 'Áo thun lót mộc'}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#8C7E6C] block text-[11px] uppercase mb-1">Bảng màu chính (Màu thực tế)</span>
-                            {/* Visual Color Swatches with Actual Colors & Labels */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              {currentProposal.visual_details.color_palette.map((color, i) =>
-                                renderColorSwatch(color, i)
-                              )}
+                          <button
+                            type="button"
+                            onClick={() => onOpenCKB(prop.audit.evidence_ids[0])}
+                            className="text-[11px] font-semibold text-[#E6C88B] hover:text-[#F2E9D8] flex items-center gap-1 cursor-pointer min-h-[26px] ml-auto"
+                          >
+                            <span>Xem CKB</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        <p className="text-[11px] text-[#B8AA96] leading-relaxed line-clamp-2" title={summary.summaryText}>
+                          {summary.summaryText}
+                        </p>
+                      </div>
+
+                      {/* 5. Expandable Details (Text details moved down into clean collapse) */}
+                      <div className="pt-1">
+                        <button
+                          type="button"
+                          onClick={() => toggleCardDetails(prop.id)}
+                          className="w-full py-2 px-3 bg-[#181311]/60 hover:bg-[#261C19] border border-[#C9A66B]/20 rounded-xl text-xs font-semibold text-[#D4C7B4] hover:text-[#F2E9D8] flex items-center justify-between transition-colors cursor-pointer min-h-[36px]"
+                        >
+                          <span>{isExpanded ? "Thu gọn chi tiết may đo" : "Chi tiết thiết kế, phụ kiện & thẩm định"}</span>
+                          {isExpanded ? <ChevronUp className="w-4 h-4 text-[#C9A66B]" /> : <ChevronDown className="w-4 h-4 text-[#C9A66B]" />}
+                        </button>
+
+                        {isExpanded && (
+                          <div className="mt-3 space-y-3 animate-in fade-in duration-200 text-xs">
+                            {/* Garment anatomy breakdown */}
+                            <div className="p-3 bg-[#181311]/70 border border-[#C9A66B]/15 rounded-xl space-y-2">
+                              <span className="font-mono text-[10px] text-[#C9A66B] uppercase block font-bold">
+                                Quy thức cấu trúc & Phối layer
+                              </span>
+                              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Cổ áo & Khuy:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.collar_style}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Vạt & Cài:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.lapel_side}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Dáng tay:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.sleeve_style}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Chiều dài tà:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.cut_length}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Quần / Chân váy:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.bottom_garment}</span>
+                                </div>
+                                <div>
+                                  <span className="text-[#8C7E6C] block">Giày dép:</span>
+                                  <span className="text-[#F2E9D8] font-medium">{prop.visual_details.footwear}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Stylist Notes */}
+                            <div className="p-3 bg-[#181311]/70 border border-[#C9A66B]/15 rounded-xl space-y-2">
+                              <span className="font-mono text-[10px] text-[#C9A66B] uppercase block font-bold">
+                                Triết lý Stylist & Mẹo Gen Z
+                              </span>
+                              <p className="text-[11px] text-[#F2E9D8] font-serif italic">
+                                "{prop.stylist_notes.philosophy}"
+                              </p>
+                              <ul className="list-disc list-inside text-[11px] text-[#B8AA96] space-y-1">
+                                {prop.stylist_notes.gen_z_tips.map((tip, tIdx) => (
+                                  <li key={tIdx}>{tip}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Full Cultural Audit Panel component */}
+                            <div className="pt-1">
+                              <CulturalAuditPanel audit={prop.audit} onOpenCKB={onOpenCKB} />
                             </div>
                           </div>
-                        </div>
+                        )}
+                      </div>
+
+                      {/* 6. Card Action Buttons (Edit Look, Open Cultural Audit, Open Lookbook) */}
+                      <div className="pt-2 border-t border-[#C9A66B]/20 grid grid-cols-3 gap-2 mt-auto">
+                        {/* Edit Look: Selects this look and navigates to What-If */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSelectPlanIndex(idx);
+                            onNavigateToWhatIf();
+                          }}
+                          className="py-2 px-2 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-[11px] font-semibold rounded-xl flex items-center justify-center gap-1 transition-colors min-h-[38px] shadow-xs cursor-pointer text-center"
+                          title="Thử các kịch bản biến tấu What-If cho riêng bản phối này"
+                        >
+                          <span>Edit Look</span>
+                          <ArrowRight className="w-3 h-3 shrink-0" />
+                        </button>
+
+                        {/* Open Cultural Audit */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSelectPlanIndex(idx);
+                            toggleCardDetails(prop.id);
+                          }}
+                          className="py-2 px-2 bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 text-[#E6C88B] text-[11px] font-medium rounded-xl flex items-center justify-center gap-1 transition-colors min-h-[38px] cursor-pointer text-center"
+                          title="Mở hồ sơ kiểm chứng di sản văn hóa"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-[#E6C88B] shrink-0" />
+                          <span className="truncate">Thẩm định</span>
+                        </button>
+
+                        {/* Open Lookbook Card */}
+                        <button
+                          type="button"
+                          onClick={() => onOpenLookbookCard(prop)}
+                          className="py-2 px-2 bg-[#181311]/70 hover:bg-[#261C19] border border-[#C9A66B]/25 text-[#F2E9D8] text-[11px] font-medium rounded-xl flex items-center justify-center gap-1 transition-colors min-h-[38px] cursor-pointer text-center"
+                          title="Mở thẻ Lookbook thời trang cao cấp"
+                        >
+                          <Share2 className="w-3 h-3 text-[#C9A66B] shrink-0" />
+                          <span className="truncate">Lookbook</span>
+                        </button>
                       </div>
                     </div>
-
-                    {/* Stylist Notes Box */}
-                    <div className="bg-[#181311]/60 p-4 sm:p-5 rounded-xl border border-[#C9A66B]/20 space-y-2.5 backdrop-blur-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-mono uppercase tracking-wider text-[#C9A66B] font-semibold">
-                          Lời khuyên từ Stylist đương đại
-                        </span>
-                      </div>
-                      <p className="text-sm sm:text-base text-[#F2E9D8] leading-relaxed font-serif italic">
-                        "{currentProposal.stylist_notes.philosophy}"
-                      </p>
-
-                      <div className="pt-2 border-t border-[#C9A66B]/15 space-y-1">
-                        <span className="text-xs font-semibold text-[#B8AA96]">Mẹo mặc đẹp cho Gen Z:</span>
-                        <ul className="list-disc list-inside text-xs sm:text-sm text-[#B8AA96] space-y-1 pl-1">
-                          {currentProposal.stylist_notes.gen_z_tips.map((tip, idx) => (
-                            <li key={idx}>{tip}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Tab Content: Cultural Reference */}
-                {detailTab === 'audit' && (
-                  <div className="animate-in fade-in duration-150">
-                    <CulturalAuditPanel
-                      audit={currentProposal.audit}
-                      onOpenCKB={onOpenCKB}
-                    />
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </div>
           )}

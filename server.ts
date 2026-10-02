@@ -322,6 +322,63 @@ Trả về kết quả chuẩn định dạng JSON.
   }
 });
 
+// -------------------------------------------------------------
+// V2.0 Visual-First Image Generation Abstraction (Server-side)
+// -------------------------------------------------------------
+export interface GenerateLookImageParams {
+  designState?: any;
+  garment?: string;
+  visualDescription?: string;
+  palette?: string[];
+  materials?: string[];
+  aspectRatio?: '1:1' | '3:4' | '9:16' | '16:9';
+}
+
+export interface GenerateLookImageResult {
+  imageUrl?: string;
+  generationSource: string;
+  status: 'image_ready' | 'image_generating' | 'image_unavailable';
+  message?: string;
+}
+
+/**
+ * Server abstraction for image generation interface (Requirement 4)
+ * Allows future model plug-in without client-side API key leakage.
+ * In Phase V2.0 Foundation, if no dedicated image model endpoint is configured,
+ * returns image_unavailable safely without disrupting core fashion co-design flow.
+ */
+export async function generateLookImage(params: GenerateLookImageParams): Promise<GenerateLookImageResult> {
+  const garment = params.garment || params.designState?.garment_type || 'ngu_than';
+  const palette = params.palette || params.designState?.color_palette || [];
+  const materials = params.materials || params.designState?.fabric_materials || [];
+  const aspectRatio = params.aspectRatio || '3:4';
+  const visualDesc = params.visualDescription || params.designState?.title || '';
+
+  // In Phase V2.0 Foundation, gracefully report image_unavailable
+  return {
+    status: 'image_unavailable',
+    generationSource: 'server_v2_foundation',
+    message: 'Visual studio foundation mode: high-end editorial placeholder active; image model not configured.',
+  };
+}
+
+app.post('/api/remix/generate-image', async (req: Request, res: Response) => {
+  try {
+    const result = await generateLookImage(req.body);
+    return res.json({
+      success: true,
+      ...result,
+    });
+  } catch (err: any) {
+    return res.status(200).json({
+      success: true,
+      status: 'image_unavailable',
+      generationSource: 'server_fallback',
+      message: err?.message || 'Không thể tạo ảnh thị giác lúc này.',
+    });
+  }
+});
+
 // In production, serve static dist files. In dev, Vite middleware is attached.
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {

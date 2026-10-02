@@ -32,7 +32,9 @@ export const GarmentSchematic: React.FC<GarmentSchematicProps> = ({
       {/* Structural exploration caption */}
       <div className="absolute top-3.5 left-4 z-10 flex items-center gap-2 text-xs text-[#C9A66B] font-mono">
         <span className="w-1.5 h-1.5 rounded-full bg-[#B8342B]" />
-        <span>SƠ ĐỒ CẤU TRÚC · {garment === 'ngu_than' ? 'ÁO NGŨ THÂN' : garment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}</span>
+        <span className="font-bold tracking-wider text-[#E6C88B]">Interactive Structural Reference</span>
+        <span className="hidden sm:inline text-[#8C7E6C]">·</span>
+        <span className="hidden sm:inline text-[#B8AA96]">{garment === 'ngu_than' ? 'ÁO NGŨ THÂN' : garment === 'ao_tac' ? 'ÁO TẤC' : 'ÁO NHẬT BÌNH'}</span>
       </div>
 
       <div className="absolute top-3.5 right-4 z-10 text-[11px] font-mono text-[#B8AA96]">

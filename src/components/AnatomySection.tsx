@@ -15,18 +15,18 @@ export const AnatomySection: React.FC<AnatomySectionProps> = ({ onOpenCKB }) => 
       {/* Header Banner */}
       <div className="lacquer-panel rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-semibold text-[#C9A66B] uppercase tracking-wider">
-              BẢN VẼ CẤU TRÚC Y PHỤC
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-mono font-bold text-[#E6C88B] uppercase tracking-wider bg-[#C9A66B]/15 px-2 py-0.5 rounded border border-[#C9A66B]/30">
+              Interactive Structural Reference
             </span>
             <span className="text-[#8C7E6C]">·</span>
-            <span className="text-xs text-[#B8AA96]">Phân định bất biến & khả biến</span>
+            <span className="text-xs text-[#B8AA96]">Sơ đồ cấu trúc kỹ thuật & phân định bất biến / khả biến</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-serif font-bold text-[#F2E9D8] tracking-tight">
             Giải phẫu cấu trúc y phục cổ truyền
           </h2>
           <p className="text-sm text-[#B8AA96] max-w-2xl leading-relaxed">
-            Phân định rạch ròi giữa Vùng Bất Biến (Invariant - Giữ trọn danh phận và bản sắc y phục) và Vùng Khả Biến (Mutable - Tự do sáng tạo, biến tấu chất liệu và phom dáng đương đại).
+            Công cụ tham chiếu cấu trúc tương tác (Interactive Structural Reference). Dùng để phân định rạch ròi vị trí khuy, vạt, nẹp cổ giữa Vùng Bất Biến (Invariant) và Vùng Khả Biến (Mutable) của y phục thời Nguyễn, độc lập với ảnh dựng thời trang.
           </p>
         </div>
       </div>

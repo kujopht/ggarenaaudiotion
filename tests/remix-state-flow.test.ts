@@ -35,7 +35,15 @@ import {
   validateGeminiProposalContract,
   processGeminiProposalResponse,
 } from '../src/utils/auditNormalization.js';
-import { CulturalAuditResult, GarmentKey, OutfitProposal, WhatIfEvaluation } from '../src/types/vietphuc.js';
+import {
+  CulturalAuditResult,
+  GarmentKey,
+  OutfitProposal,
+  WhatIfEvaluation,
+  proposalToDesignState,
+  designStateToProposal,
+  DesignState,
+} from '../src/types/vietphuc.js';
 
 console.log('--- BẮT ĐẦU CHẠY BỘ KIỂM THỬ: REMIX STATE & FLOW VALIDATION ---\n');
 
@@ -1701,6 +1709,194 @@ runTest('16.15 getWhatIfSummaryStatus: system warning nhưng không có design c
   assert.strictEqual(summary.hasDesignCaution, false, 'System warning không được biến thành design caution');
   assert.strictEqual(summary.isPrototypeConflict, false, 'Không được có prototype conflict');
   assert.strictEqual(summary.systemWarnings.length, 1);
+});
+
+// -------------------------------------------------------------
+// Test Case 17: V2.0 Visual Studio Foundation & Design State Architecture
+// -------------------------------------------------------------
+runTest('17.1 Adapter proposalToDesignState: Ánh xạ đầy đủ tất cả các trường cấu trúc yêu cầu', () => {
+  const proposal: OutfitProposal = {
+    id: 'test-proposal-v2-01',
+    plan_type: 'heritage_anchored',
+    title: 'Ngũ Thân Lập Lĩnh Thường Nhật',
+    concept_tag: 'HERITAGE_AUTHENTIC',
+    garment_type: 'ngu_than',
+    dial_level: 1,
+    visual_details: {
+      collar_style: 'Cổ vuông đứng 4cm',
+      lapel_side: 'Hữu nhậm (vạt trái đè vạt phải)',
+      sleeve_style: 'Tay chẽn gọn gàng',
+      cut_length: 'Dài qua gối 15cm',
+      fabric_materials: ['Lụa Vạn Phúc', 'Gấm sa Nam'],
+      layering_pieces: ['Áo thun lót mộc', 'Khăn đóng gấm'],
+      bottom_garment: 'Quần lụa trắng ống suông',
+      footwear: 'Guốc mộc truyền thống',
+      accessories: ['Khuy đồng xà cừ', 'Quạt nan tre'],
+      color_palette: ['Xanh chàm (#1E3A8A)', 'Vàng đồng (#C9A66B)'],
+    },
+    audit: {
+      status: 'Supported',
+      uncertainty_flag: false,
+      evidence_ids: ['KB-RULE-01', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02'],
+      invariants_checked: [
+        { evidence_id: 'KB-RULE-01', rule_name: 'Hữu nhậm', passed: true, detail: 'Chuẩn vạt phải' },
+      ],
+      mutables_used: [],
+      cautions_and_redlines: [],
+      auditor_verdict: 'Thiết kế tuân thủ hoàn toàn quy thức di sản.',
+      prototype_compliance: 'compliant',
+      historical_confidence: 'verified',
+    },
+    stylist_notes: {
+      philosophy: 'Bảo lưu nguyên bản vẻ đẹp nho nhã triều Nguyễn.',
+      gen_z_tips: ['Mặc cùng quần suông tạo phom thanh lịch.'],
+      occasions: ['Lễ Tết', 'Chụp ảnh di sản'],
+    },
+  };
+
+  const state: DesignState = proposalToDesignState(proposal);
+
+  assert.strictEqual(state.id, proposal.id);
+  assert.strictEqual(state.garment_type, 'ngu_than');
+  assert.strictEqual(state.plan_type, 'heritage_anchored');
+  assert.strictEqual(state.title, proposal.title);
+  assert.strictEqual(state.concept_tag, proposal.concept_tag);
+  assert.strictEqual(state.dial_level, 1);
+  assert.strictEqual(state.collar, 'Cổ vuông đứng 4cm');
+  assert.strictEqual(state.lapel, 'Hữu nhậm (vạt trái đè vạt phải)');
+  assert.strictEqual(state.sleeve, 'Tay chẽn gọn gàng');
+  assert.strictEqual(state.length, 'Dài qua gối 15cm');
+  assert.deepStrictEqual(state.fabric_materials, ['Lụa Vạn Phúc', 'Gấm sa Nam']);
+  assert.deepStrictEqual(state.layering, ['Áo thun lót mộc', 'Khăn đóng gấm']);
+  assert.strictEqual(state.bottom_garment, 'Quần lụa trắng ống suông');
+  assert.strictEqual(state.footwear, 'Guốc mộc truyền thống');
+  assert.deepStrictEqual(state.accessories, ['Khuy đồng xà cừ', 'Quạt nan tre']);
+  assert.deepStrictEqual(state.color_palette, ['Xanh chàm (#1E3A8A)', 'Vàng đồng (#C9A66B)']);
+  assert.strictEqual(state.stylist_notes.philosophy, proposal.stylist_notes.philosophy);
+  assert.strictEqual(state.audit.status, 'Supported');
+  assert.deepStrictEqual(state.evidence_ids, ['KB-RULE-01', 'KB-NGUTHAN-01', 'KB-NGUTHAN-02']);
+  assert.strictEqual(state.image_data?.status, 'image_unavailable', 'Mặc định khi chưa tạo ảnh phải là image_unavailable an toàn');
+});
+
+runTest('17.2 Round-trip adapter: designStateToProposal bảo toàn nguyên vẹn visual_details và audit', () => {
+  const proposal: OutfitProposal = {
+    id: 'test-proposal-v2-02',
+    plan_type: 'contemporary_remix',
+    title: 'Áo Tấc Duster Coat Phố Thị',
+    concept_tag: 'STREETWEAR_AVANT_GARDE',
+    garment_type: 'ao_tac',
+    dial_level: 4,
+    visual_details: {
+      collar_style: 'Cổ đứng lập lĩnh giữ phom',
+      lapel_side: 'Khoác mở tà tự do (Duster Coat)',
+      sleeve_style: 'Tay thụng quét gấu rộng',
+      cut_length: 'Dài quét đất bay bổng',
+      fabric_materials: ['Dạ tweed mỏng', 'Lụa tơ tằm lót'],
+      layering_pieces: ['Hoodie đen oversize', 'Túi chéo da'],
+      bottom_garment: 'Quần âu xếp ly ống thụng',
+      footwear: 'Chunky Derby bọc da',
+      accessories: ['Kính mắt gọng kim loại'],
+      color_palette: ['Đen tuyền (#111111)', 'Xanh ngọc lục bảo (#065F46)'],
+    },
+    audit: {
+      status: 'Supported with Caution',
+      uncertainty_flag: false,
+      evidence_ids: ['KB-TAC-01', 'KB-TAC-03'],
+      invariants_checked: [
+        { evidence_id: 'KB-TAC-01', rule_name: 'Tay thụng', passed: true, detail: 'Bảo lưu tay rộng' },
+      ],
+      mutables_used: [
+        { evidence_id: 'KB-TAC-03', element: 'Tà áo duster', application: 'Khoác ngoài hiện đại' },
+      ],
+      cautions_and_redlines: [],
+      auditor_verdict: 'Thiết kế biến tấu trong vùng mutable cho phép.',
+      prototype_compliance: 'compliant',
+      historical_confidence: 'partially_verified',
+    },
+    stylist_notes: {
+      philosophy: 'Hòa trộn đường phố và tính lễ nghi của áo Tấc.',
+      gen_z_tips: ['Mở tà tạo độ bay khi chuyển động.'],
+      occasions: ['Tuần lễ thời trang', 'Sự kiện nghệ thuật'],
+    },
+  };
+
+  const state = proposalToDesignState(proposal);
+  const reconstructed = designStateToProposal(state);
+
+  assert.strictEqual(reconstructed.id, proposal.id);
+  assert.strictEqual(reconstructed.plan_type, proposal.plan_type);
+  assert.strictEqual(reconstructed.garment_type, proposal.garment_type);
+  assert.strictEqual(reconstructed.dial_level, proposal.dial_level);
+  assert.strictEqual(reconstructed.visual_details.collar_style, proposal.visual_details.collar_style);
+  assert.strictEqual(reconstructed.visual_details.lapel_side, proposal.visual_details.lapel_side);
+  assert.strictEqual(reconstructed.visual_details.sleeve_style, proposal.visual_details.sleeve_style);
+  assert.strictEqual(reconstructed.visual_details.cut_length, proposal.visual_details.cut_length);
+  assert.deepStrictEqual(reconstructed.visual_details.fabric_materials, proposal.visual_details.fabric_materials);
+  assert.deepStrictEqual(reconstructed.visual_details.layering_pieces, proposal.visual_details.layering_pieces);
+  assert.strictEqual(reconstructed.visual_details.bottom_garment, proposal.visual_details.bottom_garment);
+  assert.strictEqual(reconstructed.visual_details.footwear, proposal.visual_details.footwear);
+  assert.deepStrictEqual(reconstructed.visual_details.accessories, proposal.visual_details.accessories);
+  assert.deepStrictEqual(reconstructed.visual_details.color_palette, proposal.visual_details.color_palette);
+  assert.strictEqual(reconstructed.audit.status, proposal.audit.status);
+});
+
+runTest('17.3 Image State Lifecycle: Trạng thái ảnh không cản trở luồng text & Cultural Audit', () => {
+  const proposal: OutfitProposal = {
+    id: 'test-proposal-v2-03',
+    plan_type: 'heritage_anchored',
+    title: 'Áo Nhật Bình Lễ Hội Cung Đình',
+    concept_tag: 'ROYAL_HERITAGE',
+    garment_type: 'nhat_binh',
+    dial_level: 1,
+    visual_details: {
+      collar_style: 'Nẹp cổ đối khâm chữ nhật',
+      lapel_side: 'Cài dây thắt nẹp cổ chính diện',
+      sleeve_style: 'Tay ngũ hành theo phẩm cấp',
+      cut_length: 'Dài chấm gối',
+      fabric_materials: ['Gấm dệt tơ vàng', 'Lụa thêu chỉ kim tuyến'],
+      layering_pieces: ['Áo ngũ thân mặc lót', 'Quần trắng'],
+      bottom_garment: 'Quần ta lụa tuyết',
+      footwear: 'Hài phượng đính cườm',
+      accessories: ['Khăn vành dây 50 vòng', 'Trâm cài tóc mạ vàng'],
+      color_palette: ['Đỏ điều (#991B1B)', 'Vàng hoàng yến (#C9A66B)'],
+    },
+    audit: {
+      status: 'Supported',
+      uncertainty_flag: false,
+      evidence_ids: ['KB-NHATBINH-01'],
+      invariants_checked: [
+        { evidence_id: 'KB-NHATBINH-01', rule_name: 'Nẹp cổ đối khâm', passed: true, detail: 'Chuẩn đối khâm' },
+      ],
+      mutables_used: [],
+      cautions_and_redlines: [],
+      auditor_verdict: 'Chuẩn mực di sản Nhật Bình.',
+      prototype_compliance: 'compliant',
+      historical_confidence: 'verified',
+    },
+    stylist_notes: {
+      philosophy: 'Quy thức triều Nguyễn trang trọng.',
+      gen_z_tips: ['Thắt nẹp cổ ngay ngắn.'],
+      occasions: ['Đại lễ cưới', 'Chụp ảnh di sản'],
+    },
+  };
+
+  // Test with image_unavailable
+  const stateUnavailable = proposalToDesignState(proposal, { status: 'image_unavailable' });
+  assert.strictEqual(stateUnavailable.image_data?.status, 'image_unavailable');
+  assert.strictEqual(stateUnavailable.audit.status, 'Supported', 'Audit vẫn chạy bình thường khi ảnh unavailable');
+
+  // Test with image_generating
+  const stateGenerating = proposalToDesignState(proposal, { status: 'image_generating' });
+  assert.strictEqual(stateGenerating.image_data?.status, 'image_generating');
+
+  // Test with image_ready
+  const stateReady = proposalToDesignState(proposal, {
+    status: 'image_ready',
+    imageUrl: 'https://example.com/editorial-look.jpg',
+    generationSource: 'server_v2_foundation',
+  });
+  assert.strictEqual(stateReady.image_data?.status, 'image_ready');
+  assert.strictEqual(stateReady.image_data?.imageUrl, 'https://example.com/editorial-look.jpg');
 });
 
 console.log('\n-------------------------------------------------------------');

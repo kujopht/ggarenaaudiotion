@@ -145,3 +145,108 @@ export interface WhatIfEvaluation {
   has_design_caution?: boolean;
   has_evidence_uncertainty?: boolean;
 }
+
+// -------------------------------------------------------------
+// V2.0 Visual-First Design Studio: Design State & Image Pipeline
+// -------------------------------------------------------------
+export type ImageGenerationStatus = 'image_ready' | 'image_generating' | 'image_unavailable';
+
+export interface LookImageData {
+  status: ImageGenerationStatus;
+  imageUrl?: string;
+  generationSource?: string;
+  promptUsed?: string;
+  aspectRatio?: '1:1' | '3:4' | '9:16' | '16:9';
+  errorMessage?: string;
+}
+
+export interface DesignState {
+  id: string;
+  garment_type: GarmentKey;
+  plan_type: 'heritage_anchored' | 'contemporary_remix';
+  title: string;
+  concept_tag: string;
+  dial_level: number;
+  collar: string;
+  lapel: string;
+  sleeve: string;
+  length: string;
+  fabric_materials: string[];
+  layering: string[];
+  bottom_garment: string;
+  footwear: string;
+  accessories: string[];
+  color_palette: string[];
+  stylist_notes: StylistNotes;
+  audit: CulturalAuditResult;
+  evidence_ids: string[];
+  image_data?: LookImageData;
+}
+
+/**
+ * Adapter converting existing OutfitProposal to structured DesignState
+ */
+export function proposalToDesignState(proposal: OutfitProposal, imageData?: LookImageData): DesignState {
+  return {
+    id: proposal.id,
+    garment_type: proposal.garment_type,
+    plan_type: proposal.plan_type,
+    title: proposal.title,
+    concept_tag: proposal.concept_tag,
+    dial_level: proposal.dial_level,
+    collar: proposal.visual_details.collar_style,
+    lapel: proposal.visual_details.lapel_side,
+    sleeve: proposal.visual_details.sleeve_style,
+    length: proposal.visual_details.cut_length,
+    fabric_materials: [...(proposal.visual_details.fabric_materials || [])],
+    layering: [...(proposal.visual_details.layering_pieces || [])],
+    bottom_garment: proposal.visual_details.bottom_garment,
+    footwear: proposal.visual_details.footwear,
+    accessories: [...(proposal.visual_details.accessories || [])],
+    color_palette: [...(proposal.visual_details.color_palette || [])],
+    stylist_notes: {
+      philosophy: proposal.stylist_notes.philosophy,
+      gen_z_tips: [...(proposal.stylist_notes.gen_z_tips || [])],
+      occasions: [...(proposal.stylist_notes.occasions || [])],
+    },
+    audit: proposal.audit,
+    evidence_ids: proposal.audit.evidence_ids ? [...proposal.audit.evidence_ids] : [],
+    image_data: imageData || {
+      status: 'image_unavailable',
+      generationSource: 'placeholder_editorial',
+    },
+  };
+}
+
+/**
+ * Adapter converting structured DesignState back to OutfitProposal
+ */
+export function designStateToProposal(state: DesignState): OutfitProposal {
+  return {
+    id: state.id,
+    plan_type: state.plan_type,
+    title: state.title,
+    concept_tag: state.concept_tag,
+    garment_type: state.garment_type,
+    dial_level: state.dial_level,
+    visual_details: {
+      collar_style: state.collar,
+      lapel_side: state.lapel,
+      sleeve_style: state.sleeve,
+      cut_length: state.length,
+      fabric_materials: [...state.fabric_materials],
+      layering_pieces: [...state.layering],
+      bottom_garment: state.bottom_garment,
+      footwear: state.footwear,
+      accessories: [...state.accessories],
+      color_palette: [...state.color_palette],
+    },
+    audit: state.audit,
+    stylist_notes: {
+      philosophy: state.stylist_notes.philosophy,
+      gen_z_tips: [...state.stylist_notes.gen_z_tips],
+      occasions: [...state.stylist_notes.occasions],
+    },
+  };
+}
+
