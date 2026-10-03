@@ -4,7 +4,7 @@
 ---
 
 ## 1. TỔNG QUAN BÁO CÁO NGHIỆM THU
-- **Ngày nghiệm thu:** 02/10/2026
+- **Ngày nghiệm thu:** 03/10/2026
 - **Môi trường đánh giá:** Node.js v20+, Express, Vite, React 19, TypeScript
 - **Phiên bản mô hình AI:** Google Gemini `gemini-3.8-flash`
 - **Mục tiêu:** Khóa toàn diện chất lượng kỹ thuật, tính trung thực dữ liệu di sản (CKB), trải nghiệm responsive đa thiết bị và an toàn bảo mật trước giờ nộp bài.
