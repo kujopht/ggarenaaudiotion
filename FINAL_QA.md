@@ -4,9 +4,9 @@
 ---
 
 ## 1. TỔNG QUAN BÁO CÁO NGHIỆM THU
-- **Ngày nghiệm thu:** 03/10/2026
+- **Ngày nghiệm thu:** 06/10/2026
 - **Môi trường đánh giá:** Node.js v20+, Express, Vite, React 19, TypeScript
-- **Phiên bản mô hình AI:** Google Gemini `gemini-3.8-flash`
+- **Phiên bản mô hình AI:** Google Gemini `gemini-3.8-flash` (Primary) -> `gemini-3.1-flash-lite` (Cascade fallback) -> `deterministic_engine` (Offline fallback)
 - **Mục tiêu:** Khóa toàn diện chất lượng kỹ thuật, tính trung thực dữ liệu di sản (CKB), trải nghiệm responsive đa thiết bị và an toàn bảo mật trước giờ nộp bài.
 
 ---
@@ -22,7 +22,7 @@
 | **Production GET /** | `curl -sI http://localhost:3098/` | HTTP 200, Content-Type: `text/html; charset=utf-8` | HTTP/1.1 200 OK | ✅ **PASS** |
 | **Generate Fallback (Không Key)** | `POST /api/remix/generate` | Trả về 2 proposals hợp lệ từ `deterministic_engine` | HTTP 200, 2 proposals | ✅ **PASS** |
 | **What-If Fallback (Không Key)** | `POST /api/remix/what-if` | Trả về evaluation phân tích đầy đủ từ `deterministic_engine` | HTTP 200, evaluation ok | ✅ **PASS** |
-| **Gemini Live Smoke Test** | `server.ts` runtime test | Hoạt động ổn định với API key hoặc chuyển fallback mượt mà | Pass (tested w/ key & fallback) | ✅ **PASS** |
+| **Gemini Live Smoke Test** | `server.ts` runtime test | Hoạt động ổn định với API key hoặc chuyển fallback mượt mà | Pass (tested w/ key & fallback cascade) | ✅ **PASS** |
 
 ---
 
@@ -87,3 +87,14 @@ Hệ thống đã được kiểm tra trên các độ phân giải màn hình c
 
 ## 7. KẾT LUẬN NGHIỆM THU
 Các hạng mục nghiệm thu bắt buộc trong lần chạy QA cuối đã đạt tiêu chí. Ứng dụng đã sẵn sàng nộp bài tham dự AI Arena Vietnam 2026.
+
+---
+
+## 8. FINAL SUBMISSION READINESS
+- **Judge flow:** PASS
+- **Public demo:** PASS
+- **Submission draft:** READY
+- **Demo script:** READY
+- **Repository:** READY
+- **READY TO RECORD:** YES
+- **READY TO SUBMIT AFTER VIDEO AND CONVERSATION LINKS:** YES

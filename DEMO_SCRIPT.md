@@ -1,94 +1,96 @@
-# KỊCH BẢN QUAY VIDEO DEMO (90 - 120 GIÂY)
-## DỰ ÁN: KUJO RE:WEAR (AI ARENA 2026)
+# KỊCH BẢN QUAY VIDEO DEMO KUJO RE:WEAR (105 GIÂY)
+## CUỘC THI: AI ARENA VIETNAM 2026
 
 ---
 
 ### TỔNG QUAN KỊCH BẢN
-- **Thời lượng mục tiêu:** 105 giây (nằm trọn trong khung 90 – 120 giây).
-- **Phong cách trình bày:** Tự nhiên, đĩnh đạc, hiện đại, thể hiện tinh thần nhiệt huyết của người trẻ yêu di sản văn hóa và công nghệ. Tránh giọng đọc học thuật khô khan.
-- **Thiết bị quay khuyến nghị:** Màn hình máy tính tỉ lệ 16:9 (1920x1080) kết hợp khung hình người thuyết minh ở góc hoặc thuyết minh giọng đọc (voiceover) kèm nhạc nền nhẹ nhàng, trầm ấm mang âm hưởng truyền thống.
+- **Thời lượng mục tiêu:** 105 - 110 giây (tối đa không quá 120 giây).
+- **Thiết lập quay:** Trình duyệt 16:9 (1920x1080), micro rõ nét, chuột rê dứt khoát, nhạc nền âm hưởng văn hóa nhẹ nhàng.
+- **Nguyên tắc phát ngôn:** Nói đúng những gì giao diện thực tế hiển thị. Tuyệt đối không phóng đại "AI không bao giờ sai" hay "100% chính xác lịch sử". Nhấn mạnh: *Hệ thống không giả vờ chắc chắn khi dữ liệu chưa đủ.*
+- *Lưu ý:* Nếu chạy live hiển thị nhãn "Bản phân tích dự phòng" thay vì "Gemini trực tiếp", kịch bản vẫn vận hành trơn tru vì tính năng thẩm định và counter-proposal đồng nhất.
 
 ---
 
 ### PHÂN CẢNH CHI TIẾT
 
-#### 🎬 PHÂN CẢNH 1: ĐẶT VẤN ĐỀ (00:00 – 00:10)
-- **Hình ảnh trên màn hình:** Mở đầu với giao diện trang chủ KUJO Re:Wear. Cuộn nhẹ lướt qua Hero section với họa tiết chim phượng hoàng và trống đồng Đông Sơn.
-- **Hành động:** Di chuột nhẹ nhàng trên màn hình.
+#### 🎬 1. ĐẶT VẤN ĐỀ (00:00 – 00:10 | 10s)
+- **Hình ảnh:** Màn hình trang chủ KUJO Re:Wear, cuộn nhẹ qua Hero section với họa tiết phượng hoàng và Trống đồng Đông Sơn.
+- **Hành động:** Rê chuột tự nhiên trên trang chủ.
 - **Lời thoại (Voiceover):**  
-  *"Là một người trẻ yêu cổ phục, mình và rất nhiều bạn Gen Z luôn muốn mặc áo dài ngũ thân hay áo tấc ra phố mỗi ngày. Thế nhưng tụi mình luôn băn khoăn: Chi tiết nào của tiền nhân bắt buộc phải giữ, và chi tiết nào có thể biến tấu để vừa thời thượng vừa không bị coi là lai căng?"*
+  *"Nhiều bạn trẻ Gen Z muốn mặc áo ngũ thân, áo tấc ra phố mỗi ngày nhưng luôn lo ngại: chi tiết nào có thể biến tấu, chi tiết nào bắt buộc phải giữ, và liệu mình có vô tình phối sai chuẩn mực văn hóa hay không?"*
 
 ---
 
-#### 🎬 PHÂN CẢNH 2: GIỚI THIỆU GIẢI PHÁP & REMIX DIAL (00:10 – 00:25)
-- **Hình ảnh trên màn hình:** Cuộn xuống khu vực **Xưởng phối đồ (Co-Design Studio)**. Trỏ chuột vào đĩa xoay **Remix Dial** ở trung tâm.
-- **Hành động:** Kéo thanh trượt hoặc xoay đĩa Remix Dial từ mức 1 lên mức 3, rồi mức 4. Vành trống đồng phản hồi mượt mà cùng số hiển thị.
+#### 🎬 2. GIỚI THIỆU KUJO RE:WEAR & REMIX DIAL (00:10 – 00:25 | 15s)
+- **Hình ảnh:** Cuộn xuống **Xưởng phối đồ (Co-Design Studio)**, trỏ vào đĩa xoay **Remix Dial**.
+- **Hành động:** Kéo thanh trượt hoặc xoay đĩa Remix Dial từ mức 1 qua mức 3, dừng tại mức 4. Vành trống đồng phản hồi sinh động.
 - **Lời thoại (Voiceover):**  
-  *"Đó là lý do tụi mình tạo nên KUJO Re:Wear. Trái tim của ứng dụng là chiếc đĩa xoay Remix Dial này — cho phép bạn tự do điều chỉnh mức độ sáng tạo: từ Mức 1 bám sát tham chiếu đến Mức 5 phá cách thể nghiệm đương đại cùng Google Gemini."*
+  *"KUJO Re:Wear là AI Cultural Co-Designer giúp giải tỏa nỗi e ngại ấy. Trung tâm trải nghiệm là chiếc đĩa xoay Remix Dial — cho phép bạn chủ động chọn mức độ sáng tạo: từ Mức 1 bám sát truyền thống đến Mức 5 phá cách thể nghiệm cùng Google Gemini."*
 
 ---
 
-#### 🎬 PHÂN CẢNH 3: TẠO 2 BẢN PHỐI ĐỐI SÁNH (00:25 – 00:50)
-- **Hình ảnh trên màn hình:** Thao tác nhanh quy trình 5 bước trong Co-Design Studio.
+#### 🎬 3. THIẾT LẬP THAM SỐ VÀ TẠO BẢN PHỐI (00:25 – 00:45 | 20s)
+- **Hình ảnh:** Thao tác chọn các thông số đầu vào trong Studio.
 - **Hành động:**
-  1. Chọn thẻ **Áo Ngũ Thân tay chẽn**.
-  2. Bấm chọn bối cảnh: **Dạo phố cuối tuần (Streetwear)**.
-  3. Bấm chọn phong cách: **Indigo Denim & Selvedge**.
-  4. Đặt Remix Dial ở **Mức 3**.
-  5. Bấm nút **"5. Tạo 2 bản phối"**.
-  6. Kết quả hiện ra ngay lập tức với 2 thẻ: Bản phối A và Bản phối B.
+  1. Chọn **Áo Ngũ Thân tay chẽn**.
+  2. Chọn bối cảnh **Dạo phố (Streetwear)**.
+  3. Chọn phong cách **Indigo Denim**.
+  4. Chọn màu **Chàm**.
+  5. Chọn phụ kiện **Túi hiện đại**.
+  6. Giữ Remix Dial ở **Mức 4**.
+  7. Bấm nút **"Tạo 2 bản phối"**.
 - **Lời thoại (Voiceover):**  
-  *"Hãy thử với Áo Ngũ Thân nhé! Mình chọn ngữ cảnh dạo phố, phong cách Indigo Denim bụi bặm, và đặt Remix ở mức 3. Chỉ sau một cú chạm, hệ thống lập tức mang đến 2 phương án đối sánh:  
-  Bản phối A giữ trọn sự chuẩn mực, thanh lịch.  
-  Còn Bản phối B là một làn gió mới đầy phá cách với quần jeans suông và giày sneakers, nhưng form dáng ngũ thân vẫn hiện diện sắc sảo."*
+  *"Mình chọn Áo Ngũ Thân tay chẽn, dạo phố, phong cách Indigo Denim, sắc xanh Chàm, phụ kiện túi hiện đại và đặt Remix Dial mức 4. Bấm tạo bản phối — hệ thống xử lý tức thì với kiểm soát hợp đồng dữ liệu nghiêm ngặt."*
 
 ---
 
-#### 🎬 PHÂN CẢNH 4: MINH BẠCH THẨM ĐỊNH CƠ SỞ TRI THỨC (00:50 – 01:10)
-- **Hình ảnh trên màn hình:** Bấm vào nút **"Xem thẩm định văn hóa"** trên thẻ Bản phối B. Modal hoặc panel Cultural Audit mở ra.
+#### 🎬 4. ĐỐI SÁNH 2 BẢN PHỐI & QUICK COMPARE (00:45 – 00:57 | 12s)
+- **Hình ảnh:** Hai thẻ bản phối xuất hiện song hành, sau đó cuộn xuống bảng **So sánh nhanh (Quick Compare)**.
+- **Hành động:** Trỏ chuột lần lượt vào **Heritage Anchored** (bản phối truyền thống) và **Contemporary Remix** (bản phối đương đại), rồi lướt qua bảng so sánh 6 tiêu chí.
+- **Lời thoại (Voiceover):**  
+  *"Giao diện lập tức hiển thị 2 bản phối song hành: Heritage Anchored giữ trọn cốt cách xưa, và Contemporary Remix phá cách cùng quần denim, sneaker và túi da hiện đại. Bảng So sánh nhanh đối chiếu khách quan 6 tiêu chí, không chấm điểm số máy móc và không phân định thắng thua."*
+
+---
+
+#### 🎬 5. THẨM ĐỊNH VĂN HÓA CKB (00:57 – 01:10 | 13s)
+- **Hình ảnh:** Bấm mở **Cultural Audit** trên thẻ Contemporary Remix.
+- **Hành động:** Trỏ vào nhãn **Prototype Compliance**, nhãn **Historical Confidence** và các mã căn cứ như **KB-RULE-01**.
+- **Lời thoại (Voiceover):**  
+  *"Mở phần Thẩm định văn hóa: hệ thống phân tách độc lập giữa Chuẩn mực mẫu thiết kế — Prototype Compliance, và Độ tin cậy tư liệu lịch sử — Historical Confidence. Mỗi kết luận đều dẫn nguồn mã căn cứ CKB cụ thể, không giả vờ chắc chắn khi dữ liệu cần đối soát thêm."*
+
+---
+
+#### 🎬 6. WHAT IF: THỬ NGHIỆM XUNG ĐỘT & COUNTER-PROPOSAL (01:10 – 01:28 | 18s)
+- **Hình ảnh:** Bấm nút **"Thử thay đổi trên bản phối này"** để chuyển sang tab **What If Lab**.
 - **Hành động:**
-  - Rê chuột qua nhãn **Prototype Compliance: Hợp lệ (Compliant)**.
-  - Rê chuột qua nhãn **Độ tin cậy lịch sử: Chờ rà soát (Needs Review)**.
-  - Trỏ vào mã quy tắc **KB-RULE-01 (Quy thức Hữu nhậm)** và **KB-NGUTHAN-01**.
-  - Trỏ vào nhãn nguồn minh bạch: **Gemini trực tiếp** hoặc **Bản phân tích dự phòng**.
+  1. Thấy bản phối Contemporary Remix được giữ nguyên ở mục *Trước (Before)*.
+  2. Bấm preset: **"Đổi hướng cài khuy sang trái"**.
+  3. Bấm **"Đánh giá giả định"**.
+  4. Trỏ vào kết quả: Prototype Compliance báo **conflict**, căn cứ **KB-RULE-01**.
+  5. Cuộn xuống phần **Stylist Counter-Proposal**.
 - **Lời thoại (Voiceover):**  
-  *"Điểm đặc biệt nhất: Mọi thiết kế đều được đối soát qua Cơ sở tri thức Văn hóa CKB. Tụi mình phân tách rõ: Chuẩn mực mẫu thiết kế đạt chuẩn, còn dữ liệu lịch sử được ghi nhận rõ ràng mức độ xác minh kèm mã trích dẫn. Mỗi kết luận đều hiển thị mã bằng chứng và trạng thái xác minh để người dùng biết đâu là nguồn đã đối soát, đâu là phần vẫn cần rà soát."*
+  *"Nếu muốn thử một ý tưởng táo bạo? Mình chuyển thẳng sang What If Lab và bấm thử: 'Đổi hướng cài khuy sang trái'. Hệ thống chỉ rõ: việc cài vạt trái vi phạm quy thức Hữu nhậm. Nhưng thay vì từ chối cứng nhắc, AI đề xuất ngay Counter-Proposal: vẫn giữ vạt phải nhưng tích hợp khóa bấm nam châm tiện lợi cho người thuận tay trái."*
 
 ---
 
-#### 🎬 PHÂN CẢNH 5: PHÒNG THỬ NGHIỆM GIẢ ĐỊNH WHAT-IF (01:10 – 01:35)
-- **Hình ảnh trên màn hình:** Chuyển sang tab **"Thử thay đổi (What If)"**.
-- **Hành động:**
-  - Bấm vào kịch bản giả định: *"What if đổi vạt áo và cài khuy sang bên trái (Tả nhậm)?"*
-  - Bấm nút **"Thẩm định giả định"**.
-  - Hiển thị kết quả **Hành trình ra quyết định (Decision Journey 3 chặng)**.
-  - Khung vi phạm chuyển màu đỏ cảnh báo xung đột mẫu thiết kế (*Prototype Conflict*).
-  - Trỏ chuột vào phần **Stylist Counter-Proposal (Đề xuất thay thế của Stylist)**.
+#### 🎬 7. WHAT IF: DỮ LIỆU CHƯA ĐỦ KHẢO CHỨNG (01:28 – 01:36 | 8s)
+- **Hình ảnh:** Thử nghiệm câu hỏi ngoài phạm vi CKB.
+- **Hành động:** Bấm preset: **"Thêm chi tiết phát sáng hiện đại"** và bấm đánh giá.
 - **Lời thoại (Voiceover):**  
-  *"Nếu bạn muốn thử một ý tưởng táo bạo hơn? Hãy vào phòng What-If Lab! Mình thử hỏi: 'What if cài khuy sang bên trái vạt tả nhậm?'.  
-  Hệ thống cảnh báo thay đổi này xung đột với quy ước prototype về hướng cài áo tham chiếu. Đồng thời, mức độ chắc chắn của bằng chứng lịch sử được hiển thị riêng thay vì bị đánh đồng với xung đột thiết kế. Dù vậy, hệ thống không hề chặn đứng sự sáng tạo, mà gợi ý ngay giải pháp thay thế (Counter-Proposal): dùng đường viền may lé giả hoặc cúc kép đối xứng để người thuận tay trái thao tác dễ dàng mà vạt áo vẫn chuẩn hữu nhậm!"*
+  *"Còn khi thử: 'Thêm chi tiết phát sáng hiện đại'? Hệ thống trả về Insufficient Evidence và unassessed — không gán màu đỏ xung đột, không bịa căn cứ giả. Đó chính là sự trung thực trong ứng dụng AI cho di sản."*
 
 ---
 
-#### 🎬 PHÂN CẢNH 6: SƠ ĐỒ ÁO NHẬT BÌNH & NGOẠI LỆ PHẨM CẤP (01:35 – 01:50)
-- **Hình ảnh trên màn hình:** Chuyển sang tab **Cấu trúc áo (Anatomy)** hoặc chọn sang **Áo Nhật Bình**.
-- **Hành động:**
-  - Bấm chọn **Áo Nhật Bình**.
-  - Trỏ chuột vào các điểm ghim tương tác: Nẹp cổ chữ nhật đối khâm (KB-NHATBINH-01).
-  - Trỏ chuột vào điểm ghim viền tay áo: Chú thích **Dải ngũ hành tham chiếu theo phẩm cấp**.
+#### 🎬 8. XUẤT THẺ LOOKBOOK CHIA SẺ (01:36 – 01:44 | 8s)
+- **Hình ảnh:** Mở modal **Thẻ Lookbook Chia Sẻ (Lookbook Card)** của Contemporary Remix.
+- **Hành động:** Chuyển đổi giữa tab **4:5 Social** và **9:16 Story**, bấm **"Chuẩn bị khung xuất"**, bấm **"Sao chép thông tin"**.
 - **Lời thoại (Voiceover):**  
-  *"Chuyển qua Áo Nhật Bình, bạn có thể tra cứu từng điểm ghim giải phẫu áo. Ứng dụng ghi chú rất trung thực: dải ngũ hành ở cổ tay là quy thức tham chiếu theo phẩm cấp quý tộc thời Nguyễn, và theo nguồn tham khảo hiện tại, Nhật Bình của Hoàng hậu là một ngoại lệ không dùng dải màu này."*
+  *"Bạn có thể mở Thẻ Lookbook với khung chuẩn 4:5 Social hoặc 9:16 Story, chuẩn bị khung xuất và sao chép toàn bộ thông tin phối đồ kèm trích dẫn căn cứ CKB để chia sẻ lên mạng xã hội."*
 
 ---
 
-#### 🎬 PHÂN CẢNH 7: KẾT LUẬN & TẦM NHÌN (01:50 – 02:00)
-- **Hình ảnh trên màn hình:** Thu nhỏ về toàn cảnh ứng dụng, hiển thị giao diện mượt mà, chuyên nghiệp. Hiển thị logo KUJO Re:Wear và lời kêu gọi trải nghiệm.
+#### 🎬 9. ĐIỀU HƯỚNG CKB & KẾT LUẬN (01:44 – 01:50 | 6s)
+- **Hình ảnh:** Bấm vào mã căn cứ CKB trong Lookbook — modal Lookbook đóng và modal **CKB Explorer** mở ra ngay vị trí quy tắc đó.
+- **Hành động:** Trỏ vào thông tin tài liệu tham khảo trong CKB và kết thúc video.
 - **Lời thoại (Voiceover):**  
-  *"KUJO Re:Wear không chỉ là một công cụ tạo mẫu thời trang — đây là cầu nối giúp di sản sống động trong hơi thở hiện đại bằng sức mạnh của AI và sự tôn trọng cội nguồn. Wear heritage differently — hãy cùng tụi mình đưa áo dài Việt bước ra thế giới!"*
-
----
-
-### HƯỚNG DẪN KỸ THUẬT CHO NGƯỜI QUAY:
-1. Đảm bảo âm thanh thu âm rõ tiếng, không lẫn tạp âm môi trường.
-2. Trình duyệt để ở tỉ lệ 100% zoom, ẩn thanh bookmark để khung hình thoáng đãng.
-3. Các thao tác click chuột cần dứt khoát, dừng 1-2 giây ở mỗi màn hình để người xem kịp quan sát các nhãn thông tin.
+  *"Chạm vào mã căn cứ để mở ngay kho tri thức CKB. KUJO Re:Wear — đồng hành cùng người trẻ tự tin đưa di sản Việt vào nhịp sống đương đại!"*
