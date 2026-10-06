@@ -64,28 +64,27 @@
 - **Hình ảnh:** Bấm nút **"Thử thay đổi trên bản phối này"** để chuyển sang tab **What If Lab**.
 - **Hành động:**
   1. Thấy bản phối Contemporary Remix được giữ nguyên ở mục *Trước (Before)*.
-  2. Bấm preset: **"Đổi hướng cài khuy sang trái"**.
-  3. Bấm **"Đánh giá giả định"**.
-  4. Trỏ vào kết quả: Prototype Compliance báo **conflict**, căn cứ **KB-RULE-01**.
-  5. Cuộn xuống phần **Stylist Counter-Proposal**.
+  2. Bấm preset: **"Đổi hướng cài khuy sang trái"** — hệ thống tự động thẩm định ngay lập tức.
+  3. Trỏ vào kết quả: Prototype Compliance báo **conflict**, căn cứ **KB-RULE-01**.
+  4. Cuộn xuống phần **Stylist Counter-Proposal**.
 - **Lời thoại (Voiceover):**  
-  *"Nếu muốn thử một ý tưởng táo bạo? Mình chuyển thẳng sang What If Lab và bấm thử: 'Đổi hướng cài khuy sang trái'. Hệ thống chỉ rõ: việc cài vạt trái vi phạm quy thức Hữu nhậm. Nhưng thay vì từ chối cứng nhắc, AI đề xuất ngay Counter-Proposal: vẫn giữ vạt phải nhưng tích hợp khóa bấm nam châm tiện lợi cho người thuận tay trái."*
+  *"Nếu muốn thử một ý tưởng táo bạo? Mình chuyển thẳng sang What If Lab và bấm preset: 'Đổi hướng cài khuy sang trái'. Hệ thống phản hồi ngay: thay đổi này xung đột với quy ước prototype về Hữu nhậm đang được áp dụng cho Áo Ngũ Thân, và độ tin cậy lịch sử hiển thị rõ nguồn đang chờ rà soát. Thay vì từ chối cứng nhắc, AI đề xuất Counter-Proposal: bảo lưu vạt phải nhưng dùng cúc bấm nam châm tiện lợi cho người thuận tay trái."*
 
 ---
 
 #### 🎬 7. WHAT IF: DỮ LIỆU CHƯA ĐỦ KHẢO CHỨNG (01:28 – 01:36 | 8s)
 - **Hình ảnh:** Thử nghiệm câu hỏi ngoài phạm vi CKB.
-- **Hành động:** Bấm preset: **"Thêm chi tiết phát sáng hiện đại"** và bấm đánh giá.
+- **Hành động:** Bấm preset: **"Thêm chi tiết phát sáng hiện đại"** — hệ thống thẩm định ngay.
 - **Lời thoại (Voiceover):**  
-  *"Còn khi thử: 'Thêm chi tiết phát sáng hiện đại'? Hệ thống trả về Insufficient Evidence và unassessed — không gán màu đỏ xung đột, không bịa căn cứ giả. Đó chính là sự trung thực trong ứng dụng AI cho di sản."*
+  *"Còn khi thử: 'Thêm chi tiết phát sáng hiện đại'? Hệ thống trả về Insufficient Evidence và unassessed — không gán màu đỏ xung đột, không tạo căn cứ giả. Đó chính là sự trung thực trong ứng dụng AI cho di sản."*
 
 ---
 
-#### 🎬 8. XUẤT THẺ LOOKBOOK CHIA SẺ (01:36 – 01:44 | 8s)
+#### 🎬 8. XEM TRƯỚC VÀ CHUẨN BỊ XUẤT THẺ LOOKBOOK (01:36 – 01:44 | 8s)
 - **Hình ảnh:** Mở modal **Thẻ Lookbook Chia Sẻ (Lookbook Card)** của Contemporary Remix.
 - **Hành động:** Chuyển đổi giữa tab **4:5 Social** và **9:16 Story**, bấm **"Chuẩn bị khung xuất"**, bấm **"Sao chép thông tin"**.
 - **Lời thoại (Voiceover):**  
-  *"Bạn có thể mở Thẻ Lookbook với khung chuẩn 4:5 Social hoặc 9:16 Story, chuẩn bị khung xuất và sao chép toàn bộ thông tin phối đồ kèm trích dẫn căn cứ CKB để chia sẻ lên mạng xã hội."*
+  *"Bạn có thể xem trước Thẻ Lookbook theo tỉ lệ 4:5 Social hoặc 9:16 Story, bấm chuẩn bị khung xuất và sao chép toàn bộ nội dung phối đồ kèm mã căn cứ CKB để chia sẻ lên mạng xã hội."*
 
 ---
 
