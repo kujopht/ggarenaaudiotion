@@ -5,7 +5,13 @@ import { formatSourceBadge, getLookSummaryStatus } from '../utils/remixStateHelp
 import { DongSonDialRing } from './MotionMotifs';
 import { FashionEditorialVisual } from './FashionEditorialVisual';
 import { QuickCompareSection } from './QuickCompareSection';
-import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info } from 'lucide-react';
+import { SideBySideCompareModal } from './SideBySideCompareModal';
+import { MannequinFigure2D } from './MannequinFigure2D';
+import { WeatherAdvisorCard } from './WeatherAdvisorCard';
+import { ColorHarmonyMeter } from './ColorHarmonyMeter';
+import { OutfitProposalSkeleton } from './OutfitProposalSkeleton';
+import { generateDeterministicProposals } from '../utils/deterministicEngines';
+import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info, Columns, User, Image as ImageIcon, Play } from 'lucide-react';
 
 interface CoDesignStudioProps {
   proposals: OutfitProposal[];
@@ -32,6 +38,7 @@ interface CoDesignStudioProps {
   onNavigateToWhatIf: () => void;
   onNavigateToAnatomy?: () => void;
   motionEnabled?: boolean;
+  onRunDemo?: () => void;
 }
 
 const DIAL_LEVELS = [
@@ -175,6 +182,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   onNavigateToWhatIf,
   onNavigateToAnatomy,
   motionEnabled = true,
+  onRunDemo,
 }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [detailTab, setDetailTab] = useState<'styling' | 'audit'>('styling');
@@ -185,6 +193,25 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   // V2.0 Visual-First Image Generation State & Card Collapses
   const [lookImages, setLookImages] = useState<Record<string, LookImageData>>({});
   const [expandedCardDetails, setExpandedCardDetails] = useState<Record<string, boolean>>({});
+
+  // Feature 1: Side by Side Compare Modal state
+  const [isSideBySideOpen, setIsSideBySideOpen] = useState<boolean>(false);
+
+  // Feature 2: Visual Mode Switcher (Editorial vs Mannequin 2D) per card
+  const [visualModes, setVisualModes] = useState<Record<string, 'editorial' | 'mannequin'>>({});
+
+  const toggleVisualMode = (id: string, mode: 'editorial' | 'mannequin') => {
+    setVisualModes((prev) => ({ ...prev, [id]: mode }));
+  };
+
+  const handleApplyWeatherRecommendation = (materialTip: string, suggestedStyle?: string) => {
+    if (suggestedStyle) {
+      onChangeStyle(suggestedStyle);
+    }
+    if (materialTip) {
+      onChangeCustomNotes(customNotes ? `${customNotes}, Vải: ${materialTip}` : `Vải: ${materialTip}`);
+    }
+  };
 
   const toggleCardDetails = (id: string) => {
     setExpandedCardDetails((prev) => ({
@@ -320,7 +347,25 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         return;
       }
       if (reqId === activeReqIdRef.current && activeGarmentRef.current === targetGarment) {
-        console.error('Failed to generate outfits:', err);
+        console.warn('API call failed or network offline, activating local CKB engine fallback:', err);
+        // Automatic fallback to local CKB Deterministic Engine (Feature 7)
+        try {
+          const fallbackProposals = generateDeterministicProposals(
+            targetGarment,
+            context,
+            style,
+            dialLevel,
+            colorPreference,
+            accessoryPreference
+          );
+          if (fallbackProposals && fallbackProposals.length > 0) {
+            onUpdateProposals(fallbackProposals, 'deterministic_engine_fallback');
+            setErrorMsg(null);
+            return;
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback generation error:', fallbackErr);
+        }
         setErrorMsg(err.message || 'Lỗi kết nối khi phối đồ.');
       }
     } finally {
@@ -596,6 +641,11 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   ))}
                 </select>
               </div>
+
+              {/* Feature 4: Gợi ý trang phục theo thời tiết (Open-Meteo) */}
+              <div className="pt-1">
+                <WeatherAdvisorCard onApplyRecommendation={handleApplyWeatherRecommendation} />
+              </div>
             </div>
 
             {/* 3. Màu chủ đạo & Phụ kiện */}
@@ -768,6 +818,11 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
         {/* Right Column: Visual-First Dual Proposal Presentation (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
+          {/* Loading Skeleton during generation (Feature 7) */}
+          {loading && (
+            <OutfitProposalSkeleton count={2} message="Đang kết nối CKB và đồng sáng tạo 2 bản phối..." />
+          )}
+
           {/* Empty State when no proposals generated yet */}
           {proposals.length === 0 && !loading && (
             <div className="lacquer-panel border-2 border-dashed border-[#C9A66B]/30 rounded-2xl p-8 sm:p-12 text-center space-y-4">
@@ -782,20 +837,32 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                   Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm ảnh phác thảo thời trang, tư vấn stylist và thẩm định di sản CKB.
                 </p>
               </div>
-              <button
-                onClick={handleGenerateOutfits}
-                className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
-              >
-                <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
-                <span>Tạo 2 bản phối ngay</span>
-              </button>
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <button
+                  onClick={handleGenerateOutfits}
+                  className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
+                >
+                  <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
+                  <span>Tạo 2 bản phối ngay</span>
+                </button>
+                {onRunDemo && (
+                  <button
+                    type="button"
+                    onClick={onRunDemo}
+                    className="px-4 py-2.5 bg-[#261C19] hover:bg-[#342621] border border-[#C9A66B]/40 text-[#E6C88B] text-sm font-semibold rounded-xl transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
+                  >
+                    <Play className="w-4 h-4 text-[#E6C88B] fill-[#E6C88B]" />
+                    <span>▶ Chạy demo mẫu (30s)</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
           {/* V2.0 Visual-First Design Studio: Dual Proposal Editorial Board */}
-          {proposals.length > 0 && (
+          {proposals.length > 0 && !loading && (
             <div className="space-y-4 animate-in fade-in duration-200">
-              {/* Header Strip with Section Title & Provenance Badge */}
+              {/* Header Strip with Section Title & Provenance Badge & Compare Button (Feature 1) */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#C9A66B]/20 gap-3">
                 <div className="space-y-0.5">
                   <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
@@ -805,7 +872,18 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
                     Hai phương án đồng thời: Bản phối A bám sát di sản & Bản phối B phá cách đương đại
                   </p>
                 </div>
-                <div className="self-start sm:self-auto shrink-0">
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                  {proposals.length >= 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsSideBySideOpen(true)}
+                      className="px-3.5 py-1.5 bg-[#C9A66B]/25 hover:bg-[#C9A66B]/40 border border-[#C9A66B] text-[#F2E9D8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm min-h-[34px]"
+                      title="Mở màn hình so sánh song hành 2 bản phối A vs B"
+                    >
+                      <Columns className="w-3.5 h-3.5 text-[#E6C88B]" />
+                      <span>So sánh cạnh nhau</span>
+                    </button>
+                  )}
                   {renderSourceBadge()}
                 </div>
               </div>

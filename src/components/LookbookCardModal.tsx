@@ -15,6 +15,7 @@ import {
   Sparkles,
   ArrowRight,
   DownloadCloud,
+  Download,
 } from 'lucide-react';
 import { FashionEditorialVisual } from './FashionEditorialVisual';
 import {
@@ -22,6 +23,7 @@ import {
   LookbookExportResult,
   exportLookbookCard,
   formatLookbookShareText,
+  downloadLookbookAsPng,
 } from '../utils/lookbookExport';
 
 interface LookbookCardModalProps {
@@ -38,7 +40,8 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
   onOpenCKB,
 }) => {
   const [format, setFormat] = useState<LookbookFormat>('social_4_5');
-  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed' | 'shared'>('idle');
+  const [downloading, setDownloading] = useState(false);
   const [exportResult, setExportResult] = useState<LookbookExportResult | null>(null);
 
   if (!isOpen || !proposal) return null;
@@ -58,17 +61,66 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
   const handleShare = async () => {
     try {
       const shareText = formatLookbookShareText(proposal);
+      // Try Web Share API first if available on mobile/supported browser
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        try {
+          await navigator.share({
+            title: `KUJO Re:Wear - ${proposal.title}`,
+            text: shareText,
+          });
+          setCopyStatus('shared');
+          setTimeout(() => setCopyStatus('idle'), 2500);
+          return;
+        } catch (shareErr) {
+          // If user cancelled, do nothing
+          if ((shareErr as Error).name === 'AbortError') return;
+        }
+      }
+
+      // Fallback: Clipboard writeText
       if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareText);
         setCopyStatus('copied');
       } else {
-        // Fallback for environments where navigator.clipboard is unavailable
         setCopyStatus('failed');
       }
     } catch {
       setCopyStatus('failed');
     }
     setTimeout(() => setCopyStatus('idle'), 2500);
+  };
+
+  const handleDownloadPng = async () => {
+    setDownloading(true);
+    try {
+      const res = await downloadLookbookAsPng(proposal, format);
+      if (res.success) {
+        setExportResult({
+          status: 'downloaded',
+          format,
+          message: `Đã xuất và tải thành công file ảnh: ${res.filename}`,
+          timestamp: new Date().toISOString(),
+          filename: res.filename,
+        });
+      } else {
+        setExportResult({
+          status: 'unavailable',
+          format,
+          message: 'Không thể tạo file ảnh canvas trên trình duyệt này.',
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } catch {
+      setExportResult({
+        status: 'unavailable',
+        format,
+        message: 'Lỗi khi khởi tạo khung xuất ảnh.',
+        timestamp: new Date().toISOString(),
+      });
+    } finally {
+      setDownloading(false);
+      setTimeout(() => setExportResult(null), 5000);
+    }
   };
 
   const handleExportPreparation = () => {
@@ -352,12 +404,38 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
         {/* Footer Actions */}
         <div className="px-4 sm:px-6 py-3.5 bg-[#16100E]/95 border-t border-[#C9A66B]/20 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 backdrop-blur-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Copy share text */}
+            {/* Download PNG Button (Feature 6) */}
+            <button
+              onClick={handleDownloadPng}
+              disabled={downloading}
+              className="px-4 py-2.5 bg-[#C9A66B] hover:bg-[#D8B67B] text-[#140F0E] font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer min-h-[44px] shadow-sm disabled:opacity-50"
+              title="Xuất thẻ Lookbook thành file ảnh PNG độ nét cao tải về máy"
+            >
+              {downloading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  <span>Đang xuất PNG...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-4 h-4 text-[#140F0E]" />
+                  <span>Tải ảnh PNG ({format === 'social_4_5' ? '4:5' : '9:16'})</span>
+                </>
+              )}
+            </button>
+
+            {/* Share / Copy share text */}
             <button
               onClick={handleShare}
               className="px-4 py-2.5 border border-[#C9A66B]/40 hover:bg-[#261C19] text-[#F2E9D8] rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[44px]"
+              title="Chia sẻ qua Web Share API trên di động hoặc sao chép văn bản"
             >
-              {copyStatus === 'copied' ? (
+              {copyStatus === 'shared' ? (
+                <>
+                  <Check className="w-4 h-4 text-[#43B6A4]" />
+                  <span>Đã mở chia sẻ!</span>
+                </>
+              ) : copyStatus === 'copied' ? (
                 <>
                   <Check className="w-4 h-4 text-[#43B6A4]" />
                   <span>Đã sao chép nội dung!</span>
@@ -370,15 +448,15 @@ export const LookbookCardModal: React.FC<LookbookCardModalProps> = ({
               ) : (
                 <>
                   <Share2 className="w-4 h-4 text-[#C9A66B]" />
-                  <span>Sao chép thông tin</span>
+                  <span>Chia sẻ / Sao chép</span>
                 </>
               )}
             </button>
 
-            {/* Export preparation (without fake download) */}
+            {/* Export preparation */}
             <button
               onClick={handleExportPreparation}
-              className="px-4 py-2.5 bg-[#261C19]/80 hover:bg-[#342622] border border-[#C9A66B]/30 text-[#E6C88B] rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[44px]"
+              className="px-3.5 py-2.5 bg-[#261C19]/80 hover:bg-[#342622] border border-[#C9A66B]/30 text-[#E6C88B] rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer min-h-[44px]"
             >
               <DownloadCloud className="w-4 h-4 text-[#C9A66B]" />
               <span>Chuẩn bị khung xuất ({format === 'social_4_5' ? '4:5' : '9:16'})</span>

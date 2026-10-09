@@ -1,10 +1,11 @@
 import React from 'react';
-import { ArrowDown, BookOpen } from 'lucide-react';
+import { ArrowDown, BookOpen, Play } from 'lucide-react';
 import { VietnamesePhoenix } from './MotionMotifs';
 
 interface HeroSectionProps {
   onStartCoDesign: () => void;
   onOpenCKB: () => void;
+  onRunDemo?: () => void;
   motionEnabled: boolean;
   onToggleMotion: () => void;
 }
@@ -18,6 +19,7 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onStartCoDesign,
   onOpenCKB,
+  onRunDemo,
 }) => {
   return (
     <section className="relative w-full mb-6 min-h-[260px] sm:min-h-[300px] md:min-h-[340px] flex items-center">
@@ -55,6 +57,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <span>Bắt đầu phối</span>
               <ArrowDown className="w-4 h-4 text-[#F5DCA3]" />
             </button>
+
+            {onRunDemo && (
+              <button
+                type="button"
+                onClick={onRunDemo}
+                className="px-4 py-3 bg-linear-to-r from-[#C9A66B]/25 to-[#E6C88B]/20 hover:from-[#C9A66B]/40 hover:to-[#E6C88B]/35 border border-[#C9A66B] text-[#F2E9D8] rounded-xl font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[46px] shadow-sm"
+                title="Tự động chạy qua toàn bộ luồng chấm điểm cho giám khảo"
+              >
+                <Play className="w-4 h-4 text-[#E6C88B] fill-[#E6C88B]" />
+                <span>▶ Chạy demo mẫu (30s)</span>
+              </button>
+            )}
 
             <button
               type="button"
