@@ -216,19 +216,54 @@ Trả về kết quả chuẩn định dạng JSON.
       required: ["proposals"]
     };
 
-    const response = await generateWithGemini(prompt, proposalSchema);
+    let timeoutHandle: any;
+    const timeoutPromise = new Promise<null>((resolve) => {
+      timeoutHandle = setTimeout(() => {
+        console.warn('[AI Studio Backend] Gemini generation timed out after 40 seconds.');
+        resolve(null);
+      }, 40000);
+    });
+
+    const response = await Promise.race([
+      generateWithGemini(prompt, proposalSchema),
+      timeoutPromise,
+    ]);
+    clearTimeout(timeoutHandle);
 
     if (response?.text) {
-      const parsed = JSON.parse(response.text || '{}');
-      const processed = processGeminiProposalResponse(
-        parsed,
-        (garment || 'ngu_than') as any,
-        { context, style, dial_level }
-      );
-      return res.json(processed);
+      try {
+        const parsed = JSON.parse(response.text || '{}');
+        const processed = processGeminiProposalResponse(
+          parsed,
+          (garment || 'ngu_than') as any,
+          { context, style, dial_level }
+        );
+
+        // Validate proposals must have exactly 2 valid elements with all required fields
+        if (
+          processed?.success &&
+          Array.isArray(processed.proposals) &&
+          processed.proposals.length === 2 &&
+          processed.proposals.every(
+            (p) =>
+              p &&
+              p.id &&
+              p.title &&
+              p.visual_details &&
+              p.audit &&
+              p.stylist_notes
+          )
+        ) {
+          return res.json(processed);
+        } else {
+          console.warn('[AI Studio Backend] Processed Gemini proposals invalid or missing required fields. Falling back to deterministic engine.');
+        }
+      } catch (parseOrProcessErr: any) {
+        console.warn('[AI Studio Backend] Error parsing/processing Gemini response:', parseOrProcessErr?.message || parseOrProcessErr);
+      }
     }
 
-    // Seamless fallback to deterministic engine if all models busy
+    // Seamless fallback to deterministic engine if all models busy or timed out
     console.warn('[AI Studio Backend] Notice: High demand on cloud models, serving deterministic cultural engine.');
     return res.json({
       success: true,
@@ -334,13 +369,29 @@ Trả về kết quả chuẩn định dạng JSON.
       required: ["evaluation"]
     };
 
-    const response = await generateWithGemini(prompt, whatIfSchema);
+    let whatIfTimeoutHandle: any;
+    const whatIfTimeoutPromise = new Promise<null>((resolve) => {
+      whatIfTimeoutHandle = setTimeout(() => {
+        console.warn('[AI Studio Backend] What-if evaluation timed out after 35 seconds.');
+        resolve(null);
+      }, 35000);
+    });
+
+    const response = await Promise.race([
+      generateWithGemini(prompt, whatIfSchema),
+      whatIfTimeoutPromise,
+    ]);
+    clearTimeout(whatIfTimeoutHandle);
 
     if (response?.text) {
-      const parsed = JSON.parse(response.text || '{}');
-      if (parsed.evaluation) {
-        const normalizedEvaluation = normalizeGeminiWhatIfEvaluation(parsed.evaluation, effectiveGarment);
-        return res.json({ success: true, evaluation: normalizedEvaluation, source: 'gemini' });
+      try {
+        const parsed = JSON.parse(response.text || '{}');
+        if (parsed.evaluation) {
+          const normalizedEvaluation = normalizeGeminiWhatIfEvaluation(parsed.evaluation, effectiveGarment);
+          return res.json({ success: true, evaluation: normalizedEvaluation, source: 'gemini' });
+        }
+      } catch (e: any) {
+        console.warn('[AI Studio Backend] Error parsing what-if response:', e?.message || e);
       }
     }
 

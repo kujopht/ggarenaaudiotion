@@ -44,7 +44,7 @@ function interpretWeather(temp: number, humidity: number, code: number): {
       conditionText: 'Trời lạnh / Mát dịu',
       materialRecommendation: 'Gấm dệt dày, nhung tuyết, dạ mỏng, phối layer áo trong giữ ấm',
       stylistTip: 'Lý tưởng để phối nhiều lớp (layering), khoác ngoài dáng duster coat mở tà kết hợp khăn đóng ấm áp.',
-      suggestedStyleId: 'luxury_tailored',
+      suggestedStyleId: 'sartorial_tailored',
     };
   }
 
@@ -53,7 +53,7 @@ function interpretWeather(temp: number, humidity: number, code: number): {
       conditionText: 'Nắng nóng nhiệt đới',
       materialRecommendation: 'Linen tự nhiên, lụa tơ tằm mỏng nhẹ, vải xô đũi thoáng khí',
       stylistTip: 'Ưu tiên tone màu mát mắt (trắng ngà, xanh chàm nhạt), phom dáng rủ nhẹ thoải mái thấm hút mồ hôi.',
-      suggestedStyleId: 'minimalist_linen',
+      suggestedStyleId: 'modern_minimal',
     };
   }
 
@@ -62,7 +62,7 @@ function interpretWeather(temp: number, humidity: number, code: number): {
     conditionText: 'Thời tiết ôn hòa, dễ chịu',
     materialRecommendation: 'Lụa tơ tằm, linen pha cotton, denim mềm, lụa Hà Đông cao cấp',
     stylistTip: 'Thời tiết tuyệt vời để diện đầy đủ ngũ thân hoặc áo tấc dạo phố, chụp lookbook nghệ thuật.',
-    suggestedStyleId: 'vintage_remix',
+    suggestedStyleId: 'neo_indochine',
   };
 }
 
@@ -83,9 +83,13 @@ export const WeatherAdvisorCard: React.FC<WeatherAdvisorCardProps> = ({
     setLoading(true);
     setApplied(false);
 
+    const controller = new AbortController();
+    const timeoutTimer = setTimeout(() => controller.abort(), 6000);
+
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current=temperature_2m,relative_humidity_2m,weathercode`;
-      const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutTimer);
 
       if (!res.ok) throw new Error('Weather API error');
       const data = await res.json();

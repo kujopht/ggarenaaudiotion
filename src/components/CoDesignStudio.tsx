@@ -10,6 +10,7 @@ import { MannequinFigure2D } from './MannequinFigure2D';
 import { WeatherAdvisorCard } from './WeatherAdvisorCard';
 import { ColorHarmonyMeter } from './ColorHarmonyMeter';
 import { OutfitProposalSkeleton } from './OutfitProposalSkeleton';
+import { ProposalErrorBoundary } from './ProposalErrorBoundary';
 import { generateDeterministicProposals } from '../utils/deterministicEngines';
 import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info, Columns, User, Image as ImageIcon, Play } from 'lucide-react';
 
@@ -303,6 +304,12 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
     const reqId = ++activeReqIdRef.current;
     const targetGarment = selectedGarment;
 
+    let isTimedOut = false;
+    const timeoutId = setTimeout(() => {
+      isTimedOut = true;
+      controller.abort();
+    }, 45000);
+
     setLoading(true);
     setErrorMsg(null);
 
@@ -322,6 +329,8 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         }),
       });
 
+      clearTimeout(timeoutId);
+
       if (!res.ok) {
         throw new Error(`Máy chủ phản hồi mã lỗi ${res.status}`);
       }
@@ -330,7 +339,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
       // Check if this request is still the active one and garment has not changed
       if (
-        controller.signal.aborted ||
+        (controller.signal.aborted && !isTimedOut) ||
         reqId !== activeReqIdRef.current ||
         activeGarmentRef.current !== targetGarment
       ) {
@@ -343,11 +352,12 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         throw new Error('Không nhận được dữ liệu thiết kế từ hệ thống.');
       }
     } catch (err: any) {
-      if (err.name === 'AbortError' || controller.signal.aborted) {
+      clearTimeout(timeoutId);
+      if ((err.name === 'AbortError' || controller.signal.aborted) && !isTimedOut) {
         return;
       }
       if (reqId === activeReqIdRef.current && activeGarmentRef.current === targetGarment) {
-        console.warn('API call failed or network offline, activating local CKB engine fallback:', err);
+        console.warn('API call failed, timed out, or network offline, activating local CKB engine fallback:', err);
         // Automatic fallback to local CKB Deterministic Engine (Feature 7)
         try {
           const fallbackProposals = generateDeterministicProposals(
@@ -366,16 +376,48 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
         } catch (fallbackErr) {
           console.error('Fallback generation error:', fallbackErr);
         }
-        setErrorMsg(err.message || 'Lỗi kết nối khi phối đồ.');
+        setErrorMsg(isTimedOut ? 'Quá thời gian chờ phản hồi (45s). Hệ thống đã tự động chuyển sang chế độ dự phòng.' : (err.message || 'Lỗi kết nối khi phối đồ.'));
       }
     } finally {
-      if (reqId === activeReqIdRef.current && !controller.signal.aborted) {
+      clearTimeout(timeoutId);
+      if (reqId === activeReqIdRef.current) {
         setLoading(false);
       }
     }
   };
 
   const currentProposal = proposals[selectedPlanIndex] || null;
+
+  // Helper to map color & accessory preferences to MannequinFigure2D props
+  const getMannequinColor = () => {
+    if (colorPreference === 'Chàm') return '#1E293B';
+    if (colorPreference === 'Đen') return '#0F172A';
+    if (colorPreference === 'Ngà') return '#FDFBF7';
+    if (colorPreference === 'Đỏ son') return '#B8342B';
+    if (currentProposal?.visual_details.color_palette?.[0]) {
+      const hexMatch = currentProposal.visual_details.color_palette[0].match(/#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}/);
+      if (hexMatch) return hexMatch[0];
+    }
+    return '#1E293B';
+  };
+
+  const getMannequinAccessory = (): 'none' | 'khan' | 'non' | 'tui' | 'all' => {
+    if (accessoryPreference === 'Túi hiện đại') return 'tui';
+    if (accessoryPreference === 'Khăn') return 'khan';
+    if (accessoryPreference === 'Trang sức') return 'all';
+    if (accessoryPreference === 'Tối giản') return 'none';
+    return 'none';
+  };
+
+  const activePalette = (currentProposal?.visual_details.color_palette && currentProposal.visual_details.color_palette.length > 0)
+    ? currentProposal.visual_details.color_palette
+    : (
+        colorPreference === 'Chàm' ? ['#1E293B (Chàm Đậm)', '#FDFBF7 (Trắng Ngà)', '#C9A66B (Vàng Đồng)'] :
+        colorPreference === 'Đen' ? ['#0F172A (Đen Tuyền)', '#FDFBF7 (Trắng Ngà)', '#B8342B (Đỏ Son)'] :
+        colorPreference === 'Ngà' ? ['#FDFBF7 (Trắng Ngà)', '#C9A66B (Vàng Mộc)', '#1E293B (Chàm)'] :
+        colorPreference === 'Đỏ son' ? ['#B8342B (Đỏ Son)', '#FDFBF7 (Trắng Ngà)', '#E6C88B (Vàng Đồng)'] :
+        ['#1E293B (Chàm)', '#FDFBF7 (Trắng Ngà)', '#C9A66B (Hoàng Yến)']
+      );
 
   // Safe format source badge display (Gemini only when source === 'gemini')
   const renderSourceBadge = () => {
@@ -818,78 +860,127 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
         {/* Right Column: Visual-First Dual Proposal Presentation (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Loading Skeleton during generation (Feature 7) */}
-          {loading && (
-            <OutfitProposalSkeleton count={2} message="Đang kết nối CKB và đồng sáng tạo 2 bản phối..." />
-          )}
+          <ProposalErrorBoundary onReset={handleGenerateOutfits}>
+            {/* Loading Skeleton during generation (Feature 7) */}
+            {loading && (
+              <OutfitProposalSkeleton count={2} message="Đang kết nối CKB và đồng sáng tạo 2 bản phối..." />
+            )}
 
-          {/* Empty State when no proposals generated yet */}
-          {proposals.length === 0 && !loading && (
-            <div className="lacquer-panel border-2 border-dashed border-[#C9A66B]/30 rounded-2xl p-8 sm:p-12 text-center space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#261C19]/80 flex items-center justify-center mx-auto text-[#C9A66B] border border-[#C9A66B]/30 shadow-xs">
-                <Shirt className="w-7 h-7" />
-              </div>
-              <div className="max-w-md mx-auto space-y-2">
-                <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F2E9D8]">
-                  Chưa có bản phối nào cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
-                </h3>
-                <p className="text-sm text-[#B8AA96] leading-relaxed">
-                  Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm ảnh phác thảo thời trang, tư vấn stylist và thẩm định di sản CKB.
-                </p>
-              </div>
-              <div className="flex items-center justify-center gap-3 flex-wrap">
-                <button
-                  onClick={handleGenerateOutfits}
-                  className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
-                >
-                  <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
-                  <span>Tạo 2 bản phối ngay</span>
-                </button>
-                {onRunDemo && (
-                  <button
-                    type="button"
-                    onClick={onRunDemo}
-                    className="px-4 py-2.5 bg-[#261C19] hover:bg-[#342621] border border-[#C9A66B]/40 text-[#E6C88B] text-sm font-semibold rounded-xl transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
-                  >
-                    <Play className="w-4 h-4 text-[#E6C88B] fill-[#E6C88B]" />
-                    <span>▶ Chạy demo mẫu (30s)</span>
-                  </button>
+            {/* Empty State when no proposals generated yet */}
+            {proposals.length === 0 && !loading && (
+              <div className="space-y-4">
+                {colorPreference !== 'auto' && (
+                  <ColorHarmonyMeter colors={activePalette} />
                 )}
-              </div>
-            </div>
-          )}
-
-          {/* V2.0 Visual-First Design Studio: Dual Proposal Editorial Board */}
-          {proposals.length > 0 && !loading && (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              {/* Header Strip with Section Title & Provenance Badge & Compare Button (Feature 1) */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#C9A66B]/20 gap-3">
-                <div className="space-y-0.5">
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
-                    BỘ ĐÔI THIẾT KẾ ĐỐI DIỆN · HERITAGE & CONTEMPORARY
-                  </span>
-                  <p className="text-xs text-[#B8AA96]">
-                    Hai phương án đồng thời: Bản phối A bám sát di sản & Bản phối B phá cách đương đại
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
-                  {proposals.length >= 2 && (
+                <div className="lacquer-panel border-2 border-dashed border-[#C9A66B]/30 rounded-2xl p-8 sm:p-12 text-center space-y-4">
+                  <div className="w-14 h-14 rounded-2xl bg-[#261C19]/80 flex items-center justify-center mx-auto text-[#C9A66B] border border-[#C9A66B]/30 shadow-xs">
+                    <Shirt className="w-7 h-7" />
+                  </div>
+                  <div className="max-w-md mx-auto space-y-2">
+                    <h3 className="text-lg sm:text-xl font-serif font-bold text-[#F2E9D8]">
+                      Chưa có bản phối nào cho {GARMENTS.find(g => g.key === selectedGarment)?.name}
+                    </h3>
+                    <p className="text-sm text-[#B8AA96] leading-relaxed">
+                      Hãy chọn mức độ biến tấu bên trái và bấm nút <strong className="text-[#E6C88B]">"Tạo bản phối"</strong> để xem 2 phương án thiết kế độc đáo kèm ảnh phác thảo thời trang, tư vấn stylist và thẩm định di sản CKB.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
                     <button
-                      type="button"
-                      onClick={() => setIsSideBySideOpen(true)}
-                      className="px-3.5 py-1.5 bg-[#C9A66B]/25 hover:bg-[#C9A66B]/40 border border-[#C9A66B] text-[#F2E9D8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm min-h-[34px]"
-                      title="Mở màn hình so sánh song hành 2 bản phối A vs B"
+                      onClick={handleGenerateOutfits}
+                      className="px-5 py-2.5 bg-[#B8342B] hover:bg-[#A32D25] text-[#F2E9D8] text-sm font-semibold rounded-xl shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
                     >
-                      <Columns className="w-3.5 h-3.5 text-[#E6C88B]" />
-                      <span>So sánh cạnh nhau</span>
+                      <Wand2 className="w-4 h-4 text-[#F5DCA3]" />
+                      <span>Tạo 2 bản phối ngay</span>
                     </button>
-                  )}
-                  {renderSourceBadge()}
+                    {onRunDemo && (
+                      <button
+                        type="button"
+                        onClick={onRunDemo}
+                        className="px-4 py-2.5 bg-[#261C19] hover:bg-[#342621] border border-[#C9A66B]/40 text-[#E6C88B] text-sm font-semibold rounded-xl transition-colors inline-flex items-center gap-2 cursor-pointer min-h-[44px]"
+                      >
+                        <Play className="w-4 h-4 text-[#E6C88B] fill-[#E6C88B]" />
+                        <span>▶ Chạy demo mẫu (30s)</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
+            )}
 
-              {/* Side-by-side Dual Proposal Grid: Desktop 2 cols, Tablet 2 cols, Mobile 1 col (stacked, visual on top) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 items-start">
+            {/* V2.0 Visual-First Design Studio: Dual Proposal Editorial Board */}
+            {proposals.length > 0 && !loading && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                {/* Header Strip with Section Title & Provenance Badge & Compare Button (Feature 1) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-[#C9A66B]/20 gap-3">
+                  <div className="space-y-0.5">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold">
+                      BỘ ĐÔI THIẾT KẾ ĐỐI DIỆN · HERITAGE & CONTEMPORARY
+                    </span>
+                    <p className="text-xs text-[#B8AA96]">
+                      Hai phương án đồng thời: Bản phối A bám sát di sản & Bản phối B phá cách đương đại
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                    {proposals.length >= 2 && (
+                      <button
+                        type="button"
+                        onClick={() => setIsSideBySideOpen(true)}
+                        className="px-3.5 py-1.5 bg-[#C9A66B]/25 hover:bg-[#C9A66B]/40 border border-[#C9A66B] text-[#F2E9D8] rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm min-h-[34px]"
+                        title="Mở màn hình so sánh song hành 2 bản phối A vs B"
+                      >
+                        <Columns className="w-3.5 h-3.5 text-[#E6C88B]" />
+                        <span>So sánh cạnh nhau</span>
+                      </button>
+                    )}
+                    {renderSourceBadge()}
+                  </div>
+                </div>
+
+                {/* Feature 2: Interactive 2D Mannequin Figure & Color Harmony Meter in Results Area */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
+                  {/* 2D Mannequin Figure Preview */}
+                  <div className="md:col-span-6 lg:col-span-5 lacquer-panel-subtle rounded-2xl p-4 border border-[#C9A66B]/25 flex flex-col items-center justify-between bg-[#191310]/80 backdrop-blur-xs shadow-sm">
+                    <div className="w-full flex items-center justify-between pb-2 border-b border-[#C9A66B]/15">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#C9A66B] font-bold flex items-center gap-1.5">
+                        <User className="w-3.5 h-3.5 text-[#E6C88B]" />
+                        Figure Mặc Thử Trực Quan 2D
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#2C211D] border border-[#C9A66B]/30 text-[#E6C88B]">
+                        {GARMENTS.find((g) => g.key === selectedGarment)?.name}
+                      </span>
+                    </div>
+
+                    <div className="py-2 flex items-center justify-center w-full">
+                      <MannequinFigure2D
+                        garment={selectedGarment}
+                        garmentColor={getMannequinColor()}
+                        bottomType={selectedGarment === 'nhat_binh' ? 'skirt' : 'pant'}
+                        bottomColor="#F1F5F9"
+                        accessory={getMannequinAccessory()}
+                        accessoryColor="#C9A66B"
+                        height={230}
+                        className="w-full max-w-[200px]"
+                      />
+                    </div>
+
+                    <div className="w-full pt-2 border-t border-[#C9A66B]/15 flex items-center justify-between text-[11px] text-[#B8AA96]">
+                      <span className="truncate">
+                        Màu: <strong className="text-[#E6C88B]">{colorPreference === 'auto' ? 'Tự đề xuất' : colorPreference}</strong>
+                      </span>
+                      <span className="truncate">
+                        Phụ kiện: <strong className="text-[#E6C88B]">{accessoryPreference === 'auto' ? 'Mặc định' : accessoryPreference}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Color Harmony Meter */}
+                  <div className="md:col-span-6 lg:col-span-7 flex flex-col justify-center">
+                    <ColorHarmonyMeter colors={activePalette} className="h-full flex flex-col justify-between" />
+                  </div>
+                </div>
+
+                {/* Side-by-side Dual Proposal Grid: Desktop 2 cols, Tablet 2 cols, Mobile 1 col (stacked, visual on top) */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6 items-start">
                 {proposals.map((prop, idx) => {
                   const isActive = selectedPlanIndex === idx;
                   const isExpanded = !!expandedCardDetails[prop.id];
@@ -1205,6 +1296,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
               <QuickCompareSection proposals={proposals} onOpenCKB={onOpenCKB} />
             </div>
           )}
+          </ProposalErrorBoundary>
         </div>
       </div>
     </div>
