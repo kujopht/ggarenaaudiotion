@@ -12,7 +12,7 @@ import { ColorHarmonyMeter } from './ColorHarmonyMeter';
 import { OutfitProposalSkeleton } from './OutfitProposalSkeleton';
 import { ProposalErrorBoundary } from './ProposalErrorBoundary';
 import { generateDeterministicProposals } from '../utils/deterministicEngines';
-import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info, Columns, User, Image as ImageIcon, Play } from 'lucide-react';
+import { Sparkles, Sliders, Share2, Wand2, ArrowRight, ChevronDown, ChevronUp, Shirt, AlertTriangle, ShieldCheck, HelpCircle, Info, Columns, User, Image as ImageIcon, Play, History } from 'lucide-react';
 
 interface CoDesignStudioProps {
   proposals: OutfitProposal[];
@@ -38,6 +38,7 @@ interface CoDesignStudioProps {
   onOpenLookbookCard: (proposal: OutfitProposal) => void;
   onNavigateToWhatIf: () => void;
   onNavigateToAnatomy?: () => void;
+  onOpenHistory?: () => void;
   motionEnabled?: boolean;
   onRunDemo?: () => void;
 }
@@ -182,6 +183,7 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
   onOpenLookbookCard,
   onNavigateToWhatIf,
   onNavigateToAnatomy,
+  onOpenHistory,
   motionEnabled = true,
   onRunDemo,
 }) => {
@@ -388,6 +390,31 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
 
   const currentProposal = proposals[selectedPlanIndex] || null;
 
+  // Share-link copied feedback
+  const [shareCopied, setShareCopied] = useState<boolean>(false);
+  const shareTimerRef = useRef<number | null>(null);
+  const handleCopyShareLink = async () => {
+    if (!currentProposal) return;
+    const { encodeShareLink, copyTextToClipboard } = await import('../utils/shareLink');
+    const url = encodeShareLink({ garment: selectedGarment, context, style, dialLevel, colorPreference, accessoryPreference, proposal: currentProposal, source: proposalSource || 'shared_link' });
+    if (url && (await copyTextToClipboard(url))) { setShareCopied(true); if (shareTimerRef.current) window.clearTimeout(shareTimerRef.current); shareTimerRef.current = window.setTimeout(() => setShareCopied(false), 2200); }
+  };
+  // Ctrl/Cmd + Enter anywhere in the studio = generate (skips when typing in inputs)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const t = e.target as HTMLElement | null;
+        const tag = t?.tagName;
+        if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+        e.preventDefault();
+        handleGenerateOutfits();
+      }
+    };
+    const root = document.getElementById('studio-workspace');
+    root?.addEventListener('keydown', onKeyDown);
+    return () => root?.removeEventListener('keydown', onKeyDown);
+  }, [loading, selectedGarment, context, style, dialLevel, colorPreference, accessoryPreference, customNotes]);
+
   // Helper to map color & accessory preferences to MannequinFigure2D props
   const getMannequinColor = () => {
     if (colorPreference === 'Chàm') return '#1E293B';
@@ -488,11 +515,20 @@ export const CoDesignStudio: React.FC<CoDesignStudioProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
-          <button
-            onClick={() => onOpenCKB()}
-            className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5 backdrop-blur-xs"
-          >
+        <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
+          {onOpenHistory && (
+            <button onClick={onOpenHistory} title="Xem lịch sử các bản phối đã tạo" className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5 backdrop-blur-xs">
+              <History className="w-3.5 h-3.5" />
+              <span>Lịch sử</span>
+            </button>
+          )}
+          {currentProposal && (
+            <button onClick={handleCopyShareLink} title="Sao chép link chia sẻ bản phối đang xem" className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5 backdrop-blur-xs">
+              <Share2 className="w-3.5 h-3.5" />
+              <span>{shareCopied ? 'Đã sao chép!' : 'Chia sẻ link'}</span>
+            </button>
+          )}
+          <button onClick={() => onOpenCKB()} className="text-xs font-medium text-[#E6C88B] hover:text-[#F2E9D8] bg-[#261C19]/80 hover:bg-[#322521] border border-[#C9A66B]/30 px-3.5 py-2 rounded-xl transition-colors cursor-pointer min-h-[40px] flex items-center gap-1.5 backdrop-blur-xs">
             <span>Xem quy tắc tham chiếu</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
