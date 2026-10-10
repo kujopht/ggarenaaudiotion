@@ -1,0 +1,7 @@
+import { OutfitProposal, GarmentKey } from '../types/vietphuc';
+export const SHARE_SCHEMA_VERSION = 1;
+export interface SharedDesign { v: number; garment: GarmentKey; context: string; style: string; dialLevel: number; colorPreference: string; accessoryPreference: string; proposal: OutfitProposal; source: string; }
+export function encodeShareLink(data: Omit<SharedDesign, 'v'>): string | null { try { const json = JSON.stringify({ v: SHARE_SCHEMA_VERSION, ...data }); const b64 = btoa(unescape(encodeURIComponent(json))); return `${window.location.origin}${window.location.pathname}#d=${b64}`; } catch { return null; } }
+export function decodeShareLink(): SharedDesign | null { try { const m = window.location.hash.match(/#d=([A-Za-z0-9+/=]+)/); if (!m) return null; const json = decodeURIComponent(escape(atob(m[1]))); const parsed = JSON.parse(json); if (!parsed || parsed.v !== SHARE_SCHEMA_VERSION || !parsed.proposal) return null; return parsed as SharedDesign; } catch { return null; } }
+export function clearShareHash(): void { try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch {} }
+export async function copyTextToClipboard(text: string): Promise<boolean> { try { await navigator.clipboard.writeText(text); return true; } catch { try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); document.body.removeChild(ta); return ok; } catch { return false; } } }
